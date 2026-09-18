@@ -10,6 +10,11 @@ sharpness, not the ranking of candidates. OpenDecision searches inverse temperat
 over T in [0.05, 100]. A boundary optimum is allowed and should prompt a review of
 model quality and calibration data. The implementation has no SciPy dependency.
 
+`calibrate` scores the calibration split in batches, fits the profile, then
+scores the validation split and reports calibration metrics before and after so
+the held-out effect is visible. Temperature scaling never reorders candidates,
+so accuracy is identical on both sides; ECE, NLL and Brier are what move.
+
 ```bash
 opendecision calibrate --model tiny \
   --dataset benchmarks/datasets/core.jsonl --output calibration/tiny.json
@@ -26,13 +31,27 @@ model and checkpoint revision, serialization template, precision, maximum sequen
 length, timestamp, and before/after calibration NLL. Incompatible model identities
 are rejected. The same identity can still encounter a different task distribution.
 
-A profile also records the smallest and largest number of candidates it was
-fitted on (`choice_count_min`, `choice_count_max`). One temperature is shared
-by every choice count, but it was only observed on that range: a temperature
-fitted on yes/no rows says nothing about a ten-way decision. Each result reports
-`metadata.calibration_covers_choice_count` (`true`, `false`, or `null` when the
-profile predates this field) so callers can treat out-of-range decisions as
-uncalibrated. Fit separate profiles per task family when candidate counts differ.
+## One temperature per candidate count
+
+How sharp a scorer is depends strongly on how many candidates a request has.
+The same checkpoint can be overconfident on yes/no rows and underconfident when
+its mass is spread across twelve options, so a single pooled temperature is a
+compromise that fits neither. `fit_temperature` therefore fits one temperature
+per candidate count by default, for every count with at least
+`min_rows_per_count` (25) calibration rows; the pooled temperature stays in
+`temperature` as the fallback for counts that were not fitted. Pass
+`per_choice_count=False` (or `opendecision calibrate --pooled`) for the single
+pooled value.
+
+`temperature_for(n)` returns the temperature a request with `n` candidates
+receives, and each result reports it as `metadata.calibration_temperature`.
+`covers(n)` is exact for a per-count profile and reports range membership for a
+pooled one (`null` for profiles that predate the fields). A profile also records
+`choice_count_min` and `choice_count_max`.
+
+Fitting per count does not make a profile transfer across task distributions.
+Fit separate profiles per task family when the decisions differ in kind, not
+only in width.
 
 `probabilities` exposes the effective distribution. `calibrated_probabilities`
 is null without a profile; `normalized_probabilities` always retains the original

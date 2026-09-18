@@ -13,7 +13,7 @@ does not turn a proposal into an unsupported performance claim.
 | Shared-state encoding | Implemented for `decoder` | One KV-cache prefix per distinct state; cross-encoders still pay per candidate |
 | Device selection | Implemented | `auto` resolves CUDA, then MPS, then CPU; MPS preference backed by a published measurement |
 | Choice / boolean / multi-label / ranking / batches | Implemented | Multi-label is independent binary scoring; shared-state batching is flattened |
-| Calibration | Implemented | Held-out temperature scaling profile with identity and dataset hash |
+| Calibration | Implemented | Per-candidate-count temperature scaling with identity, dataset hash, and a held-out validation report; committed profiles for `tiny` and `base` |
 | Abstention | Implemented | Minimum top probability and top-two margin thresholds |
 | CLI | Implemented | `models`, `pull`, `doctor`, `decide`, `rank`, `boolean`, `serve`, `benchmark`, `calibrate` |
 | Local HTTP server | Implemented | FastAPI on loopback, resident load, bounded body/batch/concurrency |

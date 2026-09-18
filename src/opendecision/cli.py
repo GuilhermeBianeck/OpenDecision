@@ -11,6 +11,7 @@ import platform
 import re
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -135,6 +136,22 @@ def build_parser() -> argparse.ArgumentParser:
     _model_options(calibrate)
     calibrate.add_argument("--dataset", type=Path, required=True)
     calibrate.add_argument("--output", type=Path, required=True)
+    calibrate.add_argument(
+        "--pooled",
+        action="store_true",
+        help="Fit one temperature for every candidate count instead of one per count",
+    )
+    calibrate.add_argument(
+        "--min-rows-per-count",
+        type=int,
+        default=25,
+        help="Candidate counts with fewer calibration rows fall back to the pooled temperature",
+    )
+    calibrate.add_argument(
+        "--no-validation",
+        action="store_true",
+        help="Skip scoring the validation split; the report then shows no held-out effect",
+    )
     return parser
 
 
@@ -265,6 +282,61 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
     return {"reports": reports, "skipped": skipped}
 
 
+def _calibration_rows(engine: Any, cases: list[Any]) -> tuple[list[list[float]], list[int]]:
+    """Score labeled choice cases in batches and return raw score rows with label indexes."""
+    from opendecision.schemas import DecisionRequest
+
+    scores, targets = [], []
+    for offset in range(0, len(cases), 32):
+        chunk = cases[offset : offset + 32]
+        results = engine.choose_batch(
+            [
+                DecisionRequest(
+                    state=case.state,
+                    question=case.question,
+                    choices=case.choices,
+                    include_raw_scores=True,
+                )
+                for case in chunk
+            ]
+        )
+        for case, result in zip(chunk, results):
+            if result.raw_scores is None:
+                raise ValueError("Backend did not expose scores required for calibration")
+            scores.append([result.raw_scores[choice] for choice in case.choices])
+            targets.append(case.choices.index(case.target))
+    return scores, targets
+
+
+def _held_out_effect(profile: Any, scores: list[list[float]], targets: list[int]) -> dict[str, Any]:
+    """Calibration metrics on rows the profile was not fitted on."""
+    from opendecision.confidence import softmax
+    from opendecision.metrics import classification_metrics
+
+    def measure(transform: Any) -> dict[str, Any]:
+        records = [
+            {
+                "target": str(target),
+                "probabilities": {str(i): p for i, p in enumerate(transform(row))},
+                "choice": str(max(range(len(row)), key=lambda i: transform(row)[i])),
+                "confidence": 0.0,
+                "abstained": False,
+            }
+            for row, target in zip(scores, targets)
+        ]
+        metrics = classification_metrics(records)
+        return {
+            key: metrics[key]
+            for key in ("count", "accuracy", "ece", "negative_log_likelihood", "brier_score")
+        }
+
+    return {
+        "before": measure(softmax),
+        "after": measure(profile.transform),
+        "note": "Temperature scaling never changes candidate ordering, so accuracy is identical.",
+    }
+
+
 def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
     from opendecision.benchmark import load_dataset
     from opendecision.calibration import fit_temperature
@@ -273,28 +345,25 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError(
             "Fit a new profile without --calibration; existing calibration cannot be chained"
         )
+
     # Calibration fits the candidate softmax; boolean statements and rubric levels
     # are scored through different paths and are excluded until profiled separately.
-    cases = [
-        case
-        for case in load_dataset(args.dataset)
-        if case.split == "calibration"
-        and case.kind == "choice"
-        and case.family in {"objective", "agent_control", "robustness"}
-        and case.target is not None
-    ]
+    def labeled(split: str) -> list[Any]:
+        return [
+            case
+            for case in dataset
+            if case.split == split
+            and case.kind == "choice"
+            and case.family in {"objective", "agent_control", "robustness"}
+            and case.target is not None
+        ]
+
+    dataset = load_dataset(args.dataset)
+    cases = labeled("calibration")
     if not cases:
         raise ValueError("Dataset has no labeled objective examples in the calibration split")
     engine = _load_model(args)
-    scores, targets = [], []
-    for case in cases:
-        result = engine.choose(
-            state=case.state, question=case.question, choices=case.choices, include_raw_scores=True
-        )
-        if result.raw_scores is None:
-            raise ValueError("Backend did not expose scores required for calibration")
-        scores.append([result.raw_scores[choice] for choice in case.choices])
-        targets.append(case.choices.index(case.target))
+    scores, targets = _calibration_rows(engine, cases)
     backend = engine.backend
     profile = fit_temperature(
         scores,
@@ -307,14 +376,24 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         precision=backend.precision,
         task_family="objective_agent_control",
         dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
+        per_choice_count=not args.pooled,
+        min_rows_per_count=args.min_rows_per_count,
     )
     profile.save(args.output)
-    return {
+    report: dict[str, Any] = {
         "output": str(args.output),
         "examples": len(cases),
         "split": "calibration",
+        "candidate_counts": dict(sorted(Counter(len(row) for row in scores).items())),
         "profile": profile.model_dump(mode="json"),
     }
+    validation = [] if args.no_validation else labeled("validation")
+    if validation:
+        held_out_scores, held_out_targets = _calibration_rows(engine, validation)
+        report["validation"] = _held_out_effect(profile, held_out_scores, held_out_targets)
+    else:
+        report["validation"] = None
+    return report
 
 
 def run(args: argparse.Namespace) -> Any:

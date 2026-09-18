@@ -213,11 +213,51 @@ def test_calibration_uses_only_labeled_calibration_split(tmp_path, capsys):
     )
     report = json.loads(capsys.readouterr().out)
     assert report["examples"] == 2
+    assert report["candidate_counts"] == {"2": 2}
+    # Two rows are below min_rows_per_count, so only the pooled temperature is fitted.
+    assert report["profile"]["temperatures"] is None
+    assert report["validation"]["before"]["count"] == 1
+    assert report["validation"]["after"]["accuracy"] == report["validation"]["before"]["accuracy"]
     profile = CalibrationProfile.load(output)
     assert profile.split == "calibration"
     assert profile.sample_count == 2
     assert profile.dataset_sha256
     assert profile.precision == "float64"
+
+
+def test_calibration_without_validation_rows_reports_no_held_out_effect(tmp_path, capsys):
+    rows = [
+        {
+            "id": f"case-{index}",
+            "group_id": f"group-{index}",
+            "split": "calibration",
+            "family": "objective",
+            "state": "billing",
+            "question": "Team?",
+            "choices": ["billing", "technical"],
+            "target": "billing",
+        }
+        for index in range(3)
+    ]
+    dataset = tmp_path / "data.jsonl"
+    dataset.write_text("\n".join(json.dumps(row) for row in rows))
+    output = tmp_path / "profile.json"
+    assert (
+        main(
+            [
+                "calibrate",
+                "--model",
+                "demo",
+                "--dataset",
+                str(dataset),
+                "--output",
+                str(output),
+                "--no-validation",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["validation"] is None
 
 
 def test_calibration_refuses_test_only_data(tmp_path, capsys):

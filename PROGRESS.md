@@ -110,11 +110,33 @@ expanded by deterministic variants. Slice sizes above count rows; the number of
 independent scenarios behind each is far smaller, and no human adjudication has
 taken place. These reports are baseline measurements, not a superiority claim.
 
+### Calibration
+
+Temperature is fitted per candidate count on the calibration split (741 labeled
+choice rows: 416 binary, 208 four-way, 117 twelve-way) and measured on the
+untouched validation split. Sharpness depends strongly on width, so one pooled
+temperature fits none of the groups:
+
+| Backend | Pooled T | T for k=2 | T for k=4 | T for k=12 | Validation ECE | Validation NLL |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `tiny` | 9.10 | 100.00 | 0.81 | 1.84 | 0.251 → 0.129 | 1.378 → 1.115 |
+| `base` | 2.29 | 9.55 | 0.39 | 0.30 | 0.221 → 0.136 | 1.060 → 0.896 |
+
+Accuracy is unchanged on both sides, as temperature scaling never reorders
+candidates. Binary rows need heavy smoothing while wide rows need sharpening —
+the models are underconfident once their mass spreads across many options.
+`tiny` reaching the T=100 boundary for binary rows is a fit at the edge of the
+search domain and should be read as "this model's binary scores carry little
+usable signal", not as a well-determined temperature. Profiles for `tiny` and
+`base` are committed under `calibration/`.
+
 ## Remaining work
 
-- Fit calibration profiles per task family on the calibration split and report
-  selective accuracy at matched coverage; the decoder in particular is
-  overconfident without one.
+- Fit profiles for `smart`, `multilingual` and `decoder`, and per task family;
+  the decoder in particular is overconfident (test ECE 0.275) and abstained on
+  only 7.3 % of ambiguous cases without one.
+- Extend calibration to the statement and rubric paths, which are scored through
+  different code and are currently excluded from fitting.
 - Address negation and instruction steering, which every current backend fails:
   candidate serialization that does not lexically restate the option, a small
   fine-tune on the training split with held-out groups, or an instruction-free

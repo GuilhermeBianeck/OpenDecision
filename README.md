@@ -203,6 +203,14 @@ opendecision calibrate --model base --dataset benchmarks/datasets/core.jsonl \
 model = DecisionModel("base", calibration="calibration/base.json")
 ```
 
+Profiles for `tiny` and `base`, fitted on the calibration split of the committed
+corpus, are in [calibration/](calibration/). A temperature is fitted per
+candidate count, because the same checkpoint can be overconfident on yes/no
+rows and underconfident across twelve options: `base` fits 9.55 for two
+candidates and 0.30 for twelve. On the held-out validation split this moved
+`base` from ECE 0.221 to 0.136 and NLL 1.060 to 0.896, with accuracy unchanged —
+temperature scaling never reorders candidates.
+
 Fit on the calibration split, select thresholds on validation, then evaluate
 the untouched test split. A profile checks checkpoint, template, precision,
 and sequence limit; it does not establish reliability on a new task distribution.

@@ -187,6 +187,9 @@ class DecisionModel:
             "calibration_covers_choice_count": (
                 self.calibration.covers(len(request.choices)) if self.calibration else None
             ),
+            "calibration_temperature": (
+                self.calibration.temperature_for(len(request.choices)) if self.calibration else None
+            ),
             "confidence_definition": "top1_minus_top2",
             "batch_size": batch_count,
             "batch_inference_ms": inference_ms,
