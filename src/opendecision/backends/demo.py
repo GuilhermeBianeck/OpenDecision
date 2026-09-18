@@ -20,6 +20,7 @@ class DemoBackend:
     # expected by the portable calibration serializer.
     precision = "float64"
     load_time_ms = 0.0
+    supports_statements = False
 
     def ensure_loaded(self) -> None:
         """No model artifacts are needed for the infrastructure fixture."""

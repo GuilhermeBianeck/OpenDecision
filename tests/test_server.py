@@ -68,6 +68,41 @@ def test_batch_and_independent_booleans(client):
         assert sum(response.json()[label]["decision"]["probabilities"].values()) == pytest.approx(1)
 
 
+def test_statement_engine_contract_and_unsupported_threshold():
+    from test_core import StatementBackend
+
+    engine = DecisionModel(backend=StatementBackend([1.0, 3.0, -1.0]))
+    with TestClient(create_app("demo", decision_model=engine)) as client:
+        assert client.get("/health").json()["supports_statements"] is True
+        body = client.post(
+            "/v1/boolean", json={"state": "s", "question": "The charge was refunded."}
+        ).json()
+        assert body["method"] == "statement"
+        assert body["value"] is True
+        assert 0 < body["unsupported"] < 1
+        abstained = client.post(
+            "/v1/boolean",
+            json={"state": "s", "question": "claim", "unsupported_threshold": 0.1},
+        ).json()
+        assert abstained["value"] is None and abstained["decision"]["abstained"]
+        labels = client.post(
+            "/v1/multi-label",
+            json={"state": "s", "labels": ["a", "b"], "unsupported_threshold": 0.1},
+        ).json()
+        assert all(label["method"] == "statement" for label in labels.values())
+
+
+def test_unsupported_threshold_is_rejected_without_statement_scoring(client):
+    assert client.get("/health").json()["supports_statements"] is False
+    response = client.post(
+        "/v1/boolean", json={"state": "", "question": "Ready?", "unsupported_threshold": 0.5}
+    )
+    assert response.status_code == 422
+    assert "statement scoring" in response.json()["detail"]
+    plain = client.post("/v1/boolean", json={"state": "", "question": "Ready?"}).json()
+    assert plain["method"] == "binary_choice" and plain["unsupported"] is None
+
+
 def test_threshold_abstention(client):
     result = client.post("/v1/decide", json={**REQUEST, "abstain_threshold": 1}).json()
     assert result["abstained"] is True

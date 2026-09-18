@@ -25,6 +25,21 @@ class FixedBackend:
         return [self.scores[:] for _ in requests]
 
 
+class StatementBackend(FixedBackend):
+    """Fixture returning fixed [entailment, neutral, contradiction] logits."""
+
+    supports_statements = True
+
+    def __init__(self, logits=None):
+        super().__init__()
+        self.logits = logits or [2.0, 0.0, -1.0]
+        self.statements = []
+
+    def score_statements(self, requests):
+        self.statements.extend(requests)
+        return [self.logits[:] for _ in requests]
+
+
 def choose(backend=None, **kwargs):
     return DecisionModel(backend=backend or FixedBackend()).choose(
         state="A public test fixture", question="Which?", choices=["a", "b"], **kwargs
@@ -98,9 +113,65 @@ def test_boolean_abstention_and_ranking():
     boolean = model.boolean(state="", question="?", abstain_threshold=0.999)
     assert boolean.value is None
     assert boolean.probability > 0.5
+    assert boolean.method == "binary_choice"
+    assert boolean.unsupported is None
     ranking = model.rank(state="", question="?", choices=["b", "a"], include_raw_scores=True)
     assert [x.choice for x in ranking.ranking] == ["b", "a"]
     assert ranking.ranking[0].raw_score == 3
+
+
+def test_statement_backend_decides_between_support_and_contradiction():
+    backend = StatementBackend([2.0, 0.0, -1.0])
+    model = DecisionModel(backend=backend)
+    assert model.supports_statements
+    result = model.boolean(state="s", question="The invoice is paid.")
+    assert result.method == "statement"
+    assert result.value is True
+    # Yes/no ignores the neutral logit; unsupported reports it separately.
+    assert result.probability == pytest.approx(softmax([2.0, -1.0])[0])
+    assert result.unsupported == pytest.approx(softmax([2.0, 0.0, -1.0])[1])
+    assert result.decision.probabilities == {
+        "yes": pytest.approx(result.probability),
+        "no": pytest.approx(1 - result.probability),
+    }
+    assert result.decision.metadata["method"] == "statement"
+    assert backend.statements[0].statement == "The invoice is paid."
+    assert not backend.requests
+
+
+def test_unsupported_threshold_abstains_only_on_neutral_mass():
+    # Support dominates contradiction, but the neutral label carries most mass.
+    model = DecisionModel(backend=StatementBackend([1.0, 4.0, -1.0]))
+    confident = model.boolean(state="s", question="claim", unsupported_threshold=0.99)
+    assert confident.value is True
+    uncertain = model.boolean(state="s", question="claim", unsupported_threshold=0.5)
+    assert uncertain.value is None
+    assert uncertain.decision.abstained
+    assert uncertain.probability == confident.probability
+    assert uncertain.unsupported > 0.5
+    boundary = model.boolean(
+        state="s", question="claim", unsupported_threshold=uncertain.unsupported
+    )
+    assert boundary.value is True
+
+
+def test_multi_label_uses_statements_when_available_and_falls_back_otherwise():
+    backend = StatementBackend()
+    result = DecisionModel(backend=backend).multi_label(
+        state="s", labels=["urgent", "billing"], unsupported_threshold=0.9
+    )
+    assert [r.statement for r in backend.statements] == ["urgent", "billing"]
+    assert all(r.method == "statement" for r in result.values())
+    fallback = DecisionModel(backend=FixedBackend())
+    assert fallback.multi_label(state="s", labels=["urgent"])["urgent"].method == "binary_choice"
+    with pytest.raises(ValueError, match="unsupported_threshold requires statement scoring"):
+        fallback.boolean(state="s", question="claim", unsupported_threshold=0.5)
+
+
+@pytest.mark.parametrize("logits", [[1.0, 2.0], [float("nan"), 0.0, 0.0]])
+def test_invalid_statement_logits_fail_closed(logits):
+    with pytest.raises(BackendError, match="three finite logits"):
+        DecisionModel(backend=StatementBackend(logits)).boolean(state="s", question="c")
 
 
 def test_many_questions_and_batch_size_errors():

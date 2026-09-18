@@ -81,6 +81,7 @@ class BooleanRequest(BaseModel):
     question: str = Field(min_length=1, max_length=8_192)
     abstain_threshold: float | None = Field(default=None, ge=0, le=1)
     margin_threshold: float | None = Field(default=None, ge=0, le=1)
+    unsupported_threshold: float | None = Field(default=None, ge=0, le=1)
 
     @field_validator("question")
     @classmethod
@@ -98,6 +99,7 @@ class MultiLabelRequest(BaseModel):
     )
     abstain_threshold: float | None = Field(default=None, ge=0, le=1)
     margin_threshold: float | None = Field(default=None, ge=0, le=1)
+    unsupported_threshold: float | None = Field(default=None, ge=0, le=1)
 
     @field_validator("labels")
     @classmethod
@@ -173,6 +175,11 @@ def create_app(
         finally:
             slots.release()
 
+    @app.exception_handler(ValueError)
+    async def request_semantics_error_handler(_request: Any, error: ValueError) -> JSONResponse:
+        # Requests that pass schema validation but the loaded model cannot honour.
+        return JSONResponse(status_code=422, content={"detail": str(error)})
+
     @app.exception_handler(OpenDecisionError)
     async def decision_error_handler(_request: Any, error: OpenDecisionError) -> JSONResponse:
         return JSONResponse(
@@ -182,7 +189,13 @@ def create_app(
 
     @app.get("/health")
     def health() -> dict[str, Any]:
-        return {"status": "ok", "model": model_name, "inference": "local", "telemetry": False}
+        return {
+            "status": "ok",
+            "model": model_name,
+            "inference": "local",
+            "telemetry": False,
+            "supports_statements": bool(getattr(app.state.engine, "supports_statements", False)),
+        }
 
     @app.get("/v1/models")
     def models() -> dict[str, Any]:

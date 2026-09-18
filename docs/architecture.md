@@ -19,9 +19,12 @@ model loading, and raw scores. FastAPI holds one model instance for the process.
 The TypeScript client calls its HTTP endpoints; Python can work entirely in process.
 
 Each request has at least two unique nonblank choices. Batches flatten all candidate
-pairs and process them in bounded microbatches. `multi_label` creates an independent
-yes/no request for each label. `decide_many` repeats the shared state per question;
-there is no shared encoder cache in the alpha.
+pairs and process them in bounded microbatches. Booleans and `multi_label` labels are
+statements about the state: an NLI backend scores each statement directly and returns
+entailment, neutral, and contradiction logits (`StatementBackend`); the neutral share
+becomes `unsupported`. Other backends score each statement as a two-way choice.
+`decide_many` repeats the shared state per question; there is no shared encoder
+cache in the alpha.
 
 Weights load lazily from pinned local cache entries. Explicit `pull` is the only
 default model download operation. The server ensures loading during startup.

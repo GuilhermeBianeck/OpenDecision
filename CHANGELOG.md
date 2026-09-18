@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Booleans and multi-label questions are scored as statements on NLI backends:
+  yes/no is entailment against contradiction, `unsupported` reports the neutral
+  share, and `unsupported_threshold` abstains on it. Other backends keep the
+  two-way choice and report `method: "binary_choice"`.
 - Calibration profiles record the range of candidate counts they were fitted on;
   results report `metadata.calibration_covers_choice_count`.
 

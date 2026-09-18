@@ -49,6 +49,15 @@ the yes probability even when abstained; their `value` then becomes null. Multi-
 questions receive independent binary distributions. A ranking is still returned
 when its top-choice decision abstains.
 
+With statement scoring (`method: "statement"`), a boolean's yes/no distribution
+is the softmax of the entailment and contradiction logits, so calibration and
+the two thresholds above apply to it unchanged. `unsupported` is the neutral
+share of the three-way softmax and is not part of that distribution; it is an
+absolute signal that the state neither supports nor contradicts the statement.
+`unsupported_threshold` abstains when `unsupported` exceeds it (equality passes),
+independently of how decisive the yes/no margin looks. Backends without statement
+scoring reject `unsupported_threshold` rather than ignoring it.
+
 Choose thresholds on validation according to the consequences of error and
 abstention. Report coverage and accuracy on answered objective examples together;
 perfect accuracy at tiny coverage can be operationally useless. Moral dilemmas

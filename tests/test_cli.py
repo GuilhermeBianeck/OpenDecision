@@ -26,6 +26,14 @@ def test_local_demo_decision(command, capsys):
     assert ("decision" in result) if command != "decide" else (result["choice"] == "billing")
 
 
+def test_boolean_unsupported_threshold_requires_statement_backend(capsys):
+    args = ["boolean", "--model", "demo", "--state", "x", "--question", "claim"]
+    assert main([*args, "--unsupported-threshold", "0.5"]) == 1
+    assert "statement scoring" in capsys.readouterr().err
+    assert main(args) == 0
+    assert json.loads(capsys.readouterr().out)["method"] == "binary_choice"
+
+
 def test_private_state_file(tmp_path, capsys):
     path = tmp_path / "context.txt"
     path.write_text("billing issue", encoding="utf-8")
