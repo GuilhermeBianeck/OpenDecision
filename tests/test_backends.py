@@ -288,6 +288,20 @@ def test_invalid_backend_configuration(kwargs):
         DebertaBackend(**kwargs)
 
 
+def test_precision_resolves_with_the_device():
+    from opendecision.backends.transformers import default_precision
+
+    assert default_precision("cpu") == "float32"
+    assert default_precision("mps") == "bfloat16"
+    assert default_precision("cuda") == "bfloat16"
+    assert default_precision("cuda:1") == "bfloat16"
+    # Unresolved until load, so the catalog stays importable without torch.
+    assert DebertaBackend().precision is None
+    assert DebertaBackend(precision="float16").precision == "float16"
+    with pytest.raises(BackendError, match="precision must be"):
+        DebertaBackend(precision="int8")
+
+
 def test_default_sequence_limit_is_model_context_capped():
     from opendecision import DecisionModel
     from opendecision.backends.bge_reranker import BGERerankerBackend

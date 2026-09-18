@@ -95,7 +95,9 @@ verification, the decoder for wide or repeated choices over one state; the
 [benchmark reports](benchmarks/reports/) measure both.
 
 These aliases name model families, not quality guarantees. `auto` currently
-selects `base`. `device="auto"` selects CUDA, then MPS, then CPU; on the
+selects `base`. `device="auto"` selects CUDA, then MPS, then CPU, and picks
+bfloat16 on a GPU or float32 on CPU — measured quality-neutral and 2.1–3.0×
+faster on the reference machine. Override with `precision=`; on the
 reference 16 GB Apple Silicon machine MPS measured 1.2–3.5× faster than CPU for
 every model (see [device policy](docs/model-licenses.md#device-and-precision-policy)).
 Pass `device="cpu"` to opt out. The default sequence limit is the model's
@@ -206,11 +208,13 @@ model = DecisionModel("base", calibration="calibration/base.json")
 ```
 
 Profiles for all five backends, fitted on the calibration split of the committed
-corpus, are in [calibration/](calibration/). A temperature is fitted per
+corpus, are in [calibration/](calibration/) — `<name>.json` matches the GPU
+default and `<name>-float32.json` the CPU default, because a profile is bound to
+the precision it was fitted under. A temperature is fitted per
 candidate count, because the same checkpoint can be overconfident on yes/no rows
 and underconfident across twelve options: `base` fits 9.55 for two candidates
 and 0.30 for twelve. On held-out validation this moved `base` from ECE 0.221 to
-0.136 and the `decoder` from 0.304 to 0.081, with accuracy unchanged —
+0.130 and the `decoder` from 0.305 to 0.061, with accuracy unchanged —
 temperature scaling never reorders candidates.
 
 Two results argue against adopting a profile blindly: `multilingual` improves
@@ -250,10 +254,11 @@ pytest
 
 The committed [report matrix](benchmarks/reports/README.md) covers all five
 backends on the 1,726-row test split: pooled objective accuracy 0.51–0.68,
-statement verification up to 0.966 (`base`), twelve-option routing up to 0.917
-on clean states (`decoder`), and — for every backend — near-chance accuracy on
-negated facts and near-total compliance with instructions embedded in the
-state. Read [PROGRESS.md](PROGRESS.md) for the slices behind those numbers.
+statement verification up to 0.963 (`base`), twelve-option routing up to 0.917
+on clean states (`decoder`), and — for every backend — a large drop on negated
+facts and near-total compliance with instructions embedded in the state. The
+last two have measured remedies in [patterns](docs/patterns.md). Read
+[PROGRESS.md](PROGRESS.md) for the slices behind every number.
 
 Synthetic benchmark cases are transparent regression fixtures, not independent
 human judgments. Moral cases have no universal accuracy label. External provider

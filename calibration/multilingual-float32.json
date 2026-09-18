@@ -1,11 +1,11 @@
 {
   "version": 1,
   "method": "temperature_scaling",
-  "temperature": 5.966333340148487,
+  "temperature": 6.032493240316202,
   "temperatures": {
     "2": 100.0,
-    "4": 2.213362482917901,
-    "12": 2.6803383262875395
+    "4": 2.218701893742158,
+    "12": 2.72783019330712
   },
   "backend": "multilingual",
   "model": "BAAI/bge-reranker-v2-m3",
@@ -13,13 +13,13 @@
   "template": "default",
   "task_family": "objective_agent_control",
   "max_length": 2048,
-  "precision": "bfloat16",
+  "precision": "float32",
   "dataset_sha256": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
   "split": "calibration",
   "sample_count": 741,
   "choice_count_min": 2,
   "choice_count_max": 12,
-  "nll_before": 1.5887735054294667,
-  "nll_after": 1.0748147465769717,
-  "created_at": "2026-09-18T14:47:36.795019+00:00"
+  "nll_before": 1.5925401176999583,
+  "nll_after": 1.0758624354928612,
+  "created_at": "2026-09-18T14:57:14.683881+00:00"
 }

@@ -1,11 +1,11 @@
 {
   "version": 1,
   "method": "temperature_scaling",
-  "temperature": 9.205104990977732,
+  "temperature": 9.098695026800934,
   "temperatures": {
     "2": 100.0,
-    "4": 0.8137944378963963,
-    "12": 1.8515871663727226
+    "4": 0.8143766287211821,
+    "12": 1.841608578884049
   },
   "backend": "tiny",
   "model": "cross-encoder/nli-deberta-v3-xsmall",
@@ -13,13 +13,13 @@
   "template": "default",
   "task_family": "objective_agent_control",
   "max_length": 512,
-  "precision": "bfloat16",
+  "precision": "float32",
   "dataset_sha256": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
   "split": "calibration",
   "sample_count": 741,
   "choice_count_min": 2,
   "choice_count_max": 12,
-  "nll_before": 1.3786402497388108,
-  "nll_after": 1.0653196452832332,
-  "created_at": "2026-09-18T14:44:08.149990+00:00"
+  "nll_before": 1.3780513963254664,
+  "nll_after": 1.0649368474392116,
+  "created_at": "2026-09-18T14:49:56.387864+00:00"
 }

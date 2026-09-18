@@ -46,7 +46,7 @@ All adapters flatten candidates across requests into real tensor batches and ret
 
 ## Device and precision policy
 
-`device="auto"` selects CUDA when available, then MPS, then CPU. The MPS preference is based on a measurement, not on availability: warm single-request latency for `choose` on the reference 16 GB Apple Silicon machine, float32, eager attention, 18 September 2026, three repetitions per cell.
+`device="auto"` selects CUDA when available, then MPS, then CPU, and resolves precision alongside it: bfloat16 on a GPU, float32 on CPU. On the 1,726-row test split that is quality-neutral (`base` accuracy and NLL identical to four decimals, `decoder` within ±0.004 on every metric) and lowers warm p50 from 24.5/28.7/107.0/58.8/158.1 ms to 11.0/13.9/42.1/19.6/65.9 ms for tiny/base/smart/multilingual/decoder. Pass `precision="float32"` for the portable baseline; a calibration profile is bound to the precision it was fitted under. The MPS preference is based on a measurement, not on availability: warm single-request latency for `choose` on the reference 16 GB Apple Silicon machine, float32, eager attention, 18 September 2026, three repetitions per cell.
 
 | Model | State × choices | CPU ms | MPS ms | Speed-up |
 | --- | --- | ---: | ---: | ---: |
@@ -60,6 +60,6 @@ All adapters flatten candidates across requests into real tensor batches and ret
 | `smart` | 256 tok × 4 | 1463.0 | 738.7 | 2.0× |
 | `smart` | 1000 tok × 8 | 13445.3 | 6545.3 | 2.1× |
 
-Other hardware must be measured separately; `opendecision doctor` reports the device `auto` will pick. Numerical results on MPS and CPU can differ at float32 rounding level. The default runtime precision is float32 for portable baselines. The Skywork artifact stores bfloat16 weights but is converted to float32 by default, increasing resident weight memory beyond its file size. Explicit float16 or bfloat16 is permitted on supported hardware, reported in result metadata, and requires separate quality/calibration checks. Float16 on CPU is rejected.
+Other hardware must be measured separately; `opendecision doctor` reports the device `auto` will pick. Numerical results on MPS and CPU can differ at float32 rounding level. The default runtime precision follows the device, as above; float32 remains the portable baseline and is what CPU installations get. The Skywork artifact stores bfloat16 weights but is converted to float32 by default, increasing resident weight memory beyond its file size. Explicit float16 or bfloat16 is permitted on supported hardware, reported in result metadata, and requires separate quality/calibration checks. Float16 on CPU is rejected.
 
 `demo` uses deterministic token overlap solely for installation, API, and test infrastructure. It has no model weights and no learned decision quality, and must not be included as a competitive model in quality claims.

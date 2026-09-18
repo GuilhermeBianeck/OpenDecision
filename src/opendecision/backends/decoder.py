@@ -16,7 +16,11 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 from opendecision.backends.catalog import MODEL_SPECS
-from opendecision.backends.transformers import default_max_length, select_device
+from opendecision.backends.transformers import (
+    default_max_length,
+    default_precision,
+    select_device,
+)
 from opendecision.errors import BackendError
 
 if TYPE_CHECKING:
@@ -65,10 +69,11 @@ class DecoderBackend:
         batch_size: int = 32,
         max_length: int | None = None,
         template: str = "default",
-        precision: str = "float32",
+        precision: str | None = None,
         permutations: int = 1,
         model_path: str | None = None,
     ) -> None:
+        """``precision=None`` resolves with the device: bfloat16 on a GPU, float32 on CPU."""
         if max_length is None:
             max_length = default_max_length(context_limit)
         if batch_size < 1 or max_length < 64:
@@ -77,7 +82,7 @@ class DecoderBackend:
             raise BackendError(f"{name} supports max_length up to {context_limit}.")
         if template not in {"default", "short"}:
             raise BackendError("template must be 'default' or 'short'.")
-        if precision not in {"float32", "float16", "bfloat16"}:
+        if precision is not None and precision not in {"float32", "float16", "bfloat16"}:
             raise BackendError("precision must be float32, float16, or bfloat16.")
         if not 1 <= permutations <= MAX_OPTIONS:
             raise BackendError(f"permutations must be between 1 and {MAX_OPTIONS}.")
@@ -140,6 +145,8 @@ class DecoderBackend:
                     "Install with: pip install -e '.[inference]'"
                 ) from exc
             self.device = select_device(self.device, torch)
+            if self.precision is None:
+                self.precision = default_precision(self.device)
             if self.device == "cpu" and self.precision == "float16":
                 raise BackendError("float16 on CPU is unsupported; use precision='float32'.")
             options: dict[str, Any] = {

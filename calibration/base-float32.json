@@ -1,11 +1,11 @@
 {
   "version": 1,
   "method": "temperature_scaling",
-  "temperature": 2.2733156212699366,
+  "temperature": 2.28638049074151,
   "temperatures": {
-    "2": 9.123037811325341,
-    "4": 0.3917847002611409,
-    "12": 0.30625199851071
+    "2": 9.548453092241234,
+    "4": 0.3904363415329638,
+    "12": 0.29711566247393445
   },
   "backend": "base",
   "model": "tasksource/ModernBERT-base-nli",
@@ -13,13 +13,13 @@
   "template": "default",
   "task_family": "objective_agent_control",
   "max_length": 2048,
-  "precision": "bfloat16",
+  "precision": "float32",
   "dataset_sha256": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
   "split": "calibration",
   "sample_count": 741,
   "choice_count_min": 2,
   "choice_count_max": 12,
-  "nll_before": 1.1779835015331481,
-  "nll_after": 0.9603052506401901,
-  "created_at": "2026-09-18T14:44:45.070402+00:00"
+  "nll_before": 1.1790982638356693,
+  "nll_after": 0.9572383172042016,
+  "created_at": "2026-09-18T14:50:58.660894+00:00"
 }
