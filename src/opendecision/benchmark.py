@@ -37,6 +37,18 @@ Family = Literal[
     "ordinal",
 ]
 OBJECTIVE_FAMILIES = ("objective", "agent_control", "verification", "robustness")
+# Result metadata that is identical for every row of one report; kept once under runtime.
+STATIC_METADATA_KEYS = (
+    "revision",
+    "device",
+    "precision",
+    "template",
+    "max_length",
+    "calibrated",
+    "calibration",
+    "confidence_definition",
+    "latency_scope",
+)
 
 
 class BenchmarkCase(BaseModel):
@@ -246,6 +258,13 @@ def _row(case: BenchmarkCase, result: Any) -> dict[str, Any]:
         "reported_latency_ms": decision.latency_ms,
         "metadata": getattr(decision, "metadata", {}),
     }
+    metadata = dict(row.pop("metadata") or {})
+    details = metadata.pop("backend_details", None) or {}
+    # Per-row metadata keeps only what can differ between rows of one report.
+    row["metadata"] = {k: v for k, v in metadata.items() if k not in STATIC_METADATA_KEYS}
+    row["state_truncated"] = bool(
+        details.get("truncated_candidates") or details.get("truncated_states")
+    )
     if case.kind == "boolean":
         row.update(
             value=result.value,
@@ -297,6 +316,13 @@ def run_benchmark(
     process_s = time.process_time() - process_start
     for case, result in zip(selected, results, strict=True):
         rows.append(_row(case, result))
+    first_metadata = dict(getattr(getattr(results[0], "decision", results[0]), "metadata", {}))
+    backend_details = dict(first_metadata.get("backend_details") or {})
+    for counter in ("truncated_candidates", "truncated_states"):
+        backend_details.pop(counter, None)
+    result_metadata = {k: v for k, v in first_metadata.items() if k in STATIC_METADATA_KEYS}
+    if backend_details:
+        result_metadata["backend_details"] = backend_details
     objective = [
         row for row in rows if row["family"] in OBJECTIVE_FAMILIES and row["target"] is not None
     ]
@@ -435,6 +461,7 @@ def run_benchmark(
             "processor": platform.processor(),
             "python": platform.python_version(),
             "dependencies": _versions(),
+            "result_metadata": result_metadata,
         },
         "objective": classification_metrics(objective),
         "objective_normalized": classification_metrics(
@@ -549,12 +576,49 @@ def run_benchmark(
     }
 
 
+def _compact(value: Any) -> Any:
+    """Round floats to six decimals for the written file; metrics use full precision."""
+    if isinstance(value, float):
+        return round(value, 6)
+    if isinstance(value, dict):
+        return {k: _compact(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_compact(v) for v in value]
+    return value
+
+
+def _written_predictions(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compact rows for disk: without a calibration profile the normalized distribution
+    equals ``probabilities`` and is omitted."""
+    written = []
+    for row in rows:
+        row = dict(row)
+        if row.get("calibrated_probabilities") is None:
+            row.pop("normalized_probabilities", None)
+        written.append(_compact(row))
+    return written
+
+
 def write_report(report: dict[str, Any], output: str | Path) -> dict[str, str]:
-    """Write JSON plus a concise Markdown companion; output is a file prefix."""
+    """Write JSON plus a concise Markdown companion; output is a file prefix.
+
+    The JSON keeps every metric at full precision; prediction rows are rounded to
+    six decimals and omit ``normalized_probabilities`` when no calibration profile
+    was loaded, since it then equals ``probabilities``.
+    """
     prefix = Path(output)
     prefix.parent.mkdir(parents=True, exist_ok=True)
     json_path, md_path = prefix.with_suffix(".json"), prefix.with_suffix(".md")
-    json_path.write_text(json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
+    on_disk = {
+        **report,
+        "predictions": _written_predictions(report["predictions"]),
+        "predictions_note": (
+            "Rows are rounded to six decimals; normalized_probabilities is omitted when "
+            "calibrated_probabilities is null because it equals probabilities. Static result "
+            "metadata is under runtime.result_metadata."
+        ),
+    }
+    json_path.write_text(json.dumps(on_disk, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
     runtime, dataset, perf = report["runtime"], report["dataset"], report["performance"]
     lines = [
         "# OpenDecision benchmark report",

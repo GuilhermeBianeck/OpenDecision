@@ -243,8 +243,18 @@ def test_demo_infrastructure_report_and_raw_scores(tmp_path):
     assert "accuracy" not in report["subjective"]
     assert "state" not in report["predictions"][0]
     assert report["predictions"][0]["raw_scores"] is not None
+    # Static result metadata lives once under runtime; rows keep only varying fields.
+    assert report["runtime"]["result_metadata"]["latency_scope"] == "batch_wall_including_lock"
+    assert "revision" not in report["predictions"][0]["metadata"]
+    assert "backend_details" not in report["predictions"][0]["metadata"]
+    assert report["predictions"][0]["state_truncated"] is False
     paths = write_report(report, tmp_path / "report.json")
-    assert json.loads(Path(paths["json"]).read_text())["status"] == "infrastructure_only"
+    written = json.loads(Path(paths["json"]).read_text())
+    assert written["status"] == "infrastructure_only"
+    assert "normalized_probabilities" not in written["predictions"][0]
+    assert "normalized_probabilities" in report["predictions"][0]
+    assert all(round(p, 6) == p for p in written["predictions"][0]["probabilities"].values())
+    assert written["objective"] == report["objective"]
     assert "infrastructure_only" in Path(paths["markdown"]).read_text()
 
 
