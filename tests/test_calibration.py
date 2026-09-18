@@ -33,6 +33,27 @@ def test_calibration_is_explicit_and_preserves_normalized_scores():
     assert result.metadata["calibrated"]
 
 
+def test_profile_records_fitted_choice_counts_and_flags_unseen_sizes():
+    profile = fit()
+    assert (profile.choice_count_min, profile.choice_count_max) == (2, 2)
+    assert profile.covers(2) is True
+    assert profile.covers(3) is False
+    legacy = profile.model_copy(update={"choice_count_min": None, "choice_count_max": None})
+    assert legacy.covers(2) is None
+    model = DecisionModel(backend=FixedBackend([3.0, 1.0, 0.5]), calibration=profile)
+    inside = DecisionModel(backend=FixedBackend(), calibration=profile)
+    assert inside.choose(state="", question="?", choices=["a", "b"]).metadata[
+        "calibration_covers_choice_count"
+    ]
+    outside = model.choose(state="", question="?", choices=["a", "b", "c"])
+    assert outside.metadata["calibration_covers_choice_count"] is False
+    assert outside.metadata["calibrated"]
+    uncalibrated = DecisionModel(backend=FixedBackend()).choose(
+        state="", question="?", choices=["a", "b"]
+    )
+    assert uncalibrated.metadata["calibration_covers_choice_count"] is None
+
+
 @pytest.mark.parametrize(
     "field,value",
     [

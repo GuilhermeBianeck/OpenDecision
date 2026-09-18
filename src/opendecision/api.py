@@ -153,6 +153,9 @@ class DecisionModel:
             "template": self.template,
             "max_length": self.max_length,
             "calibrated": self.calibration is not None,
+            "calibration_covers_choice_count": (
+                self.calibration.covers(len(request.choices)) if self.calibration else None
+            ),
             "confidence_definition": "top1_minus_top2",
             "batch_size": batch_count,
             "batch_inference_ms": inference_ms,

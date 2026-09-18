@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Calibration profiles record the range of candidate counts they were fitted on;
+  results report `metadata.calibration_covers_choice_count`.
+
 ## 0.1.0a1 — 2026-09-18
 
 Initial public alpha groundwork:
