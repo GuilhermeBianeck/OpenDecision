@@ -233,6 +233,13 @@ python -m pip install -e '.[dev,server]'
 pytest
 ```
 
+The committed [report matrix](benchmarks/reports/README.md) covers all five
+backends on the 1,726-row test split: pooled objective accuracy 0.51–0.68,
+statement verification up to 0.966 (`base`), twelve-option routing up to 0.917
+on clean states (`decoder`), and — for every backend — near-chance accuracy on
+negated facts and near-total compliance with instructions embedded in the
+state. Read [PROGRESS.md](PROGRESS.md) for the slices behind those numbers.
+
 Synthetic benchmark cases are transparent regression fixtures, not independent
 human judgments. Moral cases have no universal accuracy label. External provider
 comparisons require an explicit command and credentials; local use does not.

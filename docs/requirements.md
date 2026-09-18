@@ -18,7 +18,7 @@ does not turn a proposal into an unsupported performance claim.
 | CLI | Implemented | `models`, `pull`, `doctor`, `decide`, `rank`, `boolean`, `serve`, `benchmark`, `calibrate` |
 | Local HTTP server | Implemented | FastAPI on loopback, resident load, bounded body/batch/concurrency |
 | TypeScript SDK | Implemented | Dependency-free fetch client with typed errors and contract tests |
-| Benchmark data and metrics | Implemented | 2,320 correlated synthetic rows; objective, control, ranking, ambiguity, subjective, trolley |
+| Benchmark data and metrics | Implemented | 6,578 correlated synthetic rows from 538 seeds; objective, agent control, verification, robustness, ordinal, ranking, ambiguity, subjective, trolley |
 | Generative LLM baseline adapter | Optional | Explicit credentials and command required; no live comparison included |
 | Quantization / ONNX | Experimental | Tiny-only manifest-bound CPU artifact; `scripts/export_onnx.py` is explicit and separately verified |
 | CoreML / MPS optimization matrix | Planned | Hardware-specific measurement needs dedicated runs |

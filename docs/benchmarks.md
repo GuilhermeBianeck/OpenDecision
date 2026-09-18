@@ -70,6 +70,19 @@ convenience sample rather than a representative estimate. `--robustness` adds
 a reversed-option probe for `choice` cases and a repeat run for every case. `--models local:tiny,local:base`
 writes one report per model with a shared prefix.
 
+## Comparing reports
+
+```bash
+python scripts/compare_reports.py benchmarks/reports/*-mps-test.json \
+  --output benchmarks/reports/README.md
+```
+
+The script copies numbers out of report files into one Markdown matrix: model
+identity and dataset hash, pooled objective metrics, accuracy by family and by
+variant, ordinal and verification summaries, and timing. It computes nothing
+new; a blank cell means the report did not measure that quantity. Only compare
+rows whose dataset hash matches.
+
 ## Reading a report
 
 Each JSON report contains the dataset hash, the exact model revision, device,

@@ -11,6 +11,15 @@ it is more accurate, faster, or better calibrated than a hosted decision service
 or a generative LLM is an empirical question that only committed benchmark
 reports can answer.
 
+The first full matrix ([benchmarks/reports/README.md](../benchmarks/reports/README.md))
+answers part of it for the local backends themselves: on a 1,726-row synthetic
+test split the best pooled objective accuracy is 0.675 (`base`), verification of
+statements against a record reaches 0.966 with the NLI statement path, wide
+twelve-option routing reaches 0.917 on clean states only with the decoder, and
+every backend is at or near chance on negated facts and follows instructions
+embedded in the state. Those last two results bound what the current approach
+can be trusted with, independently of any comparison to other systems.
+
 The master specification mixes an attainable software alpha with a research
 program. The runtime, API, calibration tools, benchmark infrastructure, and
 packaging can be implemented now. Reliable performance across arbitrary
@@ -65,6 +74,6 @@ the length of the state until a backend can reuse an encoded state.
    variants are currently claimed.
 
 The committed reports are baseline measurements, not a superiority claim.
-The 2,320-case fixture corpus contains 232 underlying authored scenarios and
-55 semantic groups; it is explicitly not 2,320 independent human validations.
+The 6,578-row fixture corpus contains 538 underlying authored scenarios in
+101 semantic groups; it is explicitly not 6,578 independent human validations.
 See [PROGRESS.md](../PROGRESS.md) for actual results and outstanding evidence.
