@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `opendecision.routing`, a measured table of which backend suits which
+  question shape, reachable as `DecisionModel(task=...)`, `opendecision tasks`
+  and `--task`. Added `choose_wide`, which scores candidate sets larger than a
+  backend scores in one request by elimination, and `DecisionModel.max_choices`.
 - `device="auto"` now resolves precision as well: bfloat16 on a GPU, float32 on
   CPU. Measured quality-neutral on the test split and 2.1–3.0× faster. Adds
   `--precision` to the CLI, reports `recommended_precision` from `doctor`, and

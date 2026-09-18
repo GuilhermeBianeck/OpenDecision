@@ -28,7 +28,12 @@ def _print(value: Any) -> None:
 
 def _model_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--model", default="base", help="Model tier or registered model (default: base)"
+        "--model", default=None, help="Model tier or registered model (default: base)"
+    )
+    parser.add_argument(
+        "--task",
+        default=None,
+        help="Select the backend measured best for this question shape; see 'opendecision tasks'",
     )
     parser.add_argument("--device", default="auto", choices=("auto", "cpu", "mps", "cuda"))
     parser.add_argument("--calibration", type=Path, help="Matching calibration profile JSON")
@@ -101,6 +106,9 @@ def build_parser() -> argparse.ArgumentParser:
     pull.add_argument("name", nargs="?", default="base")
     pull.add_argument("--device", default="cpu", choices=("cpu", "mps", "cuda", "auto"))
     commands.add_parser("doctor", help="Inspect local hardware and optional runtimes")
+    commands.add_parser(
+        "tasks", help="Show which backend was measured best for each question shape"
+    )
     for name in ("decide", "rank", "boolean", "score"):
         command = commands.add_parser(name, help=f"Run local {name} inference")
         _model_options(command)
@@ -166,8 +174,12 @@ def _load_model(args: argparse.Namespace, *, name: str | None = None):
     from opendecision.calibration import CalibrationProfile
 
     profile = CalibrationProfile.load(args.calibration) if args.calibration else None
+    chosen = name or args.model
+    if chosen is not None and getattr(args, "task", None):
+        raise ValueError("Pass either --model or --task, not both")
     return DecisionModel(
-        name or args.model,
+        chosen,
+        task=None if chosen is not None else getattr(args, "task", None),
         device=args.device,
         calibration=profile,
         batch_size=args.batch_size,
@@ -259,7 +271,7 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
     from opendecision.benchmark import load_dataset, run_benchmark, write_report
 
     cases = load_dataset(args.dataset)
-    names = [part.strip() for part in (args.models or f"local:{args.model}").split(",")]
+    names = [part.strip() for part in (args.models or f"local:{args.model or 'base'}").split(",")]
     if not names or any(not name for name in names):
         raise ValueError("--models must contain nonempty model names")
     reports: list[dict[str, Any]] = []
@@ -418,6 +430,19 @@ def run(args: argparse.Namespace) -> Any:
         return pull_model(args.name, device=args.device)
     if args.command == "doctor":
         return doctor()
+    if args.command == "tasks":
+        from opendecision.routing import profiles
+
+        return [
+            {
+                "task": p.task,
+                "backend": p.backend,
+                "summary": p.summary,
+                "evidence": p.evidence,
+                "runners_up": list(p.runners_up),
+            }
+            for p in profiles()
+        ]
     if args.command in {"decide", "rank", "boolean", "score"}:
         engine = _load_model(args)
         request: dict[str, Any] = {

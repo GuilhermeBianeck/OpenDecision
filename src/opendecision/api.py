@@ -45,8 +45,9 @@ class DecisionModel:
 
     def __init__(
         self,
-        name: str = "base",
+        name: str | None = None,
         *,
+        task: str | None = None,
         device: str = "auto",
         backend: DecisionBackend | None = None,
         calibration: CalibrationProfile | str | Path | None = None,
@@ -55,8 +56,21 @@ class DecisionModel:
         template: str = "default",
         **backend_options: object,
     ) -> None:
-        """``max_length=None`` uses the model's context, capped at 2048 tokens."""
+        """``max_length=None`` uses the model's context, capped at 2048 tokens.
+
+        Pass ``task`` instead of ``name`` to select the backend measured best for a
+        question shape; see :mod:`opendecision.routing` for the table and its evidence.
+        """
         from .registry import create_backend
+        from .routing import recommend
+
+        if name is not None and task is not None:
+            raise ValueError("Pass either name or task, not both")
+        self.task = task
+        if task is not None:
+            name = recommend(task).backend
+        elif name is None:
+            name = "base"
 
         if not 1 <= batch_size <= 1024:
             raise ValueError("batch_size must be between 1 and 1024")
@@ -223,6 +237,80 @@ class DecisionModel:
     def supports_statements(self) -> bool:
         """True when the backend judges statements as entailed, neutral or contradicted."""
         return bool(getattr(self.backend, "supports_statements", False))
+
+    def choose_wide(
+        self,
+        *,
+        state: StateValue,
+        question: str,
+        choices: list[str | ChoiceOption | dict[str, Any]],
+        shortlist: int | None = None,
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+        include_raw_scores: bool = False,
+    ) -> DecisionResult:
+        """Choose among more candidates than one round can hold, by elimination.
+
+        Candidates are scored in groups of ``shortlist``; the strongest of each
+        group meet again, until one round holds them all. Use it when a backend
+        caps its options, as the decoder does at 26, or when a cross-encoder would
+        otherwise pay a forward pass for every candidate in one request.
+
+        The returned distribution covers **the finalists only**, not every
+        candidate supplied: a candidate eliminated in an earlier round has no
+        comparable probability in the final round. ``metadata`` records how many
+        candidates were considered, how many rounds ran, and which reached the
+        end. When every candidate fits one round this is exactly ``choose``.
+        """
+        request = DecisionRequest(state=state, question=question, choices=choices)
+        limit = shortlist if shortlist is not None else self.max_choices
+        if limit < 2:
+            raise ValueError("shortlist must allow at least two candidates")
+        pool = list(request.choices)
+        rounds = 0
+        while len(pool) > limit:
+            rounds += 1
+            groups = [pool[i : i + limit] for i in range(0, len(pool), limit)]
+            # Keep enough from each group that the next round is strictly smaller.
+            keep = max(1, limit // len(groups)) if len(groups) > 1 else 1
+            survivors: list[Any] = []
+            for group in groups:
+                if len(group) == 1:
+                    survivors.extend(group)
+                    continue
+                ranked = self.rank(state=state, question=question, choices=group)
+                labels = [entry.choice for entry in ranked.ranking[:keep]]
+                by_label = {(c.label if isinstance(c, ChoiceOption) else c): c for c in group}
+                survivors.extend(by_label[label] for label in labels)
+            if len(survivors) >= len(pool):  # no progress; stop rather than loop
+                pool = survivors[:limit]
+                break
+            pool = survivors
+        final = self.choose(
+            state=state,
+            question=question,
+            choices=pool,
+            abstain_threshold=abstain_threshold,
+            margin_threshold=margin_threshold,
+            include_raw_scores=include_raw_scores,
+        )
+        return final.model_copy(
+            update={
+                "metadata": {
+                    **final.metadata,
+                    "selection": "elimination",
+                    "candidates_considered": len(request.choices),
+                    "elimination_rounds": rounds,
+                    "finalists": len(pool),
+                    "distribution_scope": "finalists only, not every candidate supplied",
+                }
+            }
+        )
+
+    @property
+    def max_choices(self) -> int:
+        """Largest candidate count this backend scores in one request."""
+        return int(getattr(self.backend, "max_options", 256))
 
     def boolean(
         self,
