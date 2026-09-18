@@ -305,7 +305,7 @@ def test_default_sequence_limit_is_model_context_capped():
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("name", ["tiny", "base", "smart", "multilingual"])
+@pytest.mark.parametrize("name", ["tiny", "base", "smart", "multilingual", "decoder"])
 def test_pinned_cached_model_real_inference_offline(name, monkeypatch):
     """Set OPENDECISION_TEST_MODELS=tiny,base after explicit model pulls."""
     enabled = os.environ.get("OPENDECISION_TEST_MODELS", "").split(",")

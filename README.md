@@ -81,6 +81,16 @@ and [the requirements map](docs/requirements.md) for implementation and verifica
 | `base` / `auto` | ModernBERT base NLI | General semantic classification baseline |
 | `smart` | Skywork Reward V2 Qwen3 0.6B | Candidate response / action preference |
 | `multilingual` | BGE reranker v2 m3 | Multilingual relevance ranking |
+| `decoder` | Qwen3 0.6B (causal LM, no generation) | Many options, rich descriptions, many questions per state |
+
+`decoder` is the only backend that **encodes the state once** per request
+group: every further question or option costs only its own tokens, so `ask`
+with a dozen questions over a long state is one prefix pass plus a dozen short
+steps. The cross-encoders pay one full pass per candidate. In return the NLI
+backends are stronger verifiers: on a ten-statement probe `base` scored the
+true/false split 10/10 where `decoder` scored 7/10. Use NLI for booleans and
+verification, the decoder for wide or repeated choices over one state; the
+[benchmark reports](benchmarks/reports/) measure both.
 
 These aliases name model families, not quality guarantees. `auto` currently
 selects `base`. `device="auto"` selects CUDA, then MPS, then CPU; on the

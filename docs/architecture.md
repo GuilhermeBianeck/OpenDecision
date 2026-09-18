@@ -33,9 +33,12 @@ becomes `unsupported`. Other backends score each statement as a two-way choice.
 `ask` accepts independent typed questions about one state under caller ids. It
 issues one candidate batch for choice and score questions and one statement batch
 for booleans, then returns answers in request order, each with its own thresholds.
-The cross-encoder backends still encode the state once per candidate pair; there
-is no shared encoder cache in the alpha, so cost grows with the number of
-candidates across all questions. Answers carry a `type` discriminator.
+The cross-encoder backends encode the state once per candidate pair, so their cost
+grows with the number of candidates across all questions. The `decoder` backend
+groups requests by identical rendered state, encodes each state once into the
+model's KV cache, and answers every question about it from that cache: each
+question costs its own tokens plus one forward step over them, and every option is
+a prompt line rather than a forward pass. Answers carry a `type` discriminator.
 
 Weights load lazily from pinned local cache entries. Explicit `pull` is the only
 default model download operation. The server ensures loading during startup.

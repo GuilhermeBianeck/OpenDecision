@@ -9,7 +9,8 @@ does not turn a proposal into an unsupported performance claim.
 | Local-first finite-choice runtime | Implemented | Python SDK, offline cached Transformers adapters, demo fixture |
 | Typed schemas and validation | Implemented | Pydantic request/result models; duplicate, blank, size, and probability checks |
 | Shared backend protocol | Implemented | NLI, reward, reranker, demo, and content-addressed ONNX adapter |
-| Tiny/base/smart model tiers | Adapters implemented | Upstream checkpoints pinned; targets are not measured quality guarantees |
+| Tiny/base/smart/multilingual/decoder tiers | Adapters implemented | Upstream checkpoints pinned; targets are not measured quality guarantees |
+| Shared-state encoding | Implemented for `decoder` | One KV-cache prefix per distinct state; cross-encoders still pay per candidate |
 | Device selection | Implemented | `auto` resolves CUDA, then MPS, then CPU; MPS preference backed by a published measurement |
 | Choice / boolean / multi-label / ranking / batches | Implemented | Multi-label is independent binary scoring; shared-state batching is flattened |
 | Calibration | Implemented | Held-out temperature scaling profile with identity and dataset hash |

@@ -39,6 +39,18 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "context_limit": 16384,
         "description": "Skywork Qwen3 reward scorer; no text generation.",
     },
+    "decoder": {
+        "name": "decoder",
+        "model_id": "Qwen/Qwen3-0.6B",
+        "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+        "family": "decoder",
+        "license": "Apache-2.0",
+        "parameters": 596_049_920,
+        "weights_bytes": 1_503_300_328,
+        # Upstream context is 32,768 tokens; the default limit caps at 2,048.
+        "context_limit": 32768,
+        "description": "Qwen3 0.6B decoder; encodes each state once and reads option letters.",
+    },
     "multilingual": {
         "name": "multilingual",
         "model_id": "BAAI/bge-reranker-v2-m3",
