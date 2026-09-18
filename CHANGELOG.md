@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fitted calibration profiles for the MLX backends. `qwen35_4b` (ECE 0.195 to
+  0.073) and `lfm25` (0.210 to 0.163) are committed; `qwen35` is deliberately
+  left uncalibrated because its uncalibrated ECE of 0.061 is already the best
+  measured and a fitted temperature regresses all three metrics.
 - Measured the MLX candidates on the committed test split and made the evidence
   part of the repository. `qwen35` reaches 0.799 pooled objective accuracy and
   0.084 ECE against 0.675 and 0.102 for the previous best, and `qwen35_4b`

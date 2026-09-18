@@ -85,6 +85,17 @@ for `base` and 0.667 for `qwen35`; across all negation rows it scores 0.868
 against 0.509. The decomposition pattern in docs/patterns.md still helps smaller
 backends and is no longer the only remedy.
 
+**Calibration is worth fitting for two of the three MLX backends.** On the
+held-out validation split `qwen35_4b` improves from 0.195 to 0.073 ECE and
+`lfm25` from 0.210 to 0.163, and both improve on NLL and Brier as well; their
+profiles are committed. `qwen35` is the exception and the reason is that it
+needs no help: its uncalibrated ECE of 0.061 is the best of any backend, better
+than most others reach *after* fitting, and a temperature scaled to it regresses
+ECE to 0.115, NLL from 0.524 to 0.582 and Brier from 0.316 to 0.333. No profile
+is shipped for it. MLX weights are quantised for Apple silicon and have no CPU
+counterpart, so these backends ship one profile rather than the two precisions
+the others carry.
+
 **Instruction injection is not solved by scale.** On the embedded-instruction
 rows `qwen35` scores 0.019 and `qwen35_4b` 0.058, against 0.000 for `base` and
 0.269 for `decoder`; on the authority-styled variant they reach 0.372 and 0.340.
@@ -239,8 +250,6 @@ point, and a detector is not a security boundary.
 
 ## Remaining work
 
-- Fit calibration profiles for `qwen35` and `qwen35_4b`; neither has one, and the
-  committed profiles are bound to backends the `auto` default no longer selects.
 - Fit profiles per task family, not only per candidate count: the split-to-split
   regression for `base` and the ECE regression for `multilingual` both point at
   a single temperature per width being too coarse.
