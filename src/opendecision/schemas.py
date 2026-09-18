@@ -63,6 +63,38 @@ class StatementRequest(PublicModel):
         return value
 
 
+class ScoreRequest(PublicModel):
+    """Rate the state on an ordered rubric.
+
+    ``levels`` are descriptions ordered from the lowest to the highest level.
+    Each level is scored as a candidate; the score is the probability-weighted
+    level index, so it can fall between two levels.
+    """
+
+    state: str = Field(max_length=262_144)
+    question: str = Field(min_length=1, max_length=8192)
+    levels: list[str] = Field(min_length=2, max_length=10)
+    abstain_threshold: Probability | None = None
+    margin_threshold: Probability | None = None
+    include_raw_scores: bool = False
+
+    @field_validator("question")
+    @classmethod
+    def nonblank_question(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("question must not be blank")
+        return value
+
+    @field_validator("levels")
+    @classmethod
+    def valid_levels(cls, value: list[str]) -> list[str]:
+        if any(not level.strip() or len(level) > 4096 for level in value):
+            raise ValueError("levels must be nonblank descriptions of at most 4096 characters")
+        if len({level.strip() for level in value}) != len(value):
+            raise ValueError("levels must be unique, including surrounding whitespace")
+        return value
+
+
 class DecisionResult(PublicModel):
     """Normalized scores are not empirical correctness probabilities.
 
@@ -141,6 +173,35 @@ class BooleanResult(PublicModel):
     def consistent_method(self) -> BooleanResult:
         if (self.method == "statement") != (self.unsupported is not None):
             raise ValueError("unsupported is reported exactly for statement scoring")
+        return self
+
+
+class ScoreResult(PublicModel):
+    """``score`` is the expected level index under the effective distribution.
+
+    ``level`` is the most probable level index, or null when abstained. Keys of
+    ``probabilities`` and ``legend`` are level indexes as strings, in rubric order.
+    The score is a probability-weighted position, not a calibrated magnitude.
+    """
+
+    score: float = Field(ge=0, allow_inf_nan=False)
+    level: int | None
+    probabilities: dict[str, Probability]
+    legend: dict[str, str]
+    confidence: Probability
+    abstained: bool
+    decision: DecisionResult
+
+    @model_validator(mode="after")
+    def consistent_score(self) -> ScoreResult:
+        indexes = [str(index) for index in range(len(self.legend))]
+        if list(self.legend) != indexes or list(self.probabilities) != indexes:
+            raise ValueError("levels must be indexed 0..n-1 in rubric order")
+        expected = math.fsum(int(k) * p for k, p in self.probabilities.items())
+        if not math.isclose(self.score, expected, abs_tol=1e-6):
+            raise ValueError("score must be the probability-weighted level index")
+        if self.abstained != (self.level is None):
+            raise ValueError("level must be null exactly when abstained")
         return self
 
 

@@ -18,7 +18,9 @@ identity checks, and output validation. A backend owns tokenization, device choi
 model loading, and raw scores. FastAPI holds one model instance for the process.
 The TypeScript client calls its HTTP endpoints; Python can work entirely in process.
 
-Each request has at least two unique nonblank choices. Batches flatten all candidate
+Each request has at least two unique nonblank choices. A rubric `score` is a choice
+over 2–10 ordered level descriptions whose distribution is re-keyed by level index
+and summarized as its expectation. Batches flatten all candidate
 pairs and process them in bounded microbatches. Booleans and `multi_label` labels are
 statements about the state: an NLI backend scores each statement directly and returns
 entailment, neutral, and contradiction logits (`StatementBackend`); the neutral share

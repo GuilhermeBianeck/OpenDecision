@@ -59,6 +59,7 @@ fixture, not an AI quality baseline.**
 | Capability | Interface |
 |---|---|
 | Finite choice, boolean, ranking | `choose`, `boolean`, `rank` |
+| Ordered rubric score | `score` (expected level index over 2–10 described levels) |
 | Independent labels | `multi_label` (one binary distribution per label) |
 | Shared-state questions and batches | `decide_many`, `choose_batch` |
 | Four open-weight model adapters | `tiny`, `base`, `smart`, `multilingual` |
@@ -99,6 +100,22 @@ if either its `abstain_threshold` (minimum top probability) or `margin_threshold
 is not met. Equality passes. Thresholds are task-specific and not safety guarantees.
 Include an explicit “none of these” choice when appropriate. Ties use a stable
 lexicographic tie-break; set a positive margin threshold to abstain on ties.
+
+`score` rates the state on an **ordered rubric**: pass 2–10 level descriptions
+from lowest to highest, and receive `level` (the most probable index), a
+`legend`, the distribution over levels, and `score`, the probability-weighted
+level index. A score of 1.3 on a three-level scale means the mass sits between
+the second and third levels; it is a position on your rubric, not a calibrated
+magnitude. Describe levels as concrete situations rather than degrees.
+
+```python
+result = model.score(
+    state="The checkout page returns HTTP 500 for every customer.",
+    question="How severe is this incident?",
+    levels=["cosmetic issue", "degraded but usable", "feature unavailable", "outage for all users"],
+)
+print(result.level, result.score, result.legend[str(result.level)])
+```
 
 `boolean` and `multi_label` read their question as a **statement about the
 state**. With an NLI backend (`tiny`, `base`) the statement is scored directly:

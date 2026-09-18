@@ -26,6 +26,28 @@ def test_local_demo_decision(command, capsys):
     assert ("decision" in result) if command != "decide" else (result["choice"] == "billing")
 
 
+def test_score_command(capsys):
+    args = [
+        "score",
+        "--model",
+        "demo",
+        "--state",
+        "billing outage for every customer",
+        "--question",
+        "How severe?",
+        "--levels",
+        "cosmetic",
+        "degraded",
+        "outage for customers",
+    ]
+    assert main(args) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["legend"]["2"] == "outage for customers"
+    assert result["level"] == 2
+    assert main([*args[:-3], "only-one"]) == 1
+    assert "levels" in capsys.readouterr().err
+
+
 def test_boolean_unsupported_threshold_requires_statement_backend(capsys):
     args = ["boolean", "--model", "demo", "--state", "x", "--question", "claim"]
     assert main([*args, "--unsupported-threshold", "0.5"]) == 1
