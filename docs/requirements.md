@@ -10,6 +10,7 @@ does not turn a proposal into an unsupported performance claim.
 | Typed schemas and validation | Implemented | Pydantic request/result models; duplicate, blank, size, and probability checks |
 | Shared backend protocol | Implemented | NLI, reward, reranker, demo, and content-addressed ONNX adapter |
 | Tiny/base/smart/multilingual/decoder tiers | Adapters implemented | Upstream checkpoints pinned; targets are not measured quality guarantees |
+| MLX Qwen3.5/LFM2.5 candidates | Adapters implemented | Apple-silicon opt-in candidates; must clear the local decision benchmark before routing defaults change |
 | Shared-state encoding | Implemented for `decoder` | One KV-cache prefix per distinct state; cross-encoders still pay per candidate |
 | Backend routing | Implemented | Measured task table in `opendecision.routing`; `task=` selects it |
 | Candidate sets beyond a backend's per-request cap | Implemented | `choose_wide` eliminates in rounds; distribution covers finalists |

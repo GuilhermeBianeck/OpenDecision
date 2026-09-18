@@ -9,6 +9,10 @@ Verified against the upstream Hugging Face model cards, configs, and Hub file me
 | `smart` | [Skywork/Skywork-Reward-V2-Qwen3-0.6B](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-0.6B/blob/8c14a4e9e6321deaf572544339b16b8d6bbe8886/README.md) | Apache-2.0 | 1,192,137,232 bytes | 596,050,944 |
 | `multilingual` | [BAAI/bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3/blob/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e/README.md) | Apache-2.0 | 2,271,071,852 bytes | 567,755,777 |
 | `decoder` | [Qwen/Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B/blob/c1899de289a04d12100db370d81485cdf75e47ca/README.md) | Apache-2.0 | 1,503,300,328 bytes | 596,049,920 |
+| `qwen35` | [mlx-community/Qwen3.5-2B-4bit](https://huggingface.co/mlx-community/Qwen3.5-2B-4bit/tree/674aaa7240b91e8012fcad5d791b7dfe5ba90207) | Apache-2.0 | 1,722,271,785 bytes | 2B |
+| `lfm25` | [LiquidAI/LFM2.5-1.2B-Instruct-MLX-4bit](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-MLX-4bit/tree/7ccafdb04c36936f4f1c4685198c6c9a40275932) | LFM-1.0 | 658,540,250 bytes | 1.2B |
+| `qwen35_4b` | [mlx-community/Qwen3.5-4B-4bit](https://huggingface.co/mlx-community/Qwen3.5-4B-4bit/tree/0e7ffd5c629ef7719d4cbc04069232580bfa9d9c) | Apache-2.0 | 3,034,300,695 bytes | 4B |
+| `lfm25_26b` | [LiquidAI/LFM2.5-2.6B-MLX-4bit](https://huggingface.co/LiquidAI/LFM2.5-2.6B-MLX-4bit/tree/04efa23776ce61ec34ec95ec34c859854c89542b) | LFM-1.0 | 1,583,152,892 bytes | 2.6B |
 
 Sizes above count `model.safetensors` only; tokenizers and metadata add disk space. Values are from each model's official Hub API `?blobs=true` response. DeBERTa also has a 512-element integer buffer, excluded from the parameter count. These are actual upstream artifact sizes, not the smaller quantization targets in the project proposal. The multilingual model is substantially larger than the default base model.
 
@@ -24,6 +28,10 @@ base          de4ab7e77845098b7fab7f6ab9d370ddff27b19c
 smart         8c14a4e9e6321deaf572544339b16b8d6bbe8886
 multilingual  953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
 decoder       c1899de289a04d12100db370d81485cdf75e47ca
+qwen35        674aaa7240b91e8012fcad5d791b7dfe5ba90207
+lfm25         7ccafdb04c36936f4f1c4685198c6c9a40275932
+qwen35_4b     0e7ffd5c629ef7719d4cbc04069232580bfa9d9c
+lfm25_26b     04efa23776ce61ec34ec95ec34c859854c89542b
 ```
 
 `opendecision pull <alias>` explicitly downloads the pinned safetensors weights, tokenizer files, configuration, and available license/model-card files into the standard Hugging Face cache. It then loads the checkpoint and runs a public smoke input. The report includes the revision, declared license, unique snapshot file bytes, scores, device, and runtime precision. A successful smoke test verifies inference plumbing; it makes no decision-quality claim.
@@ -43,6 +51,12 @@ Measured on the reference machine (MPS, float32, warm, one `choose` per cell): t
 `{choice}` below is the candidate text: the bare label, or `label: description. Not for: …. Examples: …` when a `ChoiceOption` supplies those fields. Structured state is rendered to `key: value` text before serialization. NLI `template="default"` uses `Given the situation, the answer to "{question}" is "{choice}".`; `template="short"` uses `{question} {choice}`. For booleans and multi-label questions, NLI checkpoints score the statement itself as the hypothesis with no template and read all three logits: entailment against contradiction gives the yes probability, and the neutral share is reported as `unsupported`. Reward and reranker backends have no such labels and score booleans as a two-way `yes`/`no` choice. Skywork's short template uses plain state plus question instead of labeled blocks. BGE currently has one serialization for either template setting. The default length is the checkpoint context capped at 2,048 tokens (512 for `tiny`, 2,048 for the others); a benchmark or calibration profile records the limit actually applied. Long inputs truncate only the state prefix, preserving the full question and choice, emitting a warning and reporting the number of affected candidates. A minimum of 32 state tokens (or the complete shorter state) is reserved. Overlong questions or choices are rejected instead of silently truncated. Prefix truncation can discard decisive information; evaluate longer limits when needed.
 
 All adapters flatten candidates across requests into real tensor batches and return raw scores. Neither these scores nor a softmax of them are calibrated correctness probabilities. NLI entailment, learned preference, and retrieval relevance are different objectives; adapting them to arbitrary decisions requires evaluation.
+
+The MLX candidates are opt-in Apple-silicon backends. They use the upstream
+tokenizer chat template, 4-bit affine weights, and a native MLX cache. They are
+not yet routing defaults: their quality and end-to-end latency must be measured
+on the OpenDecision decision suite first. The LFM checkpoints retain the LFM-1.0
+license; they are not covered by Apache-2.0.
 
 ## Device and precision policy
 

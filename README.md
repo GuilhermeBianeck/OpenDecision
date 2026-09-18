@@ -33,6 +33,10 @@ opendecision pull base
 The explicit `pull` command downloads the pinned checkpoint. All later inference
 uses the local cache and refuses to download missing files automatically.
 
+On Apple silicon, install the optional MLX runtime before pulling the quantized
+candidates: `python -m pip install -e '.[mlx]'`, then use
+`opendecision pull qwen35 --device mps` or `opendecision pull lfm25 --device mps`.
+
 ```python
 from opendecision import DecisionModel
 
@@ -63,7 +67,7 @@ fixture, not an AI quality baseline.**
 | Independent labels | `multi_label` (one binary distribution per label) |
 | Typed questions over one state | `ask` (mixed choice / boolean / score, keyed by your ids) |
 | Batches | `choose_batch`, `statement_batch`, `score_batch`, `decide_many` |
-| Five open-weight model adapters | `tiny`, `base`, `smart`, `multilingual`, `decoder` |
+| Open-weight model adapters | `tiny`, `base`, `smart`, `multilingual`, `decoder`, `qwen35`, `lfm25`, `qwen35_4b`, `lfm25_26b` |
 | Measured backend routing | `DecisionModel(task=...)`, `opendecision tasks` |
 | Candidate sets beyond one round | `choose_wide` |
 | Local resident model server | FastAPI on `127.0.0.1:8042` |
@@ -86,6 +90,10 @@ primitives together, and [progress and measured evidence](PROGRESS.md),
 | `smart` | Skywork Reward V2 Qwen3 0.6B | Candidate response / action preference |
 | `multilingual` | BGE reranker v2 m3 | Multilingual relevance ranking |
 | `decoder` | Qwen3 0.6B (causal LM, no generation) | Many options, rich descriptions, many questions per state |
+| `qwen35` | Qwen3.5 2B, MLX 4-bit | General local decision candidate on Apple silicon |
+| `lfm25` | LFM2.5 1.2B Instruct, MLX 4-bit | Fast local decision candidate on Apple silicon |
+| `qwen35_4b` | Qwen3.5 4B, MLX 4-bit | Quality-focused local candidate |
+| `lfm25_26b` | LFM2.5 2.6B, MLX 4-bit | Larger quality candidate |
 
 `decoder` is the only backend that **encodes the state once** per request
 group: every further question or option costs only its own tokens, so `ask`

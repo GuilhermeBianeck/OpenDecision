@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from opendecision.backends.base import DecisionBackend
-from opendecision.backends.catalog import MODEL_SPECS, VERIFIED_DATE
+from opendecision.backends.catalog import MODEL_SPECS, VERIFIED_DATE, backend_options
 from opendecision.errors import BackendError
 
 # Do not fetch pickle weights, Python modules, unrelated ONNX variants, or assets.
@@ -39,11 +39,13 @@ def _resolve_name(name: str) -> str:
         "modernbert": "base",
         "deberta": "tiny",
         "qwen": "decoder",
+        "qwen3.5": "qwen35",
+        "lfm": "lfm25",
     }
     resolved = aliases.get(name, name)
     if resolved not in {*MODEL_SPECS, "demo", "onnx"}:
         raise BackendError(
-            f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, auto, "
+            f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, qwen35, lfm25, "
             "demo, or onnx."
         )
     return resolved
@@ -93,10 +95,13 @@ def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> D
 
         return DemoBackend()
     if resolved == "decoder":
-        from opendecision.backends.catalog import backend_options
         from opendecision.backends.decoder import DecoderBackend
 
         return DecoderBackend(**backend_options("decoder"), device=device, **kwargs)
+    if resolved in {"qwen35", "lfm25", "qwen35_4b", "lfm25_26b"}:
+        from opendecision.backends.mlx_decoder import MLXDecoderBackend
+
+        return MLXDecoderBackend(**backend_options(resolved), device=device, **kwargs)
     from opendecision.backends.bge_reranker import BGERerankerBackend
     from opendecision.backends.deberta import DebertaBackend
     from opendecision.backends.modernbert import ModernBertBackend

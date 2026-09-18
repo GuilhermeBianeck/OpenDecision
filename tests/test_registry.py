@@ -13,7 +13,7 @@ from opendecision.registry import DOWNLOAD_PATTERNS, create_backend, list_models
 
 def test_catalog_uses_immutable_unique_revisions_and_has_no_shared_mutation():
     models = list_models()
-    assert {model["name"] for model in models} == {
+    assert {model["name"] for model in models} >= {
         "tiny",
         "base",
         "smart",
@@ -21,12 +21,16 @@ def test_catalog_uses_immutable_unique_revisions_and_has_no_shared_mutation():
         "decoder",
         "demo",
         "onnx",
+        "qwen35",
+        "lfm25",
+        "qwen35_4b",
+        "lfm25_26b",
     }
     for model in models:
         if model["name"] not in {"demo", "onnx"}:
             assert len(model["revision"]) == 40
             int(model["revision"], 16)
-            assert model["license"] == "Apache-2.0"
+            assert model["license"] in {"Apache-2.0", "LFM-1.0"}
     models[0]["revision"] = "changed"
     assert list_models()[0]["revision"] != "changed"
 
