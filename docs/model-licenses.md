@@ -5,7 +5,7 @@ Verified against the upstream Hugging Face model cards, configs, and Hub file me
 | Alias | Upstream model card | License declared upstream | Weight file size | Parameters |
 | --- | --- | --- | ---: | ---: |
 | `tiny` | [cross-encoder/nli-deberta-v3-xsmall](https://huggingface.co/cross-encoder/nli-deberta-v3-xsmall/blob/a150876415327c80daeff35ca6f68f5ed8cf5c24/README.md) | Apache-2.0 | 283,353,172 bytes | 70,831,107 |
-| `base` / `auto` | [tasksource/ModernBERT-base-nli](https://huggingface.co/tasksource/ModernBERT-base-nli/blob/de4ab7e77845098b7fab7f6ab9d370ddff27b19c/README.md) | Apache-2.0 | 598,442,860 bytes | 149,607,171 |
+| `base` | [tasksource/ModernBERT-base-nli](https://huggingface.co/tasksource/ModernBERT-base-nli/blob/de4ab7e77845098b7fab7f6ab9d370ddff27b19c/README.md) | Apache-2.0 | 598,442,860 bytes | 149,607,171 |
 | `smart` | [Skywork/Skywork-Reward-V2-Qwen3-0.6B](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-0.6B/blob/8c14a4e9e6321deaf572544339b16b8d6bbe8886/README.md) | Apache-2.0 | 1,192,137,232 bytes | 596,050,944 |
 | `multilingual` | [BAAI/bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3/blob/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e/README.md) | Apache-2.0 | 2,271,071,852 bytes | 567,755,777 |
 | `decoder` | [Qwen/Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B/blob/c1899de289a04d12100db370d81485cdf75e47ca/README.md) | Apache-2.0 | 1,503,300,328 bytes | 596,049,920 |
@@ -36,7 +36,7 @@ lfm25_26b     04efa23776ce61ec34ec95ec34c859854c89542b
 
 `opendecision pull <alias>` explicitly downloads the pinned safetensors weights, tokenizer files, configuration, and available license/model-card files into the standard Hugging Face cache. It then loads the checkpoint and runs a public smoke input. The report includes the revision, declared license, unique snapshot file bytes, scores, device, and runtime precision. A successful smoke test verifies inference plumbing; it makes no decision-quality claim.
 
-Normal inference uses `local_files_only=True`, `trust_remote_code=False`, and `use_safetensors=True`. It never silently downloads a model or loads upstream Python modules or pickle weights. `auto` is a deterministic alias for `base`; it does not choose based on estimated memory or download a fallback. Missing cached weights produce an explicit pull instruction.
+Normal inference uses `local_files_only=True`, `trust_remote_code=False`, and `use_safetensors=True`. It never silently downloads a model or loads upstream Python modules or pickle weights. `auto` selects Qwen3.5 on Apple silicon when the device is `auto` or `mps`, and the portable base model elsewhere; it never downloads a fallback. Missing cached weights produce an explicit pull instruction.
 
 ## Scoring and serialization
 

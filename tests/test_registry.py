@@ -47,8 +47,9 @@ def test_creating_backend_does_not_import_heavy_dependencies():
 
 def test_auto_alias_has_stable_identity():
     backend = create_backend("auto")
-    assert backend.name == "base"
-    assert backend.model_id == MODEL_SPECS["base"]["model_id"]
+    expected = "qwen35" if sys.platform == "darwin" else "base"
+    assert backend.name == expected
+    assert backend.model_id == MODEL_SPECS[expected]["model_id"]
     assert isinstance(backend, DecisionBackend)
 
 

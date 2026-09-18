@@ -28,7 +28,7 @@ def _print(value: Any) -> None:
 
 def _model_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--model", default=None, help="Model tier or registered model (default: base)"
+        "--model", default=None, help="Model tier or registered model (default: auto; Qwen3.5 on Apple silicon)"
     )
     parser.add_argument(
         "--task",

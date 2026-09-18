@@ -25,7 +25,7 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "parameters": 149_607_171,
         "weights_bytes": 598_442_860,
         "context_limit": 2048,
-        "description": "ModernBERT NLI baseline; English; default for auto.",
+        "description": "ModernBERT NLI baseline; English; portable CPU fallback for auto.",
     },
     "smart": {
         "name": "smart",

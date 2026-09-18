@@ -70,7 +70,7 @@ class DecisionModel:
         if task is not None:
             name = recommend(task).backend
         elif name is None:
-            name = "base"
+            name = "auto"
 
         if not 1 <= batch_size <= 1024:
             raise ValueError("batch_size must be between 1 and 1024")

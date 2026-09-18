@@ -27,7 +27,7 @@ cd OpenDecision
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[inference,server]'
-opendecision pull base
+opendecision pull qwen35 --device mps
 ```
 
 The explicit `pull` command downloads the pinned checkpoint. All later inference
@@ -40,7 +40,7 @@ candidates: `python -m pip install -e '.[mlx]'`, then use
 ```python
 from opendecision import DecisionModel
 
-model = DecisionModel("base", device="cpu")
+model = DecisionModel(device="mps")  # auto selects qwen35 on Apple silicon
 result = model.choose(
     state="The customer says their card was charged twice.",
     question="Which team should handle this?",

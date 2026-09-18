@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import platform
 from pathlib import Path
 from typing import Any
 
@@ -86,8 +87,11 @@ def list_models() -> list[dict[str, Any]]:
 
 
 def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> DecisionBackend:
-    """Construct a lazy backend. 'auto' consistently means 'base', never downloads."""
-    resolved = _resolve_name(name)
+    """Construct a lazy backend; auto prefers Qwen3.5 on Apple silicon."""
+    if name == "auto":
+        resolved = "qwen35" if platform.system() == "Darwin" and device in {"auto", "mps"} else "base"
+    else:
+        resolved = _resolve_name(name)
     if resolved == "onnx":
         from opendecision.backends.onnx import OnnxBackend
 
