@@ -239,7 +239,9 @@ def test_demo_infrastructure_report_and_raw_scores(tmp_path):
     assert report["status"] == "infrastructure_only"
     assert report["dataset"]["count"] == 16
     assert report["performance"]["warm_batch_latency_ms"]["samples"] == 3
-    assert report["robustness"]["choice_order"]["count"] == 16
+    choice_rows = sum(1 for row in report["predictions"] if row["kind"] == "choice")
+    assert report["robustness"]["choice_order"]["count"] == choice_rows
+    assert report["robustness"]["self_consistency"]["count"] == 16
     assert "accuracy" not in report["subjective"]
     assert "state" not in report["predictions"][0]
     assert report["predictions"][0]["raw_scores"] is not None

@@ -1,35 +1,60 @@
 {
-  "version": 1,
+  "version": 2,
   "generator": "scripts/generate_benchmarks.py",
-  "seed_count": 232,
-  "expanded_count": 2320,
-  "group_count": 55,
+  "seed_count": 538,
+  "expanded_count": 6578,
+  "group_count": 101,
   "splits": {
-    "calibration": 480,
-    "test": 680,
-    "train": 880,
-    "validation": 280
+    "train": 2687,
+    "test": 1726,
+    "calibration": 1381,
+    "validation": 784
   },
   "families": {
-    "objective": 1120,
-    "agent_control": 480,
-    "ambiguous": 240,
-    "ranking": 160,
-    "subjective": 320
+    "robustness": 1092,
+    "objective": 1924,
+    "verification": 1386,
+    "agent_control": 624,
+    "ordinal": 720,
+    "ambiguous": 288,
+    "ranking": 208,
+    "subjective": 336
+  },
+  "kinds": {
+    "choice": 4472,
+    "boolean": 1386,
+    "score": 720
+  },
+  "variants": {
+    "base": 538,
+    "uppercase": 538,
+    "lowercase": 538,
+    "quoted_state": 538,
+    "irrelevant_context": 538,
+    "long_context": 538,
+    "state_injection": 538,
+    "unicode_context": 538,
+    "question_rewording": 412,
+    "option_rotation": 352,
+    "distractor_start": 506,
+    "distractor_middle": 506,
+    "authority_injection": 498
   },
   "source": "project-authored synthetic text and deterministic perturbations",
   "human_adjudicated": false,
   "training_status": "No training performed; splits reserve future research roles.",
   "split_policy": "All concrete seeds and perturbations in one semantic template family remain in a single split. Trolley controlled variants are test-only.",
   "limitations": [
-    "These are correlated synthetic fixtures, not 2,000 independent human validations.",
+    "These are correlated synthetic fixtures, not independent human validations; count seeds, not rows.",
     "No production distribution, native multilingual coverage, or expert moral labels.",
     "Question rewording adds an instruction prefix; it is not a diverse natural paraphrase corpus.",
+    "Verification statements are templated per record attribute; contradictions swap one value.",
+    "Distractor filler is drawn from a fixed pool of neutral sentences, not from real documents.",
     "Labels encode explicit synthetic policies or straightforward semantic categories, and need independent review."
   ],
   "files": {
-    "core.jsonl": "cabb028e8ced96c4a657bbc1ac834eab26caa5de69c8351c43454b51d98d28d4",
-    "seeds.jsonl": "f79907c02fb60c350c30fcda050afabbbfa431c0448835dc9a9c7feffff8e657",
-    "trolley.jsonl": "a01972e104c97d67ce38ccbff5fac8611b22c40448dcb3f9a3d27d83a67320a1"
+    "core.jsonl": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
+    "seeds.jsonl": "da0e4c8164bba095de255196706d42b663cc6f79bc0b8892edbfd59b0a1f2ef1",
+    "trolley.jsonl": "96fe619194c797ace156c38ebca6830d9bc858a02a8641cf31630d73c169c576"
   }
 }
