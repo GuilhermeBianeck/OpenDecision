@@ -10,7 +10,7 @@ does not turn a proposal into an unsupported performance claim.
 | Typed schemas and validation | Implemented | Pydantic request/result models; duplicate, blank, size, and probability checks |
 | Shared backend protocol | Implemented | NLI, reward, reranker, demo, and content-addressed ONNX adapter |
 | Tiny/base/smart/multilingual/decoder tiers | Adapters implemented | Upstream checkpoints pinned; targets are not measured quality guarantees |
-| MLX Qwen3.5/LFM2.5 candidates | Adapters implemented | Apple-silicon opt-in candidates; must clear the local decision benchmark before routing defaults change |
+| MLX Qwen3.5/LFM2.5 candidates | Implemented and measured | `qwen35` 0.799 and `qwen35_4b` 0.853 pooled objective accuracy against 0.675 for the portable baseline; `lfm25` 0.596 is not competitive. Reports committed; `auto` selects `qwen35` on Apple silicon |
 | Shared-state encoding | Implemented for `decoder` | One KV-cache prefix per distinct state; cross-encoders still pay per candidate |
 | Backend routing | Implemented | Measured task table in `opendecision.routing`; `task=` selects it |
 | Candidate sets beyond a backend's per-request cap | Implemented | `choose_wide` eliminates in rounds; distribution covers finalists |

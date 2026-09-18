@@ -64,6 +64,32 @@ agent-control, verification and robustness families (n = 1,158):
 | `smart` | 0.617 | 0.102 | 0.728 (0.438) | 42.1 ms |
 | `multilingual` | 0.509 | 0.204 | 0.535 (0.459) | 19.6 ms |
 | `decoder` | 0.608 | 0.277 | 0.615 (0.792) | 65.9 ms |
+| `lfm25` | 0.596 | 0.351 | 0.609 (0.923) | 46.1 ms |
+| **`qwen35`** | **0.799** | **0.084** | **0.861 (0.800)** | 69.5 ms |
+| **`qwen35_4b`** | **0.853** | 0.096 | **0.882 (0.926)** | 133.2 ms |
+
+The two Qwen3.5 MLX candidates are the largest single improvement measured in
+this project. `qwen35` leads every prior backend on pooled accuracy (0.799
+against 0.675), calibration (0.084 against 0.102) and verification (0.989
+against 0.963) at once, and answers 80 % of rows above a 0.5 margin at 0.861
+accuracy where `base` answered 47 % at 0.828. `qwen35_4b` adds another five
+points of accuracy and is the first backend to handle rubrics well (0.769 exact
+level against 0.611 for `smart`). Both run through MLX and therefore only on
+Apple silicon; `base` remains the portable recommendation and the routing table
+records both. `lfm25` is not competitive: 0.596 accuracy with the worst
+calibration of any backend at 0.351.
+
+**Negation is largely solved by the larger model.** On the ten unperturbed
+rule-plus-fact scenarios `qwen35_4b` answers every one correctly, against 0.500
+for `base` and 0.667 for `qwen35`; across all negation rows it scores 0.868
+against 0.509. The decomposition pattern in docs/patterns.md still helps smaller
+backends and is no longer the only remedy.
+
+**Instruction injection is not solved by scale.** On the embedded-instruction
+rows `qwen35` scores 0.019 and `qwen35_4b` 0.058, against 0.000 for `base` and
+0.269 for `decoder`; on the authority-styled variant they reach 0.372 and 0.340.
+A larger model reads the planted instruction more reliably, not less. Screening
+with `opendecision.guards.screen` remains the only measured defence.
 
 What the families show, with the number of test rows in each slice:
 
@@ -213,6 +239,8 @@ point, and a detector is not a security boundary.
 
 ## Remaining work
 
+- Fit calibration profiles for `qwen35` and `qwen35_4b`; neither has one, and the
+  committed profiles are bound to backends the `auto` default no longer selects.
 - Fit profiles per task family, not only per candidate count: the split-to-split
   regression for `base` and the ECE regression for `multilingual` both point at
   a single temperature per width being too coarse.

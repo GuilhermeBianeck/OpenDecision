@@ -103,9 +103,11 @@ class MLXDecoderBackend(DecoderBackend):
         if self.template != "short":
             messages.append({"role": "system", "content": SYSTEM_PROMPT})
         messages.append({"role": "user", "content": f"Context:\n{state}\n\n{question}"})
-        return list(self._tokenizer.apply_chat_template(
-            messages, tokenize=True, add_generation_prompt=True, enable_thinking=False
-        ))
+        return list(
+            self._tokenizer.apply_chat_template(
+                messages, tokenize=True, add_generation_prompt=True, enable_thinking=False
+            )
+        )
 
     def _fit_prompts(self, state: str, questions: list[str]) -> list[list[int]]:
         state_ids = self._encode(state)

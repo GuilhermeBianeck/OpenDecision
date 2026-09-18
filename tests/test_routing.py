@@ -37,11 +37,27 @@ def test_every_profile_names_a_real_backend_and_cites_evidence():
 
 
 def test_recommend_returns_the_measured_choice_and_rejects_unknown_tasks():
-    assert recommend("verification").backend == "base"
+    assert recommend("verification").backend == "qwen35"
     assert recommend("relevance").backend == "multilingual"
     assert recommend("stated_facts").backend == "decoder"
+    assert recommend("rubric").backend == "qwen35_4b"
     with pytest.raises(BackendError, match="Unknown task"):
         recommend("chess")
+
+
+def test_apple_only_recommendations_name_a_portable_alternative():
+    """MLX runs on Apple silicon only, so those entries must not strand other platforms."""
+    from opendecision.backends.catalog import MODEL_SPECS
+
+    mlx = {name for name, spec in MODEL_SPECS.items() if spec["family"] == "decoder-mlx"}
+    assert mlx, "the catalog should still hold MLX candidates"
+    for profile in profiles():
+        if profile.backend in mlx:
+            assert profile.portable, f"{profile.task} recommends MLX with no fallback"
+            assert profile.portable not in mlx, profile.task
+            assert "Off Apple silicon" in profile.describe()
+        # portable_backend always resolves to something runnable anywhere.
+        assert profile.portable_backend not in mlx or profile.portable is None
 
 
 def test_task_selects_the_backend_without_naming_it():
