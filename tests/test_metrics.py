@@ -2,7 +2,13 @@ import math
 
 import pytest
 
-from opendecision.metrics import binary_auroc, classification_metrics, percentile, ranking_metrics
+from opendecision.metrics import (
+    binary_auroc,
+    classification_metrics,
+    ordinal_metrics,
+    percentile,
+    ranking_metrics,
+)
 
 
 def record(target, probabilities, choice=None, abstained=False):
@@ -67,3 +73,38 @@ def test_ranking_and_tie_pair_agreement():
     assert ranking_metrics([perfect])["pairwise_agreement"] == 1
     tied = {"target_ranking": ["a", "b"], "probabilities": {"a": 0.5, "b": 0.5}}
     assert ranking_metrics([tied])["pairwise_agreement"] == 0.5
+
+
+def ordinal(target_level, probabilities, level=None, abstained=False):
+    ordered = sorted(probabilities.values(), reverse=True)
+    argmax = max(probabilities, key=probabilities.get)
+    return {
+        "target_level": target_level,
+        "probabilities": probabilities,
+        "level": None if abstained else (int(argmax) if level is None else level),
+        "score": sum(int(k) * p for k, p in probabilities.items()),
+        "confidence": ordered[0] - ordered[1],
+        "abstained": abstained,
+    }
+
+
+def test_hand_calculated_ordinal_metrics():
+    records = [
+        ordinal(1, {"0": 0.1, "1": 0.8, "2": 0.1}),  # exact; score 1.0
+        ordinal(2, {"0": 0.0, "1": 0.7, "2": 0.3}),  # off by one; score 1.3
+        ordinal(0, {"0": 0.2, "1": 0.2, "2": 0.6}),  # off by two; score 1.4
+        ordinal(2, {"0": 0.3, "1": 0.3, "2": 0.4}, abstained=True),  # abstained; score 1.1
+    ]
+    metrics = ordinal_metrics(records)
+    assert metrics["count"] == 4
+    assert metrics["exact_level_accuracy"] == 0.25
+    assert metrics["within_one_level_accuracy"] == 0.5
+    assert metrics["mean_absolute_level_error"] == pytest.approx((0 + 1 + 2) / 3)
+    assert metrics["mean_absolute_expected_error"] == pytest.approx((0.0 + 0.7 + 1.4 + 0.9) / 4)
+    assert metrics["coverage"] == 0.75
+    assert metrics["negative_log_likelihood"] == pytest.approx(
+        -(math.log(0.8) + math.log(0.3) + math.log(0.2) + math.log(0.4)) / 4
+    )
+    assert ordinal_metrics([]) == {"count": 0}
+    with pytest.raises(ValueError, match="target_level"):
+        ordinal_metrics([ordinal(True, {"0": 0.5, "1": 0.5})])

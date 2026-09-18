@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Benchmark cases carry a `kind` (`choice`, `boolean`, `score`); the runner
+  evaluates each through its primitive, reports `verification`, `robustness` and
+  `ordinal` families, per-family and per-variant objective metrics, and ordinal
+  level-error metrics.
 - New `decoder` backend (pinned Qwen3 0.6B, Apache-2.0): encodes each state once
   into the KV cache and scores options by the next-token log-probability of
   their letter, so many options and many questions per state cost little extra.

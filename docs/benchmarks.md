@@ -14,14 +14,28 @@ group is assigned to exactly one of `train`, `calibration`, `validation`, or
 `test`, and every deterministic perturbation of a seed stays in the seed's
 split. `load_dataset` rejects duplicate ids and any group crossing a split.
 
-Families separate what is being measured:
+Every case has a `kind` that selects the primitive under test: `choice`
+(default) scores `choices`; `boolean` scores a `statement` through the
+statement path when the model has one (its `choices` are fixed to `yes`/`no`);
+`score` rates ordered `levels` against a `target_level`. Families separate
+what is being measured:
 
-| Family | Metric | Meaning |
-|---|---|---|
-| `objective`, `agent_control` | accuracy, NLL, Brier, ECE, AUROC | The label is a checkable fact or an explicit stated policy |
-| `ranking` | NDCG, pairwise agreement | A complete reference ordering exists |
-| `ambiguous` | abstention rate | The right answer is to abstain at the configured threshold |
-| `subjective` | reference-policy agreement | Agreement with a written policy, never moral accuracy |
+| Family | Kind | Metric | Meaning |
+|---|---|---|---|
+| `objective`, `agent_control` | choice | accuracy, NLL, Brier, ECE, AUROC | The label is a checkable fact or an explicit stated policy |
+| `verification` | boolean | accuracy, NLL, Brier, ECE; mean `unsupported` by target | The statement is supported or not by the state |
+| `robustness` | choice | accuracy, plus paired deltas by variant | Negation, distractors and injected instructions with a checkable label |
+| `ordinal` | score | exact and within-one level accuracy, absolute level error | The target is a position on an ordered rubric |
+| `ranking` | choice | NDCG, pairwise agreement | A complete reference ordering exists |
+| `ambiguous` | any | abstention rate | The right answer is to abstain at the configured threshold |
+| `subjective` | choice | reference-policy agreement | Agreement with a written policy, never moral accuracy |
+
+`objective`, `agent_control`, `verification` and `robustness` are pooled into
+the headline objective metrics and also reported per family and per variant.
+Ordinal errors are in level steps and are only comparable across rubrics with
+the same number of levels. Models without a statement or score path (remote
+baselines) answer boolean and score cases as two-way and level-wise choices.
+Calibration fits only `choice`-kind rows.
 
 `benchmarks/datasets/manifest.json` records counts, split policy, file hashes,
 and limitations. The corpus is correlated synthetic text; it is not independent
@@ -38,7 +52,7 @@ opendecision benchmark --model base --robustness --limit 200 \
 
 `--split` selects the rows; `--limit` takes a deterministic prefix, which is a
 convenience sample rather than a representative estimate. `--robustness` adds
-a reversed-option probe and a repeat run. `--models local:tiny,local:base`
+a reversed-option probe for `choice` cases and a repeat run for every case. `--models local:tiny,local:base`
 writes one report per model with a shared prefix.
 
 ## Reading a report

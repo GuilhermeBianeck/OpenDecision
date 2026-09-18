@@ -273,10 +273,13 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError(
             "Fit a new profile without --calibration; existing calibration cannot be chained"
         )
+    # Calibration fits the candidate softmax; boolean statements and rubric levels
+    # are scored through different paths and are excluded until profiled separately.
     cases = [
         case
         for case in load_dataset(args.dataset)
         if case.split == "calibration"
+        and case.kind == "choice"
         and case.family in {"objective", "agent_control", "robustness"}
         and case.target is not None
     ]

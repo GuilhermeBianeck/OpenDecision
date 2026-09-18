@@ -162,6 +162,53 @@ def classification_metrics(records: list[dict[str, Any]], bins: int = 10) -> dic
     }
 
 
+def ordinal_metrics(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Score rubric records with target_level, level, score, probabilities and abstained.
+
+    ``level`` is the argmax level (None when abstained) and ``score`` the
+    probability-weighted level index. Distances are in level steps, so they are
+    only comparable between rubrics with the same number of levels.
+    """
+    if not records:
+        return {"count": 0}
+    exact, within_one, level_error, expected_error = [], [], [], []
+    for record in records:
+        target = record["target_level"]
+        if not isinstance(target, int) or isinstance(target, bool):
+            raise ValueError("target_level must be an integer level index")
+        level = record.get("level")
+        exact.append(level == target)
+        within_one.append(level is not None and abs(level - target) <= 1)
+        if level is not None:
+            level_error.append(abs(level - target))
+        expected_error.append(abs(float(record["score"]) - target))
+    answered = [r for r in records if r.get("level") is not None]
+    distribution = classification_metrics(
+        [
+            {
+                "target": str(r["target_level"]),
+                "probabilities": r["probabilities"],
+                "choice": None if r.get("level") is None else str(r["level"]),
+                "confidence": r["confidence"],
+                "abstained": r.get("level") is None,
+            }
+            for r in records
+        ]
+    )
+    return {
+        "count": len(records),
+        "exact_level_accuracy": mean(exact),
+        "within_one_level_accuracy": mean(within_one),
+        "mean_absolute_level_error": mean(level_error) if level_error else None,
+        "mean_absolute_expected_error": mean(expected_error),
+        "coverage": len(answered) / len(records),
+        "negative_log_likelihood": distribution["negative_log_likelihood"],
+        "brier_score": distribution["brier_score"],
+        "ece": distribution["ece"],
+        "note": "Errors are in level steps of each rubric; expected error uses the weighted score.",
+    }
+
+
 def ranking_metrics(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Evaluate complete strict reference rankings using NDCG and pair agreement."""
     ndcgs, pairwise = [], []
