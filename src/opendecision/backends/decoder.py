@@ -110,6 +110,7 @@ class DecoderBackend:
         self.load_time_ms: float | None = None
 
     supports_statements = True
+    max_options = MAX_OPTIONS
 
     @property
     def metadata(self) -> dict[str, Any]:

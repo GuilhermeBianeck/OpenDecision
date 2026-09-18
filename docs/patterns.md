@@ -6,6 +6,59 @@ benchmark showed the direct approach failing; the numbers below come from the
 committed corpus on the reference machine with `base`, and the commands to
 reproduce them are in [benchmarks](benchmarks.md).
 
+## Choose the backend by the question, not by the last thing that worked
+
+This is the largest lever in the library and the easiest to pull the wrong way.
+The aliases name model families, so nothing in `choose(...)` signals that a
+retrieval reranker and an entailment encoder answer different questions well.
+Measured on the committed corpus, the same question put to two backends has
+moved accuracy from 0.15 to 0.85, and from none of eight to six of eight.
+
+| Question shape | `task=` | Backend | The measurement |
+| --- | --- | --- | --- |
+| Is this statement supported by the state? | `verification` | `base` | 0.963 against 0.446 for `multilingual` |
+| Which candidate matches this topic? | `relevance` | `multilingual` | 0.85 top-one against 0.15 for `base` scoring each candidate separately |
+| Order every candidate | `ranking` | `multilingual` | NDCG 0.983 against 0.867 for `base` |
+| Rate on ordered levels | `rubric` | `smart` | exact level 0.611 against 0.361 for `tiny` |
+| Apply a rule stated in the state | `policy` | `base` | 0.750 against 0.487 for `decoder` |
+| Judge candidates annotated by your own code | `stated_facts` | `decoder` | 6 of 8 from bare notation; `multilingual` 0 of 8 |
+| Many candidates in one question | `wide_choice` | `decoder` | 0.917 on twelve options against 0.333 for `tiny` |
+| Many questions about one state | `many_questions` | `decoder` | 2.8 s against 41 s for `base` |
+| General labelling | `classification` | `decoder` | 0.618 against 0.346 for `tiny` |
+
+```python
+model = DecisionModel(task="relevance")  # resolves to multilingual
+```
+
+`opendecision tasks` prints the table with its evidence, and
+`opendecision.routing.recommend(task)` returns it programmatically. These
+figures come from correlated synthetic rows: they separate the backends
+clearly and they do not predict accuracy on your distribution. The routing
+matters more than the margins.
+
+The failure this prevents is not hypothetical. A reranker asked to pick a chess
+move scored 8 of 8 on mate-in-one *only* because the annotation text contained
+the words "delivers checkmate"; stripped of that cue it scored 0 of 8, while a
+0.6B language model scored 6 of 8 from bare algebraic notation. A relevance
+score is not a judgement, and it fails silently rather than loudly.
+
+## More candidates than one round can hold
+
+Backends cap their options: the decoder scores at most 26, and a cross-encoder
+pays a forward pass for every candidate in a request. `choose_wide` scores
+candidates in groups, promotes the strongest of each, and repeats until one
+round holds them all.
+
+```python
+result = model.choose_wide(state=ticket, question="Which department?", choices=all_180)
+result.metadata["elimination_rounds"], result.metadata["finalists"]
+```
+
+The returned distribution covers **the finalists only**. A candidate eliminated
+in an earlier round never met the survivors, so it has no comparable
+probability; `metadata["distribution_scope"]` says so on every result. When
+every candidate fits one round, this is exactly `choose`.
+
 ## Decompose a conditional rule
 
 A state that carries a rule and a fact — "Releases proceed only after the smoke

@@ -63,7 +63,9 @@ fixture, not an AI quality baseline.**
 | Independent labels | `multi_label` (one binary distribution per label) |
 | Typed questions over one state | `ask` (mixed choice / boolean / score, keyed by your ids) |
 | Batches | `choose_batch`, `statement_batch`, `score_batch`, `decide_many` |
-| Four open-weight model adapters | `tiny`, `base`, `smart`, `multilingual` |
+| Five open-weight model adapters | `tiny`, `base`, `smart`, `multilingual`, `decoder` |
+| Measured backend routing | `DecisionModel(task=...)`, `opendecision tasks` |
+| Candidate sets beyond one round | `choose_wide` |
 | Local resident model server | FastAPI on `127.0.0.1:8042` |
 | Temperature calibration and abstention | Separate profiles; probability and margin thresholds |
 | Reproducible evaluation | JSON + Markdown reports; grouped synthetic splits |
@@ -93,6 +95,16 @@ backends are stronger verifiers: on a ten-statement probe `base` scored the
 true/false split 10/10 where `decoder` scored 7/10. Use NLI for booleans and
 verification, the decoder for wide or repeated choices over one state; the
 [benchmark reports](benchmarks/reports/) measure both.
+
+Because the aliases name model families rather than tasks, the easiest mistake
+is asking the wrong backend: a retrieval reranker and an entailment encoder
+answer different questions well, and the gap between them has measured 0.15
+against 0.85 on the same question. Pass `task=` to get the one measured best
+for a question shape, and see [composition patterns](docs/patterns.md#choose-the-backend-by-the-question-not-by-the-last-thing-that-worked).
+
+```python
+model = DecisionModel(task="relevance")  # resolves to multilingual
+```
 
 These aliases name model families, not quality guarantees. `auto` currently
 selects `base`. `device="auto"` selects CUDA, then MPS, then CPU, and picks

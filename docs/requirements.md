@@ -11,6 +11,8 @@ does not turn a proposal into an unsupported performance claim.
 | Shared backend protocol | Implemented | NLI, reward, reranker, demo, and content-addressed ONNX adapter |
 | Tiny/base/smart/multilingual/decoder tiers | Adapters implemented | Upstream checkpoints pinned; targets are not measured quality guarantees |
 | Shared-state encoding | Implemented for `decoder` | One KV-cache prefix per distinct state; cross-encoders still pay per candidate |
+| Backend routing | Implemented | Measured task table in `opendecision.routing`; `task=` selects it |
+| Candidate sets beyond a backend's per-request cap | Implemented | `choose_wide` eliminates in rounds; distribution covers finalists |
 | Device selection | Implemented | `auto` resolves CUDA, then MPS, then CPU; MPS preference backed by a published measurement |
 | Choice / boolean / multi-label / ranking / batches | Implemented | Multi-label is independent binary scoring; shared-state batching is flattened |
 | Calibration | Implemented | Per-candidate-count temperature scaling with identity, dataset hash, and a held-out validation report; committed profiles for `tiny` and `base` |
