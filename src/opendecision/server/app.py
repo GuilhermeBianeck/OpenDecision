@@ -141,7 +141,7 @@ def create_app(
     decision_model: Any = None,
     max_concurrency: int = 4,
     batch_size: int = 32,
-    max_length: int = 512,
+    max_length: int | None = None,
     template: str = "default",
 ) -> FastAPI:
     """Create an HTTP service; load its model once when the lifespan starts.

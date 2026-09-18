@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `device="auto"` now resolves to MPS on Apple Silicon (after CUDA, before CPU),
+  based on a published 1.2–3.5× measurement. The default `max_length` is the
+  model's context capped at 2,048 tokens instead of a fixed 512.
 - `ask` answers independent typed questions (choice, boolean, score) about one
   state under caller-chosen ids, with per-question thresholds (Python, HTTP
   `/v1/ask`, CLI, TypeScript). Results carry a `type` discriminator. The HTTP

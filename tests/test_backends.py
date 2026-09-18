@@ -210,13 +210,26 @@ def test_empty_batch_does_not_load_model():
     assert DebertaBackend().score_batch([]) == []
 
 
-def test_device_selection_is_conservative_on_apple_and_explicit_errors():
+def test_device_selection_prefers_cuda_then_mps_then_cpu_and_explicit_errors():
     torch = SimpleNamespace(
         cuda=SimpleNamespace(is_available=lambda: False, device_count=lambda: 0),
         backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
     )
-    assert select_device("auto", torch) == "cpu"
+    assert select_device("auto", torch) == "mps"
     assert select_device("mps", torch) == "mps"
+    assert select_device("cpu", torch) == "cpu"
+    no_accelerator = SimpleNamespace(
+        cuda=SimpleNamespace(is_available=lambda: False, device_count=lambda: 0),
+        backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: False)),
+    )
+    assert select_device("auto", no_accelerator) == "cpu"
+    with pytest.raises(BackendError, match="MPS is unavailable"):
+        select_device("mps", no_accelerator)
+    cuda = SimpleNamespace(
+        cuda=SimpleNamespace(is_available=lambda: True, device_count=lambda: 1),
+        backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
+    )
+    assert select_device("auto", cuda) == "cuda"
     with pytest.raises(BackendError, match="CUDA is unavailable"):
         select_device("cuda", torch)
     with pytest.raises(BackendError, match="device must be"):
@@ -273,6 +286,22 @@ def test_load_uses_only_pinned_offline_safetensors_and_configured_labels(
 def test_invalid_backend_configuration(kwargs):
     with pytest.raises(BackendError):
         DebertaBackend(**kwargs)
+
+
+def test_default_sequence_limit_is_model_context_capped():
+    from opendecision import DecisionModel
+    from opendecision.backends.bge_reranker import BGERerankerBackend
+
+    assert DebertaBackend().max_length == 512
+    assert ModernBertBackend().max_length == 2048
+    assert SkyworkRewardBackend().max_length == 2048
+    assert BGERerankerBackend().max_length == 2048
+    assert ModernBertBackend(max_length=256).max_length == 256
+    model = DecisionModel("base")
+    assert model.max_length == 2048
+    assert DecisionModel("base", max_length=128).max_length == 128
+    with pytest.raises(ValueError, match="max_length"):
+        DecisionModel("base", max_length=16)
 
 
 @pytest.mark.integration
