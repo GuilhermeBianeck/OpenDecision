@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Calibration profiles fit one temperature per candidate count by default, with
+  the pooled temperature as the fallback for counts below `min_rows_per_count`;
+  results report `metadata.calibration_temperature`. `opendecision calibrate`
+  scores in batches and reports the held-out effect on the validation split.
 - Committed a five-backend report matrix on the expanded corpus test split
   (`benchmarks/reports/*-mps-test.json`) and `scripts/compare_reports.py`, which
   renders reports side by side into `benchmarks/reports/README.md`.
