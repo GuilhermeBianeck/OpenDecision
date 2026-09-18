@@ -70,8 +70,10 @@ fixture, not an AI quality baseline.**
 | Optional generative LLM baseline | Explicit invocation with your own credentials |
 | Python and TypeScript clients | In-process Python; HTTP TypeScript |
 
-See [progress and measured evidence](PROGRESS.md), [the assessment](docs/project-assessment.md),
-and [the requirements map](docs/requirements.md) for implementation and verification status.
+See [composition patterns](docs/patterns.md) for the measured way to use these
+primitives together, and [progress and measured evidence](PROGRESS.md),
+[the assessment](docs/project-assessment.md) and
+[the requirements map](docs/requirements.md) for implementation and verification status.
 
 ## Choose a model
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added `opendecision.guards.screen` for detecting instructions planted in a
+  state, and `docs/patterns.md` documenting the measured composition patterns:
+  decomposing a conditional rule raises accuracy on negated facts from 0.533 to
+  0.933, and screening flags 97.5 % of bracketed injections at 0.8 % false
+  positives.
 - Committed calibration profiles for `smart`, `multilingual` and `decoder`, and
   calibrated test reports for `base` and `decoder`. Benchmark reports gained
   `objective_by_choice_count`, because a per-count profile makes one margin
