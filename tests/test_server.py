@@ -138,6 +138,36 @@ def test_structured_state_and_options_over_http(client):
     )
 
 
+def test_ask_contract(client):
+    body = client.post(
+        "/v1/ask",
+        json={
+            "state": "billing support needed now",
+            "questions": {
+                "team": {"type": "choice", "question": "Team?", "choices": ["billing", "other"]},
+                "ready": {"type": "boolean", "statement": "support needed"},
+                "urgency": {
+                    "type": "score",
+                    "question": "Urgency?",
+                    "levels": ["later", "now"],
+                },
+            },
+        },
+    )
+    assert body.status_code == 200
+    answers = body.json()
+    assert list(answers) == ["team", "ready", "urgency"]
+    assert answers["team"]["type"] == "choice" and answers["team"]["choice"] == "billing"
+    assert answers["ready"]["type"] == "boolean" and answers["ready"]["method"] == "binary_choice"
+    assert answers["urgency"]["type"] == "score" and answers["urgency"]["level"] == 1
+    assert client.post("/v1/ask", json={"state": "", "questions": {}}).status_code == 422
+    assert "/v1/ask" in client.get("/openapi.json").json()["paths"]
+    many = {"state": "", "labels": [f"label {i}" for i in range(128)]}
+    assert client.post("/v1/multi-label", json=many).status_code == 200
+    many["labels"].append("one more")
+    assert client.post("/v1/multi-label", json=many).status_code == 422
+
+
 def test_score_contract(client):
     payload = {
         "state": "Billing needs billing support urgently.",

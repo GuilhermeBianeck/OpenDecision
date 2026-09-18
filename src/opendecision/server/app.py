@@ -16,9 +16,12 @@ from opendecision import DecisionModel
 from opendecision.errors import OpenDecisionError
 from opendecision.registry import list_models
 from opendecision.schemas import (
+    MAX_QUESTIONS_PER_STATE,
+    Answer,
     BooleanResult,
     DecisionRequest,
     DecisionResult,
+    QuestionsRequest,
     RankingResult,
     ScoreRequest,
     ScoreResult,
@@ -109,7 +112,7 @@ class MultiLabelRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     state: StateValue
     labels: list[Annotated[str, Field(min_length=1, max_length=8_192)]] = Field(
-        min_length=1, max_length=MAX_BATCH_SIZE
+        min_length=1, max_length=MAX_QUESTIONS_PER_STATE
     )
     abstain_threshold: float | None = Field(default=None, ge=0, le=1)
     margin_threshold: float | None = Field(default=None, ge=0, le=1)
@@ -234,6 +237,11 @@ def create_app(
     def rank(request: DecisionRequest) -> RankingResult:
         with inference_slot() as engine:
             return engine.rank(**request.model_dump())
+
+    @app.post("/v1/ask", response_model=dict[str, Answer])
+    def ask(request: QuestionsRequest) -> dict[str, Answer]:
+        with inference_slot() as engine:
+            return engine.ask(state=request.state, questions=request.questions)
 
     @app.post("/v1/score", response_model=ScoreResult)
     def score(request: ScoreRequest) -> ScoreResult:

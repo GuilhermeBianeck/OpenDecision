@@ -15,12 +15,17 @@ test("routes requests and serializes the documented batch envelope", async () =>
   await client.rank(request);
   await client.boolean({state: "", question: "Ready?"});
   await client.score({state: "", question: "Severity?", levels: ["none", "minor", "major"]});
+  await client.ask({state: "", questions: {
+    team: {type: "choice", question: "Team?", choices: ["billing", "technical"]},
+    urgent: {type: "boolean", statement: "The message is urgent."},
+    severity: {type: "score", question: "Severity?", levels: ["none", "major"]},
+  }});
   await client.multiLabel({state: "", labels: ["Ready?"]});
   await client.health();
   await client.models();
   assert.deepEqual(calls.map(c => new URL(c.url).pathname), [
-    "/v1/decide", "/v1/decide/batch", "/v1/rank", "/v1/boolean", "/v1/score", "/v1/multi-label",
-    "/health", "/v1/models"
+    "/v1/decide", "/v1/decide/batch", "/v1/rank", "/v1/boolean", "/v1/score", "/v1/ask",
+    "/v1/multi-label", "/health", "/v1/models"
   ]);
   assert.deepEqual(JSON.parse(calls[0].options.body), request);
   const structured = {
@@ -32,8 +37,9 @@ test("routes requests and serializes the documented batch envelope", async () =>
   assert.deepEqual(JSON.parse(calls.at(-1).options.body), structured);
   assert.deepEqual(JSON.parse(calls[1].options.body), {requests: [request]});
   assert.deepEqual(JSON.parse(calls[4].options.body).levels, ["none", "minor", "major"]);
-  assert.equal(calls[6].options.method, "GET");
-  assert.equal(calls[6].options.body, undefined);
+  assert.deepEqual(Object.keys(JSON.parse(calls[5].options.body).questions), ["team", "urgent", "severity"]);
+  assert.equal(calls[7].options.method, "GET");
+  assert.equal(calls[7].options.body, undefined);
 });
 
 test("retains structured validation errors", async () => {

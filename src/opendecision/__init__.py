@@ -3,12 +3,16 @@
 from .api import DecisionModel
 from .calibration import CalibrationProfile, fit_temperature
 from .schemas import (
+    BooleanQuestion,
     BooleanResult,
     ChoiceOption,
+    ChoiceQuestion,
     DecisionRequest,
     DecisionResult,
+    QuestionsRequest,
     RankedChoice,
     RankingResult,
+    ScoreQuestion,
     ScoreRequest,
     ScoreResult,
     StatementRequest,
@@ -23,6 +27,10 @@ __all__ = [
     "BooleanResult",
     "RankedChoice",
     "RankingResult",
+    "ChoiceQuestion",
+    "BooleanQuestion",
+    "ScoreQuestion",
+    "QuestionsRequest",
     "ScoreRequest",
     "ScoreResult",
     "StatementRequest",

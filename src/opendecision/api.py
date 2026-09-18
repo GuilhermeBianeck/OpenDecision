@@ -12,12 +12,19 @@ from .calibration import CalibrationProfile
 from .confidence import margin, softmax
 from .errors import BackendError, CalibrationError
 from .schemas import (
+    MAX_QUESTIONS_PER_STATE,
+    Answer,
+    BooleanQuestion,
     BooleanResult,
     ChoiceOption,
+    ChoiceQuestion,
     DecisionRequest,
     DecisionResult,
+    Question,
+    QuestionsRequest,
     RankedChoice,
     RankingResult,
+    ScoreQuestion,
     ScoreRequest,
     ScoreResult,
     StatementRequest,
@@ -415,8 +422,8 @@ class DecisionModel:
         unsupported_threshold: float | None = None,
     ) -> dict[str, BooleanResult]:
         """Evaluate each label as its own statement, never a shared softmax."""
-        if not labels or len(labels) > 128 or len(set(labels)) != len(labels):
-            raise ValueError("provide 1–128 unique labels")
+        if not labels or len(labels) > MAX_QUESTIONS_PER_STATE or len(set(labels)) != len(labels):
+            raise ValueError(f"provide 1–{MAX_QUESTIONS_PER_STATE} unique labels")
         requests = [
             StatementRequest(
                 state=state,
@@ -429,6 +436,67 @@ class DecisionModel:
         ]
         return dict(zip(labels, self.statement_batch(requests)))
 
+    def ask(
+        self,
+        *,
+        state: StateValue,
+        questions: dict[str, Question | dict[str, Any]],
+    ) -> dict[str, Answer]:
+        """Answer independent typed questions about one state, keyed by your ids.
+
+        Choice and score questions are scored in one candidate batch and boolean
+        questions in one statement batch. Answers come back under the same ids,
+        in request order, each with its own thresholds applied.
+        """
+        request = QuestionsRequest(state=state, questions=questions)
+        decisions: list[tuple[str, DecisionRequest]] = []
+        statements: list[tuple[str, StatementRequest]] = []
+        scores: dict[str, ScoreRequest] = {}
+        for key, spec in request.questions.items():
+            if isinstance(spec, BooleanQuestion):
+                statements.append(
+                    (
+                        key,
+                        StatementRequest(
+                            state=request.state,
+                            statement=spec.statement,
+                            abstain_threshold=spec.abstain_threshold,
+                            margin_threshold=spec.margin_threshold,
+                            unsupported_threshold=spec.unsupported_threshold,
+                        ),
+                    )
+                )
+                continue
+            candidates = spec.levels if isinstance(spec, ScoreQuestion) else spec.choices
+            decisions.append(
+                (
+                    key,
+                    DecisionRequest(
+                        state=request.state,
+                        question=spec.question,
+                        choices=candidates,
+                        abstain_threshold=spec.abstain_threshold,
+                        margin_threshold=spec.margin_threshold,
+                        include_raw_scores=spec.include_raw_scores,
+                    ),
+                )
+            )
+            if isinstance(spec, ScoreQuestion):
+                scores[key] = ScoreRequest(
+                    state=request.state,
+                    question=spec.question,
+                    levels=spec.levels,
+                    abstain_threshold=spec.abstain_threshold,
+                    margin_threshold=spec.margin_threshold,
+                    include_raw_scores=spec.include_raw_scores,
+                )
+        answers: dict[str, Answer] = {}
+        for (key, _), result in zip(decisions, self.choose_batch([r for _, r in decisions])):
+            answers[key] = self._score_result(scores[key], result) if key in scores else result
+        for (key, _), result in zip(statements, self.statement_batch([r for _, r in statements])):
+            answers[key] = result
+        return {key: answers[key] for key in request.questions}
+
     def decide_many(
         self,
         *,
@@ -437,17 +505,25 @@ class DecisionModel:
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
     ) -> dict[str, DecisionResult]:
-        """Batch independent natural-language questions over a shared state."""
-        if not questions or len(questions) > 128:
-            raise ValueError("provide 1–128 questions")
-        requests = [
-            DecisionRequest(
-                state=state,
-                question=question,
-                choices=choices,
-                abstain_threshold=abstain_threshold,
-                margin_threshold=margin_threshold,
-            )
-            for question, choices in questions.items()
-        ]
-        return dict(zip(questions, self.choose_batch(requests)))
+        """Batch independent choice questions over a shared state, keyed by question text.
+
+        Prefer :meth:`ask`, which accepts explicit ids, mixed question types and
+        per-question thresholds.
+        """
+        if not questions or len(questions) > MAX_QUESTIONS_PER_STATE:
+            raise ValueError(f"provide 1–{MAX_QUESTIONS_PER_STATE} questions")
+        answers = self.ask(
+            state=state,
+            questions={
+                question: ChoiceQuestion(
+                    question=question,
+                    choices=choices,
+                    abstain_threshold=abstain_threshold,
+                    margin_threshold=margin_threshold,
+                )
+                for question, choices in questions.items()
+            },
+        )
+        return {
+            key: answer for key, answer in answers.items() if isinstance(answer, DecisionResult)
+        }

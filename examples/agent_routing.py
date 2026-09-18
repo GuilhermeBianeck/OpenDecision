@@ -1,19 +1,43 @@
-"""Independent questions over shared agent state (requires cached base weights)."""
+"""Independent typed questions over shared agent state (requires cached base weights)."""
 
 from opendecision import DecisionModel
 
 model = DecisionModel("base")
-state = "The user asks for today's exchange rate. No current source has been consulted."
-results = model.decide_many(
+state = {
+    "user_request": "What is today's exchange rate for EUR to BRL?",
+    "sources_consulted": [],
+    "pending_action": "answer from memory",
+}
+answers = model.ask(
     state=state,
     questions={
-        "Which tool should be used next?": ["web search", "calculator", "none"],
-        "Is there enough information to answer now?": ["yes", "no"],
-        "Would the next step delete user data?": ["yes", "no"],
+        "next_tool": {
+            "type": "choice",
+            "question": "Which tool should be used next?",
+            "choices": [
+                {"label": "web search", "description": "fetch current public information"},
+                {"label": "calculator", "description": "arithmetic on numbers already known"},
+                "none",
+            ],
+            "abstain_threshold": 0.80,
+            "margin_threshold": 0.15,
+        },
+        "can_answer_now": {
+            "type": "boolean",
+            "statement": "The information needed to answer is already available.",
+            "unsupported_threshold": 0.60,
+        },
+        "destructive": {
+            "type": "boolean",
+            "statement": "The pending action would delete or overwrite user data.",
+        },
+        "risk": {
+            "type": "score",
+            "question": "How risky is the pending action?",
+            "levels": ["read-only", "reversible change", "irreversible change"],
+        },
     },
-    abstain_threshold=0.80,
-    margin_threshold=0.15,
 )
-for question, result in results.items():
-    print(question, result.choice, result.confidence, result.abstained)
+for key, answer in answers.items():
+    print(key, answer.type, getattr(answer, "choice", getattr(answer, "value", None)))
 # These are advisory scores. Application policy still controls side effects.

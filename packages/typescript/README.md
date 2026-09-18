@@ -26,7 +26,9 @@ console.log(result.normalized_probabilities);
 console.log(result.calibrated_probabilities); // null unless the server loaded a profile
 ```
 
-Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `boolean(request)`, `score(request)`, `rank(request)`, and `multiLabel(request)`. The server accepts at most 64 batch requests or labels and a total request body up to 1 MiB. A full inference queue returns HTTP 429 with `Retry-After: 1`.
+Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `boolean(request)`, `score(request)`, `ask(request)`, `rank(request)`, and `multiLabel(request)`. The server accepts at most 64 batch requests, 128 labels or questions per state, and a total request body up to 1 MiB.
+
+`ask(request)` sends independent typed questions (`{type: "choice" | "boolean" | "score", ...}`) about one `state` under your own ids and returns a record of answers discriminated by `type`. A full inference queue returns HTTP 429 with `Retry-After: 1`.
 
 HTTP failures throw `OpenDecisionHTTPError` with `.status` and `.body`. Timeouts throw `OpenDecisionTimeoutError`; the default is 30 seconds, including response body reading. The client does not retry automatically. Returned TypeScript types describe the server contract; arbitrary responses are not runtime schema-validated.
 

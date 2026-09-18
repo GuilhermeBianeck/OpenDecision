@@ -20,6 +20,7 @@ export interface DecisionRequest {
 }
 
 export interface DecisionResult {
+  type: "choice";
   choice: string | null;
   /** Calibrated values when a profile is loaded; normalized scores otherwise. */
   probabilities: Record<string, number>;
@@ -47,6 +48,7 @@ export interface BooleanRequest {
 }
 
 export interface BooleanResult {
+  type: "boolean";
   value: boolean | null;
   /** Yes probability, even when abstained. */
   probability: number;
@@ -67,6 +69,7 @@ export interface ScoreRequest {
 }
 
 export interface ScoreResult {
+  type: "score";
   /** Probability-weighted level index; may fall between two levels. */
   score: number;
   /** Most probable level index, or null when abstained. */
@@ -79,6 +82,43 @@ export interface ScoreResult {
   decision: DecisionResult;
 }
 
+export interface ChoiceQuestion {
+  type: "choice";
+  question: string;
+  choices: (string | ChoiceOption)[];
+  abstain_threshold?: number | null;
+  margin_threshold?: number | null;
+  include_raw_scores?: boolean;
+}
+
+export interface BooleanQuestion {
+  type: "boolean";
+  statement: string;
+  abstain_threshold?: number | null;
+  margin_threshold?: number | null;
+  unsupported_threshold?: number | null;
+}
+
+export interface ScoreQuestion {
+  type: "score";
+  question: string;
+  levels: string[];
+  abstain_threshold?: number | null;
+  margin_threshold?: number | null;
+  include_raw_scores?: boolean;
+}
+
+export type Question = ChoiceQuestion | BooleanQuestion | ScoreQuestion;
+
+/** Independent typed questions about one state, keyed by your own ids (at most 128). */
+export interface AskRequest {
+  state: StateValue;
+  questions: Record<string, Question>;
+}
+
+/** Discriminated on `type`, matching the question that produced it. */
+export type Answer = DecisionResult | BooleanResult | ScoreResult;
+
 export interface RankedChoice {
   choice: string;
   probability: number;
@@ -86,6 +126,7 @@ export interface RankedChoice {
 }
 
 export interface RankingResult {
+  type: "ranking";
   ranking: RankedChoice[];
   decision: DecisionResult;
 }
@@ -214,6 +255,9 @@ export class OpenDecision {
   }
   score(request: ScoreRequest): Promise<ScoreResult> {
     return this.request("/v1/score", request);
+  }
+  ask(request: AskRequest): Promise<Record<string, Answer>> {
+    return this.request("/v1/ask", request);
   }
   multiLabel(request: MultiLabelRequest): Promise<Record<string, BooleanResult>> {
     return this.request("/v1/multi-label", request);

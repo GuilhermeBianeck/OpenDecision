@@ -15,10 +15,14 @@ from pathlib import Path
 from typing import Any
 
 
-def _print(value: Any) -> None:
+def _json_default(value: Any) -> Any:
     if hasattr(value, "model_dump"):
-        value = value.model_dump(mode="json")
-    print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
+        return value.model_dump(mode="json")
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def _print(value: Any) -> None:
+    print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False, default=_json_default))
 
 
 def _model_options(parser: argparse.ArgumentParser) -> None:
@@ -94,6 +98,18 @@ def build_parser() -> argparse.ArgumentParser:
             command,
             candidates=None if name == "boolean" else "levels" if name == "score" else "choices",
         )
+    ask = commands.add_parser("ask", help="Answer several typed questions about one state")
+    _model_options(ask)
+    source = ask.add_mutually_exclusive_group(required=True)
+    source.add_argument("--state", help="Context text")
+    source.add_argument("--state-file", type=Path, help="UTF-8 context file; '-' reads stdin")
+    source.add_argument("--state-json", type=Path, help="JSON record or list of texts")
+    ask.add_argument(
+        "--questions-json",
+        type=Path,
+        required=True,
+        help='JSON object of id -> {"type": "choice"|"boolean"|"score", ...}',
+    )
     serve = commands.add_parser("serve", help="Start the local HTTP server")
     _model_options(serve)
     serve.add_argument("--host", default="127.0.0.1")
@@ -319,6 +335,11 @@ def run(args: argparse.Namespace) -> Any:
         else:
             request.update(choices=_choices(args), include_raw_scores=args.raw_scores)
         return getattr(engine, "choose" if args.command == "decide" else args.command)(**request)
+    if args.command == "ask":
+        questions = json.loads(args.questions_json.read_text(encoding="utf-8"))
+        if not isinstance(questions, dict):
+            raise ValueError("--questions-json must contain a JSON object keyed by question id")
+        return _load_model(args).ask(state=_state(args), questions=questions)
     if args.command == "benchmark":
         return _benchmark(args)
     if args.command == "calibrate":
