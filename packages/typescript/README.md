@@ -9,7 +9,7 @@ npm run build
 npm test
 ```
 
-Install this directory in your application using `npm install /absolute/path/to/DecisionMachine/packages/typescript`. Start a server with `opendecision serve` after downloading its model (`opendecision pull base`).
+Install this directory in your application using `npm install /absolute/path/to/OpenDecision/packages/typescript`. Start a server with `opendecision serve` after downloading its model (`opendecision pull base`).
 
 ```ts
 import {OpenDecision, OpenDecisionHTTPError} from "@opendecision/client";
@@ -34,4 +34,4 @@ HTTP failures throw `OpenDecisionHTTPError` with `.status` and `.body`. Timeouts
 
 The server binds to loopback by default, has no authentication, and sends no prompts to external services. Browser use across origins requires a reverse proxy or an explicit CORS policy configured by your application; the default server does not grant cross-origin access.
 
-MIT license. See [the repository](https://github.com/GuilhermeBianeck/DecisionMachine) for the Python SDK and model licensing information.
+MIT license. See [the repository](https://github.com/GuilhermeBianeck/OpenDecision) for the Python SDK and model licensing information.

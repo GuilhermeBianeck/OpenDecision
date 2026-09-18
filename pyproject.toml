@@ -30,9 +30,9 @@ dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "httpx>=0.28,<1", "ruff>=0.11,<1", "
 opendecision = "opendecision.cli:main"
 
 [project.urls]
-Repository = "https://github.com/GuilhermeBianeck/DecisionMachine"
-Issues = "https://github.com/GuilhermeBianeck/DecisionMachine/issues"
-Documentation = "https://github.com/GuilhermeBianeck/DecisionMachine/tree/main/docs"
+Repository = "https://github.com/GuilhermeBianeck/OpenDecision"
+Issues = "https://github.com/GuilhermeBianeck/OpenDecision/issues"
+Documentation = "https://github.com/GuilhermeBianeck/OpenDecision/tree/main/docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opendecision"]

@@ -2,7 +2,7 @@
 
 **Local decisions. Explicit uncertainty. Your data stays on your machine.**
 
-[![CI](https://github.com/GuilhermeBianeck/DecisionMachine/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeBianeck/DecisionMachine/actions/workflows/ci.yml)
+[![CI](https://github.com/GuilhermeBianeck/OpenDecision/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeBianeck/OpenDecision/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Status: alpha](https://img.shields.io/badge/status-0.1.0a1-orange.svg)](CHANGELOG.md)
 
@@ -11,7 +11,7 @@ a distribution over the choices, and an explicit uncertainty margin. It scores
 candidates with open-weight classifiers, reward models, and rerankers, without
 generating an answer token by token. Inference runs locally, without an API key.
 
-This repository is named **DecisionMachine**; the Python package is **opendecision**.
+This repository is named **OpenDecision**; the Python package is **opendecision**.
 The alpha establishes a measurable local alternative for decision workloads.
 It does **not** establish that these models outperform Jev or a frontier LLM.
 
@@ -21,8 +21,8 @@ Python 3.10+ is supported; Python 3.12 is recommended for optional model runtime
 The package has not been published to PyPI. Install from this checkout:
 
 ```bash
-git clone https://github.com/GuilhermeBianeck/DecisionMachine.git
-cd DecisionMachine
+git clone https://github.com/GuilhermeBianeck/OpenDecision.git
+cd OpenDecision
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[inference,server]'
