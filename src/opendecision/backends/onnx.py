@@ -5,12 +5,16 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+import warnings
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from opendecision.backends.catalog import MODEL_SPECS, backend_options
 from opendecision.backends.transformers import TransformersBackend
 from opendecision.errors import BackendError
+
+if TYPE_CHECKING:
+    from opendecision.schemas import DecisionRequest
 
 
 def hash_file(path: Path) -> str:
@@ -148,3 +152,35 @@ class OnnxBackend(TransformersBackend):
         inputs = {name: value for name, value in encoded.items() if name in self._input_names}
         logits = self._model.run(["logits"], inputs)[0]
         return logits[:, self._entailment_index].astype(float).tolist()
+
+    def score_batch(self, requests: list[DecisionRequest]) -> list[list[float]]:
+        """Score flattened candidate pairs through ONNX Runtime, preserving boundaries."""
+        if not requests:
+            return []
+        with self._lock:
+            self.load()
+            self._truncated_candidates = 0
+            pairs = [
+                self._fit_candidate(request.state, request.question, choice)
+                for request in requests
+                for choice in request.choices
+            ]
+            if self._truncated_candidates:
+                warnings.warn(
+                    f"State truncated for {self._truncated_candidates} candidates; "
+                    "question and choices preserved. See result metadata.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            scores: list[float] = []
+            for offset in range(0, len(pairs), self.batch_size):
+                scores.extend(self._infer_chunk(pairs[offset : offset + self.batch_size]))
+            if len(scores) != len(pairs):
+                raise BackendError("ONNX returned the wrong number of candidate scores.")
+            grouped: list[list[float]] = []
+            offset = 0
+            for request in requests:
+                count = len(request.choices)
+                grouped.append(scores[offset : offset + count])
+                offset += count
+            return grouped

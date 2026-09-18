@@ -19,7 +19,7 @@ does not turn a proposal into an unsupported performance claim.
 | TypeScript SDK | Implemented | Dependency-free fetch client with typed errors and contract tests |
 | Benchmark data and metrics | Implemented | 2,320 correlated synthetic rows; objective, control, ranking, ambiguity, subjective, trolley |
 | External Jev/Gemini adapters | Optional | Explicit credentials and command required; no live comparison included |
-| Quantization / ONNX | Experimental | Tiny-only manifest-bound CPU artifact; export is optional and separately verified |
+| Quantization / ONNX | Experimental | Tiny-only manifest-bound CPU artifact; `scripts/export_onnx.py` is explicit and separately verified |
 | CoreML / MPS optimization matrix | Planned | Hardware-specific measurement needs dedicated runs |
 | Fine-tuning and distillation | Planned | Baseline first; scripts must preserve split isolation |
 | Pydantic AI integration | Planned | Public Python API is stable enough for a future adapter |
