@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Benchmark corpus expanded from 232 to 538 seeds (2,320 to 6,578 rows): templated
+  verification statements over authored records, negation pairs, embedded and
+  authority-styled injections, twelve-option routing, six ordinal rubrics, and
+  same-domain distractor variants.
 - Benchmark cases carry a `kind` (`choice`, `boolean`, `score`); the runner
   evaluates each through its primitive, reports `verification`, `robustness` and
   `ordinal` families, per-family and per-variant objective metrics, and ordinal
