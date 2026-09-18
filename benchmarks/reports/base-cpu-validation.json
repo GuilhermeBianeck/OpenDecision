@@ -1,0 +1,2094 @@
+{
+  "schema_version": 1,
+  "status": "measured",
+  "created_at": "2026-09-18T09:28:37.676395+00:00",
+  "dataset": {
+    "sha256": "7b25ab46b108bf7098e83271d4c973f39d3b6f9f2f19237c7e62711bf3bf8541",
+    "evaluated_sha256": "10e6cb2071de0a80bb50d4152f2da8ffb892912df6d88bfff1a651289673e8a1",
+    "split": "validation",
+    "count": 24,
+    "groups": 7,
+    "base_scenarios": 24,
+    "families": {
+      "ambiguous": 4,
+      "subjective": 3,
+      "ranking": 3,
+      "objective": 11,
+      "agent_control": 3
+    },
+    "variants": {
+      "base": 24
+    },
+    "limit": 24,
+    "synthetic": true
+  },
+  "runtime": {
+    "model": "tasksource/ModernBERT-base-nli",
+    "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+    "backend": "base",
+    "device": "cpu",
+    "precision": "float32",
+    "batch_size": 1,
+    "template": "default",
+    "calibration": null,
+    "os": "macOS-26.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.12.13",
+    "dependencies": {
+      "opendecision": "0.1.0a1",
+      "torch": "2.14.0",
+      "transformers": "4.57.6",
+      "numpy": "2.5.3",
+      "pydantic": "2.13.5",
+      "onnxruntime": null,
+      "httpx": "0.28.1"
+    }
+  },
+  "objective": {
+    "count": 14,
+    "accuracy": 0.9285714285714286,
+    "argmax_accuracy": 0.9285714285714286,
+    "balanced_accuracy": 0.9166666666666666,
+    "macro_f1": 0.9523809523809523,
+    "confusion_matrix": {
+      "relevant": {
+        "relevant": 7
+      },
+      "sales": {
+        "technical": 1,
+        "sales": 3
+      },
+      "yes": {
+        "yes": 3
+      }
+    },
+    "negative_log_likelihood": 0.4395989080804411,
+    "brier_score": 0.22055264012520973,
+    "ece": 0.22712455559277114,
+    "reliability_bins": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.3,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.3,
+        "upper": 0.4,
+        "count": 4,
+        "accuracy": 0.75,
+        "mean_top_probability": 0.37364890077387775
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.6,
+        "upper": 0.7,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.6361682945771376
+      },
+      {
+        "lower": 0.7,
+        "upper": 0.8,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.7445174922578565
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 6,
+        "accuracy": 1,
+        "mean_top_probability": 0.852316978819968
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 2,
+        "accuracy": 1,
+        "mean_top_probability": 0.9155364794254452
+      }
+    ],
+    "auroc_by_choice_vocabulary": [
+      {
+        "choices": [
+          "billing",
+          "fraud",
+          "sales",
+          "technical"
+        ],
+        "count": 4,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "irrelevant",
+          "relevant"
+        ],
+        "count": 7,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "no",
+          "yes"
+        ],
+        "count": 3,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      }
+    ],
+    "coverage": 1.0,
+    "selective_accuracy": 0.9285714285714286,
+    "coverage_by_margin_threshold": [
+      {
+        "min_margin": 0.0,
+        "coverage": 1.0,
+        "selective_accuracy": 0.9285714285714286,
+        "answered": 14
+      },
+      {
+        "min_margin": 0.25,
+        "coverage": 0.7142857142857143,
+        "selective_accuracy": 1,
+        "answered": 10
+      },
+      {
+        "min_margin": 0.5,
+        "coverage": 0.5714285714285714,
+        "selective_accuracy": 1,
+        "answered": 8
+      },
+      {
+        "min_margin": 0.75,
+        "coverage": 0.21428571428571427,
+        "selective_accuracy": 1,
+        "answered": 3
+      },
+      {
+        "min_margin": 0.8,
+        "coverage": 0.14285714285714285,
+        "selective_accuracy": 1,
+        "answered": 2
+      },
+      {
+        "min_margin": 0.9,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      },
+      {
+        "min_margin": 0.95,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      }
+    ]
+  },
+  "objective_normalized": {
+    "count": 14,
+    "accuracy": 0.9285714285714286,
+    "argmax_accuracy": 0.9285714285714286,
+    "balanced_accuracy": 0.9166666666666666,
+    "macro_f1": 0.9523809523809523,
+    "confusion_matrix": {
+      "relevant": {
+        "relevant": 7
+      },
+      "sales": {
+        "technical": 1,
+        "sales": 3
+      },
+      "yes": {
+        "yes": 3
+      }
+    },
+    "negative_log_likelihood": 0.4395989080804411,
+    "brier_score": 0.22055264012520973,
+    "ece": 0.22712455559277114,
+    "reliability_bins": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.3,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.3,
+        "upper": 0.4,
+        "count": 4,
+        "accuracy": 0.75,
+        "mean_top_probability": 0.37364890077387775
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.6,
+        "upper": 0.7,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.6361682945771376
+      },
+      {
+        "lower": 0.7,
+        "upper": 0.8,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.7445174922578565
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 6,
+        "accuracy": 1,
+        "mean_top_probability": 0.852316978819968
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 2,
+        "accuracy": 1,
+        "mean_top_probability": 0.9155364794254452
+      }
+    ],
+    "auroc_by_choice_vocabulary": [
+      {
+        "choices": [
+          "billing",
+          "fraud",
+          "sales",
+          "technical"
+        ],
+        "count": 4,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "irrelevant",
+          "relevant"
+        ],
+        "count": 7,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "no",
+          "yes"
+        ],
+        "count": 3,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      }
+    ],
+    "coverage": 1.0,
+    "selective_accuracy": 0.9285714285714286,
+    "coverage_by_margin_threshold": [
+      {
+        "min_margin": 0.0,
+        "coverage": 1.0,
+        "selective_accuracy": 0.9285714285714286,
+        "answered": 14
+      },
+      {
+        "min_margin": 0.25,
+        "coverage": 0.7142857142857143,
+        "selective_accuracy": 1,
+        "answered": 10
+      },
+      {
+        "min_margin": 0.5,
+        "coverage": 0.5714285714285714,
+        "selective_accuracy": 1,
+        "answered": 8
+      },
+      {
+        "min_margin": 0.75,
+        "coverage": 0.21428571428571427,
+        "selective_accuracy": 1,
+        "answered": 3
+      },
+      {
+        "min_margin": 0.8,
+        "coverage": 0.14285714285714285,
+        "selective_accuracy": 1,
+        "answered": 2
+      },
+      {
+        "min_margin": 0.9,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      },
+      {
+        "min_margin": 0.95,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      }
+    ]
+  },
+  "by_family": {
+    "objective": {
+      "count": 11,
+      "accuracy": 0.9090909090909091,
+      "argmax_accuracy": 0.9090909090909091,
+      "balanced_accuracy": 0.875,
+      "macro_f1": 0.9285714285714286,
+      "confusion_matrix": {
+        "relevant": {
+          "relevant": 7
+        },
+        "sales": {
+          "technical": 1,
+          "sales": 3
+        }
+      },
+      "negative_log_likelihood": 0.49950855429574476,
+      "brier_score": 0.25864128106284595,
+      "ece": 0.2355618087674359,
+      "reliability_bins": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 4,
+          "accuracy": 0.75,
+          "mean_top_probability": 0.37364890077387775
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 1,
+          "accuracy": 1,
+          "mean_top_probability": 0.6361682945771376
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 4,
+          "accuracy": 1,
+          "mean_top_probability": 0.8617458117586665
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 2,
+          "accuracy": 1,
+          "mean_top_probability": 0.9155364794254452
+        }
+      ],
+      "auroc_by_choice_vocabulary": [
+        {
+          "choices": [
+            "billing",
+            "fraud",
+            "sales",
+            "technical"
+          ],
+          "count": 4,
+          "macro_ovr_auroc": null,
+          "reason": "At least one class has no positive or negative examples."
+        },
+        {
+          "choices": [
+            "irrelevant",
+            "relevant"
+          ],
+          "count": 7,
+          "macro_ovr_auroc": null,
+          "reason": "At least one class has no positive or negative examples."
+        }
+      ],
+      "coverage": 1.0,
+      "selective_accuracy": 0.9090909090909091,
+      "coverage_by_margin_threshold": [
+        {
+          "min_margin": 0.0,
+          "coverage": 1.0,
+          "selective_accuracy": 0.9090909090909091,
+          "answered": 11
+        },
+        {
+          "min_margin": 0.25,
+          "coverage": 0.6363636363636364,
+          "selective_accuracy": 1,
+          "answered": 7
+        },
+        {
+          "min_margin": 0.5,
+          "coverage": 0.5454545454545454,
+          "selective_accuracy": 1,
+          "answered": 6
+        },
+        {
+          "min_margin": 0.75,
+          "coverage": 0.2727272727272727,
+          "selective_accuracy": 1,
+          "answered": 3
+        },
+        {
+          "min_margin": 0.8,
+          "coverage": 0.18181818181818182,
+          "selective_accuracy": 1,
+          "answered": 2
+        },
+        {
+          "min_margin": 0.9,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.95,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        }
+      ]
+    },
+    "agent_control": {
+      "count": 3,
+      "accuracy": 1,
+      "argmax_accuracy": 1,
+      "balanced_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "confusion_matrix": {
+        "yes": {
+          "yes": 3
+        }
+      },
+      "negative_log_likelihood": 0.21993020529099447,
+      "brier_score": 0.08089429002054359,
+      "ece": 0.1961879606190004,
+      "reliability_bins": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 1,
+          "accuracy": 1,
+          "mean_top_probability": 0.7445174922578565
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 2,
+          "accuracy": 1,
+          "mean_top_probability": 0.8334593129425711
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        }
+      ],
+      "auroc_by_choice_vocabulary": [
+        {
+          "choices": [
+            "no",
+            "yes"
+          ],
+          "count": 3,
+          "macro_ovr_auroc": null,
+          "reason": "At least one class has no positive or negative examples."
+        }
+      ],
+      "coverage": 1.0,
+      "selective_accuracy": 1,
+      "coverage_by_margin_threshold": [
+        {
+          "min_margin": 0.0,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 3
+        },
+        {
+          "min_margin": 0.25,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 3
+        },
+        {
+          "min_margin": 0.5,
+          "coverage": 0.6666666666666666,
+          "selective_accuracy": 1,
+          "answered": 2
+        },
+        {
+          "min_margin": 0.75,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.8,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.9,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.95,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        }
+      ]
+    }
+  },
+  "subjective": {
+    "count": 3,
+    "policy_labeled_count": 3,
+    "policy_agreement": 0.6666666666666666,
+    "note": "Reference-policy agreement is not moral accuracy. Unlabeled moral cases have no correctness metric."
+  },
+  "ranking": {
+    "count": 3,
+    "ndcg": 0.7704903730198444,
+    "pairwise_agreement": 0.4444444444444444
+  },
+  "ambiguity": {
+    "count": 4,
+    "abstention_rate": 0.5,
+    "mean_top_probability": 0.5522541396225545,
+    "threshold": 0.55
+  },
+  "performance": {
+    "measurement": "in-process Python SDK; includes serialization and scoring",
+    "cold_model_load_ms": 3529.4529999955557,
+    "cold_model_load_note": null,
+    "first_batch_ms": 3636.932167049963,
+    "warm_batch_latency_ms": {
+      "p50": 63.51541599724442,
+      "p95": 88.36274999193847,
+      "p99": 89.0592224872671,
+      "samples": 23
+    },
+    "warm_amortized_per_decision_ms": {
+      "p50": 63.51541599724442,
+      "p95": 88.36274999193847,
+      "p99": 89.0592224872671
+    },
+    "throughput_decisions_per_s": 4.596063361649847,
+    "total_wall_seconds": 5.221860124962404,
+    "process_cpu_seconds": 5.21882,
+    "process_cpu_percent_of_one_core": 99.94178080435606,
+    "process_lifetime_peak_rss_bytes": 885669888,
+    "peak_ram_note": "Process lifetime high-water mark, including previously loaded models; not isolated per model.",
+    "model_file_size_bytes": null,
+    "mps_utilization": null,
+    "local_http_latency_ms": null,
+    "model_only_latency_ms": null,
+    "unmeasured_note": "Hardware accelerator utilization, isolated model-only and local HTTP timing require separate instrumentation. No estimates substituted."
+  },
+  "robustness": {
+    "choice_order": null,
+    "self_consistency": null,
+    "perturbations": {}
+  },
+  "predictions": [
+    {
+      "id": "ambiguous.conflicting-03",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": null,
+      "probabilities": {
+        "Lisbon": 0.47428374238331006,
+        "Porto": 0.5257162576166899
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.47428374238331006,
+        "Porto": 0.5257162576166899
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "Lisbon": -0.4271854758262634,
+        "Porto": -0.3242295980453491
+      },
+      "confidence": 0.05143251523337988,
+      "top_probability": 0.5257162576166899,
+      "abstained": true,
+      "reported_latency_ms": 3636.7715419619344,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 3636.769042001106,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-01",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "faster costly option",
+      "probabilities": {
+        "cheaper slower option": 0.3108384433052197,
+        "faster costly option": 0.6891615566947803
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.3108384433052197,
+        "faster costly option": 0.6891615566947803
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "cheaper slower option": -1.1893422603607178,
+        "faster costly option": -0.3931398391723633
+      },
+      "confidence": 0.3783231133895606,
+      "top_probability": 0.6891615566947803,
+      "abstained": false,
+      "reported_latency_ms": 63.514249981381,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 63.51129204267636,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-02",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "service outage",
+      "probabilities": {
+        "service outage": 0.6794968873246479,
+        "display typo": 0.08511304722354175,
+        "feature request": 0.23539006545181043
+      },
+      "normalized_probabilities": {
+        "service outage": 0.6794968873246479,
+        "display typo": 0.08511304722354175,
+        "feature request": 0.23539006545181043
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "service outage": 0.17445659637451172,
+        "display typo": -1.9029157161712646,
+        "feature request": -0.8856520652770996
+      },
+      "confidence": 0.44410682187283745,
+      "top_probability": 0.6794968873246479,
+      "abstained": false,
+      "reported_latency_ms": 85.53987496998161,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 85.53799998480827,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-02",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": null,
+      "probabilities": {
+        "Lisbon": 0.4634198831849884,
+        "Porto": 0.5365801168150116
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.4634198831849884,
+        "Porto": 0.5365801168150116
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "Lisbon": -2.7957351207733154,
+        "Porto": -2.6491527557373047
+      },
+      "confidence": 0.07316023363002322,
+      "top_probability": 0.5365801168150116,
+      "abstained": true,
+      "reported_latency_ms": 64.56829200033098,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 64.56637498922646,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-00",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8697259422151348,
+        "irrelevant": 0.13027405778486523
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8697259422151348,
+        "irrelevant": 0.13027405778486523
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": 0.038952261209487915,
+        "irrelevant": -1.8595855236053467
+      },
+      "confidence": 0.7394518844302695,
+      "top_probability": 0.8697259422151348,
+      "abstained": false,
+      "reported_latency_ms": 64.69345901859924,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 64.69054199988022,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-03",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "feature request",
+      "probabilities": {
+        "service outage": 0.2532867065569487,
+        "display typo": 0.2506259433553252,
+        "feature request": 0.4960873500877261
+      },
+      "normalized_probabilities": {
+        "service outage": 0.2532867065569487,
+        "display typo": 0.2506259433553252,
+        "feature request": 0.4960873500877261
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "service outage": -1.2207610607147217,
+        "display typo": -1.2313215732574463,
+        "feature request": -0.5485311150550842
+      },
+      "confidence": 0.2428006435307774,
+      "top_probability": 0.4960873500877261,
+      "abstained": false,
+      "reported_latency_ms": 89.08804203383625,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 89.0859579667449,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "support.purchase_contract-02",
+      "base_id": null,
+      "group_id": "support.purchase_contract",
+      "family": "objective",
+      "variant": "base",
+      "target": "sales",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "technical",
+      "probabilities": {
+        "billing": 0.219350791960172,
+        "fraud": 0.1031388607754701,
+        "technical": 0.39343308623721346,
+        "sales": 0.2840772610271445
+      },
+      "normalized_probabilities": {
+        "billing": 0.219350791960172,
+        "fraud": 0.1031388607754701,
+        "technical": 0.39343308623721346,
+        "sales": 0.2840772610271445
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "billing": -2.4981703758239746,
+        "fraud": -3.2527663707733154,
+        "technical": -1.9139316082000732,
+        "sales": -2.239596366882324
+      },
+      "confidence": 0.10935582521006898,
+      "top_probability": 0.39343308623721346,
+      "abstained": false,
+      "reported_latency_ms": 88.595749984961,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 88.59366603428498,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-01",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "display typo",
+      "probabilities": {
+        "service outage": 0.2747798864516337,
+        "display typo": 0.38094261978019334,
+        "feature request": 0.344277493768173
+      },
+      "normalized_probabilities": {
+        "service outage": 0.2747798864516337,
+        "display typo": 0.38094261978019334,
+        "feature request": 0.344277493768173
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "service outage": -0.9737740755081177,
+        "display typo": -0.6470956802368164,
+        "feature request": -0.7482964396476746
+      },
+      "confidence": 0.03666512601202032,
+      "top_probability": 0.38094261978019334,
+      "abstained": false,
+      "reported_latency_ms": 80.21149999694899,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 80.20958298584446,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "support.purchase_contract-03",
+      "base_id": null,
+      "group_id": "support.purchase_contract",
+      "family": "objective",
+      "variant": "base",
+      "target": "sales",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "sales",
+      "probabilities": {
+        "billing": 0.1973286144547056,
+        "fraud": 0.14493229018440837,
+        "technical": 0.2718485312369136,
+        "sales": 0.38589056412397243
+      },
+      "normalized_probabilities": {
+        "billing": 0.1973286144547056,
+        "fraud": 0.14493229018440837,
+        "technical": 0.2718485312369136,
+        "sales": 0.38589056412397243
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "billing": -2.054781675338745,
+        "fraud": -2.3633854389190674,
+        "technical": -1.7344070672988892,
+        "sales": -1.3840982913970947
+      },
+      "confidence": 0.11404203288705883,
+      "top_probability": 0.38589056412397243,
+      "abstained": false,
+      "reported_latency_ms": 80.72804199764505,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 80.7255000108853,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-00",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": "Porto",
+      "probabilities": {
+        "Lisbon": 0.4445151404949047,
+        "Porto": 0.5554848595050954
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.4445151404949047,
+        "Porto": 0.5554848595050954
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "Lisbon": -1.4613449573516846,
+        "Porto": -1.238487720489502
+      },
+      "confidence": 0.1109697190101907,
+      "top_probability": 0.5554848595050954,
+      "abstained": false,
+      "reported_latency_ms": 59.06483298167586,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 59.063084016088396,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "support.purchase_contract-00",
+      "base_id": null,
+      "group_id": "support.purchase_contract",
+      "family": "objective",
+      "variant": "base",
+      "target": "sales",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "sales",
+      "probabilities": {
+        "billing": 0.2208024804042436,
+        "fraud": 0.05793066085343364,
+        "technical": 0.3500596358338254,
+        "sales": 0.3712072229084974
+      },
+      "normalized_probabilities": {
+        "billing": 0.2208024804042436,
+        "fraud": 0.05793066085343364,
+        "technical": 0.3500596358338254,
+        "sales": 0.3712072229084974
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "billing": -2.603940486907959,
+        "fraud": -3.941962242126465,
+        "technical": -2.1431055068969727,
+        "sales": -2.0844485759735107
+      },
+      "confidence": 0.021147587074672014,
+      "top_probability": 0.3712072229084974,
+      "abstained": false,
+      "reported_latency_ms": 84.20533302705735,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 84.20341700548306,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-02",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.7445174922578565,
+        "no": 0.25548250774214354
+      },
+      "normalized_probabilities": {
+        "yes": 0.7445174922578565,
+        "no": 0.25548250774214354
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "yes": -0.9796109795570374,
+        "no": -2.0491933822631836
+      },
+      "confidence": 0.4890349845157129,
+      "top_probability": 0.7445174922578565,
+      "abstained": false,
+      "reported_latency_ms": 58.74229100299999,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 58.74033400323242,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-02",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.6361682945771376,
+        "irrelevant": 0.36383170542286225
+      },
+      "normalized_probabilities": {
+        "relevant": 0.6361682945771376,
+        "irrelevant": 0.36383170542286225
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": -1.596333384513855,
+        "irrelevant": -2.1551051139831543
+      },
+      "confidence": 0.2723365891542754,
+      "top_probability": 0.6361682945771376,
+      "abstained": false,
+      "reported_latency_ms": 63.45479196170345,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 63.452916976530105,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-01",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.8507584802271547,
+        "no": 0.14924151977284536
+      },
+      "normalized_probabilities": {
+        "yes": 0.8507584802271547,
+        "no": 0.14924151977284536
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "yes": 0.04063907265663147,
+        "no": -1.6999232769012451
+      },
+      "confidence": 0.7015169604543093,
+      "top_probability": 0.8507584802271547,
+      "abstained": false,
+      "reported_latency_ms": 57.621375017333776,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 57.61970899766311,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-03",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9085818440742388,
+        "irrelevant": 0.09141815592576122
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9085818440742388,
+        "irrelevant": 0.09141815592576122
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": 0.36671045422554016,
+        "irrelevant": -1.9297304153442383
+      },
+      "confidence": 0.8171636881484776,
+      "top_probability": 0.9085818440742388,
+      "abstained": false,
+      "reported_latency_ms": 59.21033304184675,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 59.20800002058968,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-01",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": "Porto",
+      "probabilities": {
+        "Lisbon": 0.40876467544657874,
+        "Porto": 0.5912353245534213
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.40876467544657874,
+        "Porto": 0.5912353245534213
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "Lisbon": -0.4988853931427002,
+        "Porto": -0.1298108994960785
+      },
+      "confidence": 0.18247064910684258,
+      "top_probability": 0.5912353245534213,
+      "abstained": false,
+      "reported_latency_ms": 61.491041036788374,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 61.48879195097834,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-02",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "cheaper slower option",
+      "probabilities": {
+        "cheaper slower option": 0.5288536886614333,
+        "faster costly option": 0.4711463113385667
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.5288536886614333,
+        "faster costly option": 0.4711463113385667
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "cheaper slower option": -1.011523723602295,
+        "faster costly option": -1.1270668506622314
+      },
+      "confidence": 0.057707377322866626,
+      "top_probability": 0.5288536886614333,
+      "abstained": false,
+      "reported_latency_ms": 58.32220800220966,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 58.32033301703632,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "support.purchase_contract-01",
+      "base_id": null,
+      "group_id": "support.purchase_contract",
+      "family": "objective",
+      "variant": "base",
+      "target": "sales",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "sales",
+      "probabilities": {
+        "billing": 0.2344845709197087,
+        "fraud": 0.13369510773065088,
+        "technical": 0.2877555915238127,
+        "sales": 0.3440647298258277
+      },
+      "normalized_probabilities": {
+        "billing": 0.2344845709197087,
+        "fraud": 0.13369510773065088,
+        "technical": 0.2877555915238127,
+        "sales": 0.3440647298258277
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "billing": -2.5979316234588623,
+        "fraud": -3.159759521484375,
+        "technical": -2.393209934234619,
+        "sales": -2.214491605758667
+      },
+      "confidence": 0.056309138302015005,
+      "top_probability": 0.3440647298258277,
+      "abstained": false,
+      "reported_latency_ms": 85.38087498163804,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 85.37904103286564,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-03",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.8161601456579874,
+        "no": 0.18383985434201244
+      },
+      "normalized_probabilities": {
+        "yes": 0.8161601456579874,
+        "no": 0.18383985434201244
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "yes": -0.5433332324028015,
+        "no": -2.033878803253174
+      },
+      "confidence": 0.632320291315975,
+      "top_probability": 0.8161601456579874,
+      "abstained": false,
+      "reported_latency_ms": 59.53116697492078,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 59.52904198784381,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-02",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8170376476046928,
+        "irrelevant": 0.18296235239530723
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8170376476046928,
+        "irrelevant": 0.18296235239530723
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": -0.3454493284225464,
+        "irrelevant": -1.8418540954589844
+      },
+      "confidence": 0.6340752952093855,
+      "top_probability": 0.8170376476046928,
+      "abstained": false,
+      "reported_latency_ms": 61.60379102220759,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 61.6018750006333,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-03",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8733523494897588,
+        "irrelevant": 0.12664765051024118
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8733523494897588,
+        "irrelevant": 0.12664765051024118
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": -0.47813117504119873,
+        "irrelevant": -2.4090614318847656
+      },
+      "confidence": 0.7467046989795176,
+      "top_probability": 0.8733523494897588,
+      "abstained": false,
+      "reported_latency_ms": 85.04316699691117,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 85.04091697977856,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-01",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9224911147766516,
+        "irrelevant": 0.0775088852233485
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9224911147766516,
+        "irrelevant": 0.0775088852233485
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": 0.6145340204238892,
+        "irrelevant": -1.8621511459350586
+      },
+      "confidence": 0.844982229553303,
+      "top_probability": 0.9224911147766516,
+      "abstained": false,
+      "reported_latency_ms": 57.6190419960767,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 57.61708301724866,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-01",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8868673077250795,
+        "irrelevant": 0.11313269227492048
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8868673077250795,
+        "irrelevant": 0.11313269227492048
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "relevant": 0.19811412692070007,
+        "irrelevant": -1.8610198497772217
+      },
+      "confidence": 0.773734615450159,
+      "top_probability": 0.8868673077250795,
+      "abstained": false,
+      "reported_latency_ms": 59.62804198497906,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 59.62662503588945,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-00",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "faster costly option",
+      "probabilities": {
+        "cheaper slower option": 0.3330575397078729,
+        "faster costly option": 0.6669424602921271
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.3330575397078729,
+        "faster costly option": 0.6669424602921271
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": {
+        "cheaper slower option": -1.210181713104248,
+        "faster costly option": -0.5157932043075562
+      },
+      "confidence": 0.33388492058425423,
+      "top_probability": 0.6669424602921271,
+      "abstained": false,
+      "reported_latency_ms": 55.35174999386072,
+      "metadata": {
+        "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 55.35004095872864,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3529.4529999955557,
+          "model_file_size_bytes": 598442860,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic seed scenarios and deterministic perturbations are correlated, not independently human-validated samples.",
+    "Held-out semantic groups reduce template leakage but do not establish real-world generalization.",
+    "Abstention threshold is a test configuration, not a validated safety guarantee.",
+    "A limited run can omit labels and robustness pairs; AUROC is null where undefined."
+  ]
+}

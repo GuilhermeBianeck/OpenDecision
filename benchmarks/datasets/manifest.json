@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "generator": "scripts/generate_benchmarks.py",
+  "seed_count": 232,
+  "expanded_count": 2320,
+  "group_count": 55,
+  "splits": {
+    "calibration": 480,
+    "test": 680,
+    "train": 880,
+    "validation": 280
+  },
+  "families": {
+    "objective": 1120,
+    "agent_control": 480,
+    "ambiguous": 240,
+    "ranking": 160,
+    "subjective": 320
+  },
+  "source": "project-authored synthetic text and deterministic perturbations",
+  "human_adjudicated": false,
+  "training_status": "No training performed; splits reserve future research roles.",
+  "split_policy": "All concrete seeds and perturbations in one semantic template family remain in a single split. Trolley controlled variants are test-only.",
+  "limitations": [
+    "These are correlated synthetic fixtures, not 2,000 independent human validations.",
+    "No production distribution, native multilingual coverage, or expert moral labels.",
+    "Question rewording adds an instruction prefix; it is not a diverse natural paraphrase corpus.",
+    "Labels encode explicit synthetic policies or straightforward semantic categories, and need independent review."
+  ],
+  "files": {
+    "core.jsonl": "cabb028e8ced96c4a657bbc1ac834eab26caa5de69c8351c43454b51d98d28d4",
+    "seeds.jsonl": "f79907c02fb60c350c30fcda050afabbbfa431c0448835dc9a9c7feffff8e657",
+    "trolley.jsonl": "a01972e104c97d67ce38ccbff5fac8611b22c40448dcb3f9a3d27d83a67320a1"
+  }
+}

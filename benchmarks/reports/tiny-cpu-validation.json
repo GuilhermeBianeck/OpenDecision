@@ -1,0 +1,1956 @@
+{
+  "schema_version": 1,
+  "status": "measured",
+  "created_at": "2026-09-18T09:23:19.448752+00:00",
+  "dataset": {
+    "sha256": "5e6c6705697e6614ae0b0acc157621a88adc434311aa15d5821fcefac8299813",
+    "evaluated_sha256": "c9381a210996b40321418d79b1ac2541ec320a455aea2ad4740174e97643e569",
+    "split": "validation",
+    "count": 24,
+    "groups": 6,
+    "base_scenarios": 24,
+    "families": {
+      "agent_control": 4,
+      "ambiguous": 4,
+      "subjective": 4,
+      "ranking": 4,
+      "objective": 8
+    },
+    "variants": {
+      "base": 24
+    },
+    "limit": 24,
+    "synthetic": true
+  },
+  "runtime": {
+    "model": "cross-encoder/nli-deberta-v3-xsmall",
+    "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+    "backend": "tiny",
+    "device": "cpu",
+    "precision": "float32",
+    "batch_size": 1,
+    "template": "default",
+    "calibration": null,
+    "os": "macOS-26.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.12.13",
+    "dependencies": {
+      "opendecision": "0.1.0a1",
+      "torch": "2.14.0",
+      "transformers": "4.57.6",
+      "numpy": "2.5.3",
+      "pydantic": "2.13.5",
+      "onnxruntime": null,
+      "httpx": "0.28.1"
+    }
+  },
+  "objective": {
+    "count": 12,
+    "accuracy": 1,
+    "argmax_accuracy": 1,
+    "balanced_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "confusion_matrix": {
+      "relevant": {
+        "relevant": 8
+      },
+      "yes": {
+        "yes": 4
+      }
+    },
+    "negative_log_likelihood": 0.19435083085435698,
+    "brier_score": 0.07493977497714212,
+    "ece": 0.17164114661316188,
+    "reliability_bins": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.3,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.3,
+        "upper": 0.4,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.6,
+        "upper": 0.7,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.6689646370395257
+      },
+      {
+        "lower": 0.7,
+        "upper": 0.8,
+        "count": 4,
+        "accuracy": 1,
+        "mean_top_probability": 0.7450127278561799
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 3,
+        "accuracy": 1,
+        "mean_top_probability": 0.8685230500323555
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 4,
+        "accuracy": 1,
+        "mean_top_probability": 0.9214303855201864
+      }
+    ],
+    "auroc_by_choice_vocabulary": [
+      {
+        "choices": [
+          "irrelevant",
+          "relevant"
+        ],
+        "count": 8,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "no",
+          "yes"
+        ],
+        "count": 4,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      }
+    ],
+    "coverage": 1.0,
+    "selective_accuracy": 1,
+    "coverage_by_margin_threshold": [
+      {
+        "min_margin": 0.0,
+        "coverage": 1.0,
+        "selective_accuracy": 1,
+        "answered": 12
+      },
+      {
+        "min_margin": 0.25,
+        "coverage": 1.0,
+        "selective_accuracy": 1,
+        "answered": 12
+      },
+      {
+        "min_margin": 0.5,
+        "coverage": 0.8333333333333334,
+        "selective_accuracy": 1,
+        "answered": 10
+      },
+      {
+        "min_margin": 0.75,
+        "coverage": 0.5,
+        "selective_accuracy": 1,
+        "answered": 6
+      },
+      {
+        "min_margin": 0.8,
+        "coverage": 0.3333333333333333,
+        "selective_accuracy": 1,
+        "answered": 4
+      },
+      {
+        "min_margin": 0.9,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      },
+      {
+        "min_margin": 0.95,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      }
+    ]
+  },
+  "objective_normalized": {
+    "count": 12,
+    "accuracy": 1,
+    "argmax_accuracy": 1,
+    "balanced_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "confusion_matrix": {
+      "relevant": {
+        "relevant": 8
+      },
+      "yes": {
+        "yes": 4
+      }
+    },
+    "negative_log_likelihood": 0.19435083085435698,
+    "brier_score": 0.07493977497714212,
+    "ece": 0.17164114661316188,
+    "reliability_bins": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.1,
+        "upper": 0.2,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.2,
+        "upper": 0.3,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.3,
+        "upper": 0.4,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.4,
+        "upper": 0.5,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6,
+        "count": 0,
+        "accuracy": null,
+        "mean_top_probability": null
+      },
+      {
+        "lower": 0.6,
+        "upper": 0.7,
+        "count": 1,
+        "accuracy": 1,
+        "mean_top_probability": 0.6689646370395257
+      },
+      {
+        "lower": 0.7,
+        "upper": 0.8,
+        "count": 4,
+        "accuracy": 1,
+        "mean_top_probability": 0.7450127278561799
+      },
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 3,
+        "accuracy": 1,
+        "mean_top_probability": 0.8685230500323555
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 4,
+        "accuracy": 1,
+        "mean_top_probability": 0.9214303855201864
+      }
+    ],
+    "auroc_by_choice_vocabulary": [
+      {
+        "choices": [
+          "irrelevant",
+          "relevant"
+        ],
+        "count": 8,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      },
+      {
+        "choices": [
+          "no",
+          "yes"
+        ],
+        "count": 4,
+        "macro_ovr_auroc": null,
+        "reason": "At least one class has no positive or negative examples."
+      }
+    ],
+    "coverage": 1.0,
+    "selective_accuracy": 1,
+    "coverage_by_margin_threshold": [
+      {
+        "min_margin": 0.0,
+        "coverage": 1.0,
+        "selective_accuracy": 1,
+        "answered": 12
+      },
+      {
+        "min_margin": 0.25,
+        "coverage": 1.0,
+        "selective_accuracy": 1,
+        "answered": 12
+      },
+      {
+        "min_margin": 0.5,
+        "coverage": 0.8333333333333334,
+        "selective_accuracy": 1,
+        "answered": 10
+      },
+      {
+        "min_margin": 0.75,
+        "coverage": 0.5,
+        "selective_accuracy": 1,
+        "answered": 6
+      },
+      {
+        "min_margin": 0.8,
+        "coverage": 0.3333333333333333,
+        "selective_accuracy": 1,
+        "answered": 4
+      },
+      {
+        "min_margin": 0.9,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      },
+      {
+        "min_margin": 0.95,
+        "coverage": 0.0,
+        "selective_accuracy": null,
+        "answered": 0
+      }
+    ]
+  },
+  "by_family": {
+    "objective": {
+      "count": 8,
+      "accuracy": 1,
+      "argmax_accuracy": 1,
+      "balanced_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "confusion_matrix": {
+        "relevant": {
+          "relevant": 8
+        }
+      },
+      "negative_log_likelihood": 0.12731840828032476,
+      "brier_score": 0.033364606084603864,
+      "ece": 0.11789157742636372,
+      "reliability_bins": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 1,
+          "accuracy": 1,
+          "mean_top_probability": 0.765576688411278
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 3,
+          "accuracy": 1,
+          "mean_top_probability": 0.8685230500323555
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 4,
+          "accuracy": 1,
+          "mean_top_probability": 0.9214303855201864
+        }
+      ],
+      "auroc_by_choice_vocabulary": [
+        {
+          "choices": [
+            "irrelevant",
+            "relevant"
+          ],
+          "count": 8,
+          "macro_ovr_auroc": null,
+          "reason": "At least one class has no positive or negative examples."
+        }
+      ],
+      "coverage": 1.0,
+      "selective_accuracy": 1,
+      "coverage_by_margin_threshold": [
+        {
+          "min_margin": 0.0,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 8
+        },
+        {
+          "min_margin": 0.25,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 8
+        },
+        {
+          "min_margin": 0.5,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 8
+        },
+        {
+          "min_margin": 0.75,
+          "coverage": 0.75,
+          "selective_accuracy": 1,
+          "answered": 6
+        },
+        {
+          "min_margin": 0.8,
+          "coverage": 0.5,
+          "selective_accuracy": 1,
+          "answered": 4
+        },
+        {
+          "min_margin": 0.9,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.95,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        }
+      ]
+    },
+    "agent_control": {
+      "count": 4,
+      "accuracy": 1,
+      "argmax_accuracy": 1,
+      "balanced_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "confusion_matrix": {
+        "yes": {
+          "yes": 4
+        }
+      },
+      "negative_log_likelihood": 0.32841567600242144,
+      "brier_score": 0.15809011276221865,
+      "ece": 0.27914028498675825,
+      "reliability_bins": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 1,
+          "accuracy": 1,
+          "mean_top_probability": 0.6689646370395257
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 3,
+          "accuracy": 1,
+          "mean_top_probability": 0.7381580743378138
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 0,
+          "accuracy": null,
+          "mean_top_probability": null
+        }
+      ],
+      "auroc_by_choice_vocabulary": [
+        {
+          "choices": [
+            "no",
+            "yes"
+          ],
+          "count": 4,
+          "macro_ovr_auroc": null,
+          "reason": "At least one class has no positive or negative examples."
+        }
+      ],
+      "coverage": 1.0,
+      "selective_accuracy": 1,
+      "coverage_by_margin_threshold": [
+        {
+          "min_margin": 0.0,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 4
+        },
+        {
+          "min_margin": 0.25,
+          "coverage": 1.0,
+          "selective_accuracy": 1,
+          "answered": 4
+        },
+        {
+          "min_margin": 0.5,
+          "coverage": 0.5,
+          "selective_accuracy": 1,
+          "answered": 2
+        },
+        {
+          "min_margin": 0.75,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.8,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.9,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        },
+        {
+          "min_margin": 0.95,
+          "coverage": 0.0,
+          "selective_accuracy": null,
+          "answered": 0
+        }
+      ]
+    }
+  },
+  "subjective": {
+    "count": 4,
+    "policy_labeled_count": 4,
+    "policy_agreement": 0.75,
+    "note": "Reference-policy agreement is not moral accuracy. Unlabeled moral cases have no correctness metric."
+  },
+  "ranking": {
+    "count": 4,
+    "ndcg": 0.9729553249874899,
+    "pairwise_agreement": 0.75
+  },
+  "ambiguity": {
+    "count": 4,
+    "abstention_rate": 0.5,
+    "mean_top_probability": 0.6364037494992688,
+    "threshold": 0.55
+  },
+  "performance": {
+    "measurement": "in-process Python SDK; includes serialization and scoring",
+    "cold_model_load_ms": 3108.0371669959277,
+    "cold_model_load_note": null,
+    "first_batch_ms": 3178.4857499878854,
+    "warm_batch_latency_ms": {
+      "p50": 29.159083031117916,
+      "p95": 37.61255783610977,
+      "p99": 38.488249523798004,
+      "samples": 23
+    },
+    "warm_amortized_per_decision_ms": {
+      "p50": 29.159083031117916,
+      "p95": 37.61255783610977,
+      "p99": 38.488249523798004
+    },
+    "throughput_decisions_per_s": 6.186301501288105,
+    "total_wall_seconds": 3.879539332992863,
+    "process_cpu_seconds": 3.606928,
+    "process_cpu_percent_of_one_core": 92.97310042265875,
+    "process_lifetime_peak_rss_bytes": 597180416,
+    "peak_ram_note": "Process lifetime high-water mark, including previously loaded models; not isolated per model.",
+    "model_file_size_bytes": null,
+    "mps_utilization": null,
+    "local_http_latency_ms": null,
+    "model_only_latency_ms": null,
+    "unmeasured_note": "Hardware accelerator utilization, isolated model-only and local HTTP timing require separate instrumentation. No estimates substituted."
+  },
+  "robustness": {
+    "choice_order": null,
+    "self_consistency": null,
+    "perturbations": {}
+  },
+  "predictions": [
+    {
+      "id": "agent.sufficient-00",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.7134996050965822,
+        "no": 0.28650039490341783
+      },
+      "normalized_probabilities": {
+        "yes": 0.7134996050965822,
+        "no": 0.28650039490341783
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.42699921019316434,
+      "top_probability": 0.7134996050965822,
+      "abstained": false,
+      "reported_latency_ms": 3178.384291997645,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 3178.3816660172306,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-01",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.750194279405602,
+        "no": 0.24980572059439804
+      },
+      "normalized_probabilities": {
+        "yes": 0.750194279405602,
+        "no": 0.24980572059439804
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.500388558811204,
+      "top_probability": 0.750194279405602,
+      "abstained": false,
+      "reported_latency_ms": 33.45454199006781,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 33.45108299981803,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-02",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.6689646370395257,
+        "no": 0.3310353629604743
+      },
+      "normalized_probabilities": {
+        "yes": 0.6689646370395257,
+        "no": 0.3310353629604743
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.3379292740790514,
+      "top_probability": 0.6689646370395257,
+      "abstained": false,
+      "reported_latency_ms": 28.835499950218946,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 28.8331659976393,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "agent.sufficient-03",
+      "base_id": null,
+      "group_id": "agent.sufficient",
+      "family": "agent_control",
+      "variant": "base",
+      "target": "yes",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "yes",
+      "probabilities": {
+        "yes": 0.7507803385112573,
+        "no": 0.24921966148874272
+      },
+      "normalized_probabilities": {
+        "yes": 0.7507803385112573,
+        "no": 0.24921966148874272
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.5015606770225145,
+      "top_probability": 0.7507803385112573,
+      "abstained": false,
+      "reported_latency_ms": 28.630208980757743,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 28.627458959817886,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-00",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": null,
+      "probabilities": {
+        "Lisbon": 0.5059163193185269,
+        "Porto": 0.49408368068147324
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.5059163193185269,
+        "Porto": 0.49408368068147324
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.011832638637053638,
+      "top_probability": 0.5059163193185269,
+      "abstained": true,
+      "reported_latency_ms": 29.084958019666374,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 29.083125002216548,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-01",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": "Porto",
+      "probabilities": {
+        "Lisbon": 0.27754510349304645,
+        "Porto": 0.7224548965069536
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.27754510349304645,
+        "Porto": 0.7224548965069536
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.44490979301390715,
+      "top_probability": 0.7224548965069536,
+      "abstained": false,
+      "reported_latency_ms": 27.775791997555643,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 27.768458996433765,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-02",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": null,
+      "probabilities": {
+        "Lisbon": 0.5189291921368391,
+        "Porto": 0.481070807863161
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.5189291921368391,
+        "Porto": 0.481070807863161
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.0378583842736781,
+      "top_probability": 0.5189291921368391,
+      "abstained": true,
+      "reported_latency_ms": 27.178750024177134,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 27.17687503900379,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ambiguous.conflicting-03",
+      "base_id": null,
+      "group_id": "ambiguous.conflicting",
+      "family": "ambiguous",
+      "variant": "base",
+      "target": null,
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": true,
+      "choice": "Porto",
+      "probabilities": {
+        "Lisbon": 0.20168540996524423,
+        "Porto": 0.7983145900347557
+      },
+      "normalized_probabilities": {
+        "Lisbon": 0.20168540996524423,
+        "Porto": 0.7983145900347557
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.5966291800695115,
+      "top_probability": 0.7983145900347557,
+      "abstained": false,
+      "reported_latency_ms": 26.148916978854686,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 26.14691702183336,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-00",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "faster costly option",
+      "probabilities": {
+        "cheaper slower option": 0.21375849411043743,
+        "faster costly option": 0.7862415058895627
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.21375849411043743,
+        "faster costly option": 0.7862415058895627
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.5724830117791252,
+      "top_probability": 0.7862415058895627,
+      "abstained": false,
+      "reported_latency_ms": 27.250165992882103,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 27.248417027294636,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-01",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "faster costly option",
+      "probabilities": {
+        "cheaper slower option": 0.027619563169626632,
+        "faster costly option": 0.9723804368303735
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.027619563169626632,
+        "faster costly option": 0.9723804368303735
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.9447608736607468,
+      "top_probability": 0.9723804368303735,
+      "abstained": false,
+      "reported_latency_ms": 26.522374944761395,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 26.520667015574872,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-02",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "faster costly option",
+      "probabilities": {
+        "cheaper slower option": 0.22356416918536653,
+        "faster costly option": 0.7764358308146334
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.22356416918536653,
+        "faster costly option": 0.7764358308146334
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.5528716616292668,
+      "top_probability": 0.7764358308146334,
+      "abstained": false,
+      "reported_latency_ms": 27.430332964286208,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 27.428791974671185,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "preference.speed-03",
+      "base_id": null,
+      "group_id": "preference.speed",
+      "family": "subjective",
+      "variant": "base",
+      "target": "faster costly option",
+      "reference_policy": "Minimize delivery time; price has no value.",
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "cheaper slower option",
+      "probabilities": {
+        "cheaper slower option": 0.9035709681127494,
+        "faster costly option": 0.0964290318872506
+      },
+      "normalized_probabilities": {
+        "cheaper slower option": 0.9035709681127494,
+        "faster costly option": 0.0964290318872506
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.8071419362254988,
+      "top_probability": 0.9035709681127494,
+      "abstained": false,
+      "reported_latency_ms": 25.480874988716096,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 25.478583993390203,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-00",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "service outage",
+      "probabilities": {
+        "service outage": 0.6267952649672163,
+        "display typo": 0.10881346746529369,
+        "feature request": 0.2643912675674901
+      },
+      "normalized_probabilities": {
+        "service outage": 0.6267952649672163,
+        "display typo": 0.10881346746529369,
+        "feature request": 0.2643912675674901
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.3624039973997262,
+      "top_probability": 0.6267952649672163,
+      "abstained": false,
+      "reported_latency_ms": 38.662832987029105,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 38.66070898948237,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-01",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "service outage",
+      "probabilities": {
+        "service outage": 0.48443666888532033,
+        "display typo": 0.1825884498581946,
+        "feature request": 0.33297488125648506
+      },
+      "normalized_probabilities": {
+        "service outage": 0.48443666888532033,
+        "display typo": 0.1825884498581946,
+        "feature request": 0.33297488125648506
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.15146178762883528,
+      "top_probability": 0.48443666888532033,
+      "abstained": false,
+      "reported_latency_ms": 37.593457964248955,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 37.59187500691041,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-02",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "service outage",
+      "probabilities": {
+        "service outage": 0.6493621998048786,
+        "display typo": 0.06518986594265011,
+        "feature request": 0.2854479342524713
+      },
+      "normalized_probabilities": {
+        "service outage": 0.6493621998048786,
+        "display typo": 0.06518986594265011,
+        "feature request": 0.2854479342524713
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.36391426555240736,
+      "top_probability": 0.6493621998048786,
+      "abstained": false,
+      "reported_latency_ms": 37.045583012513816,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 37.04383398871869,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "ranking.priority-03",
+      "base_id": null,
+      "group_id": "ranking.priority",
+      "family": "ranking",
+      "variant": "base",
+      "target": "service outage",
+      "reference_policy": null,
+      "target_ranking": [
+        "service outage",
+        "display typo",
+        "feature request"
+      ],
+      "expected_abstain": false,
+      "choice": "service outage",
+      "probabilities": {
+        "service outage": 0.479950213687871,
+        "display typo": 0.3597594973991264,
+        "feature request": 0.16029028891300265
+      },
+      "normalized_probabilities": {
+        "service outage": 0.479950213687871,
+        "display typo": 0.3597594973991264,
+        "feature request": 0.16029028891300265
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.12019071628874461,
+      "top_probability": 0.479950213687871,
+      "abstained": false,
+      "reported_latency_ms": 37.15733299031854,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 37.155916972551495,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-00",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9358813879929909,
+        "irrelevant": 0.06411861200700919
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9358813879929909,
+        "irrelevant": 0.06411861200700919
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.8717627759859817,
+      "top_probability": 0.9358813879929909,
+      "abstained": false,
+      "reported_latency_ms": 29.44633294828236,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 29.444833053275943,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-01",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.765576688411278,
+        "irrelevant": 0.23442331158872196
+      },
+      "normalized_probabilities": {
+        "relevant": 0.765576688411278,
+        "irrelevant": 0.23442331158872196
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.531153376822556,
+      "top_probability": 0.765576688411278,
+      "abstained": false,
+      "reported_latency_ms": 31.98904200689867,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 31.987208989448845,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-02",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.844030581631678,
+        "irrelevant": 0.1559694183683219
+      },
+      "normalized_probabilities": {
+        "relevant": 0.844030581631678,
+        "irrelevant": 0.1559694183683219
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.6880611632633561,
+      "top_probability": 0.844030581631678,
+      "abstained": false,
+      "reported_latency_ms": 32.27104200050235,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 32.26916602579877,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.double_negative-03",
+      "base_id": null,
+      "group_id": "relevance.double_negative",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9383633857633606,
+        "irrelevant": 0.06163661423663929
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9383633857633606,
+        "irrelevant": 0.06163661423663929
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.8767267715267214,
+      "top_probability": 0.9383633857633606,
+      "abstained": false,
+      "reported_latency_ms": 31.85004199622199,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 31.848207989241928,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-00",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8861251755739996,
+        "irrelevant": 0.11387482442600041
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8861251755739996,
+        "irrelevant": 0.11387482442600041
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.7722503511479992,
+      "top_probability": 0.8861251755739996,
+      "abstained": false,
+      "reported_latency_ms": 29.209042026195675,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 29.207415995188057,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-01",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9037884500372584,
+        "irrelevant": 0.0962115499627416
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9037884500372584,
+        "irrelevant": 0.0962115499627416
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.8075769000745168,
+      "top_probability": 0.9037884500372584,
+      "abstained": false,
+      "reported_latency_ms": 28.636250004637986,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 28.634042013436556,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-02",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.8754133928913891,
+        "irrelevant": 0.12458660710861089
+      },
+      "normalized_probabilities": {
+        "relevant": 0.8754133928913891,
+        "irrelevant": 0.12458660710861089
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.7508267857827782,
+      "top_probability": 0.8754133928913891,
+      "abstained": false,
+      "reported_latency_ms": 30.387540988158435,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 30.385666992515326,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    },
+    {
+      "id": "relevance.match-03",
+      "base_id": null,
+      "group_id": "relevance.match",
+      "family": "objective",
+      "variant": "base",
+      "target": "relevant",
+      "reference_policy": null,
+      "target_ranking": null,
+      "expected_abstain": false,
+      "choice": "relevant",
+      "probabilities": {
+        "relevant": 0.9076883182871356,
+        "irrelevant": 0.09231168171286441
+      },
+      "normalized_probabilities": {
+        "relevant": 0.9076883182871356,
+        "irrelevant": 0.09231168171286441
+      },
+      "calibrated_probabilities": null,
+      "raw_scores": null,
+      "confidence": 0.8153766365742712,
+      "top_probability": 0.9076883182871356,
+      "abstained": false,
+      "reported_latency_ms": 27.290083991829306,
+      "metadata": {
+        "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        "device": "cpu",
+        "precision": "float32",
+        "template": "default",
+        "max_length": 512,
+        "calibrated": false,
+        "confidence_definition": "top1_minus_top2",
+        "batch_size": 1,
+        "batch_inference_ms": 27.288334036711603,
+        "latency_scope": "batch_wall_including_lock",
+        "calibration": null,
+        "backend_details": {
+          "runtime": "transformers",
+          "family": "nli",
+          "template": "default",
+          "max_length": 512,
+          "batch_size": 32,
+          "local_files_only": true,
+          "load_time_ms": 3108.0371669959277,
+          "model_file_size_bytes": 283353172,
+          "truncated_candidates": 0,
+          "truncation": "state-prefix-only; full question and choice preserved"
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic seed scenarios and deterministic perturbations are correlated, not independently human-validated samples.",
+    "Held-out semantic groups reduce template leakage but do not establish real-world generalization.",
+    "Abstention threshold is a test configuration, not a validated safety guarantee.",
+    "A limited run can omit labels and robustness pairs; AUROC is null where undefined."
+  ]
+}
