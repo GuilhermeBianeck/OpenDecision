@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Committed calibration profiles for `smart`, `multilingual` and `decoder`, and
+  calibrated test reports for `base` and `decoder`. Benchmark reports gained
+  `objective_by_choice_count`, because a per-count profile makes one margin
+  threshold incomparable between candidate counts.
 - Calibration profiles fit one temperature per candidate count by default, with
   the pooled temperature as the fallback for counts below `min_rows_per_count`;
   results report `metadata.calibration_temperature`. `opendecision calibrate`

@@ -177,6 +177,9 @@ def test_mixed_kinds_are_evaluated_with_their_own_primitives(tmp_path):
     assert report["objective"]["count"] == 4
     assert set(report["by_family"]) == {"objective", "verification", "robustness"}
     assert report["by_variant"]["base"]["count"] == 4
+    # Every objective row in this fixture is two-way; the rubric is scored separately.
+    assert sorted(report["objective_by_choice_count"], key=int) == ["2"]
+    assert report["objective_by_choice_count"]["2"]["count"] == 4
     assert report["ordinal"]["count"] == 1 and report["ordinal"]["exact_level_accuracy"] == 1
     assert report["verification"] == {
         "count": 2,
@@ -190,6 +193,7 @@ def test_mixed_kinds_are_evaluated_with_their_own_primitives(tmp_path):
     assert "reversed_choice_order" in rows["c1"] and "reversed_choice_order" not in rows["s1"]
     markdown = Path(write_report(report, tmp_path / "mixed")["markdown"]).read_text()
     assert "Ordinal rubrics: 1 cases" in markdown and "| verification |" in markdown
+    assert "## Objective accuracy by candidate count" in markdown
 
 
 def test_statement_backends_feed_verification_metrics():

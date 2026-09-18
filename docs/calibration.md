@@ -53,6 +53,40 @@ Fitting per count does not make a profile transfer across task distributions.
 Fit separate profiles per task family when the decisions differ in kind, not
 only in width.
 
+### A per-count profile breaks a single margin threshold
+
+Scaling each candidate count by its own temperature makes the distributions
+better calibrated within a count and **not comparable between counts**. A margin
+of 0.5 after a temperature of 9.55 is far stronger evidence than the same margin
+after 0.39, so one global `margin_threshold` silently selects whichever counts
+were sharpened. Measured for `base` on the test split:
+
+| | k=2 clears margin ≥ 0.5 | k=4 | k=12 | Pooled accuracy when answered |
+| --- | ---: | ---: | ---: | ---: |
+| uncalibrated | 73 % at 0.863 accuracy | 13 % at 0.429 | 0 % | 0.830 |
+| calibrated | 0 % | 43 % at 0.602 | 8 % at 0.417 | 0.586 |
+
+Nothing got worse inside a count; the answered set changed composition, from
+mostly high-accuracy binary rows to mostly four-way rows. Choose
+`abstain_threshold` and `margin_threshold` **per candidate count** when a
+per-count profile is loaded, and read `objective_by_choice_count` in a benchmark
+report rather than the pooled coverage table. `--pooled` keeps one temperature
+and one comparable threshold, at the cost of within-count calibration.
+
+### Validate on your own distribution
+
+A profile fitted and validated on one split can still regress on another whose
+candidate-count mix differs. The committed corpus is 56 / 28 / 16 percent
+(k=2 / k=4 / k=12) in the calibration split, 64 / 14 / 21 in validation and
+42 / 39 / 19 in test, and `base` improved on validation while regressing on
+test. Temperature scaling is also fitted to minimize NLL, which can move ECE the
+other way: on validation `multilingual` improved NLL from 1.136 to 1.007 while
+its ECE rose from 0.164 to 0.217, because at twelve candidates it is already
+underconfident (accuracy 0.718 against mean confidence 0.594) and further
+smoothing is exactly the wrong correction. Check the held-out report the
+`calibrate` command prints, on data that resembles your workload, before
+adopting a profile.
+
 `probabilities` exposes the effective distribution. `calibrated_probabilities`
 is null without a profile; `normalized_probabilities` always retains the original
 softmax. For the effective distribution:

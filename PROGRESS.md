@@ -114,27 +114,62 @@ taken place. These reports are baseline measurements, not a superiority claim.
 
 Temperature is fitted per candidate count on the calibration split (741 labeled
 choice rows: 416 binary, 208 four-way, 117 twelve-way) and measured on the
-untouched validation split. Sharpness depends strongly on width, so one pooled
-temperature fits none of the groups:
+untouched validation split (364 rows). Sharpness depends strongly on width, so
+one pooled temperature fits none of the groups. All five backends have a
+committed profile under `calibration/`:
 
-| Backend | Pooled T | T for k=2 | T for k=4 | T for k=12 | Validation ECE | Validation NLL |
+| Backend | Pooled T | k=2 | k=4 | k=12 | Validation ECE | Validation NLL |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `tiny` | 9.10 | 100.00 | 0.81 | 1.84 | 0.251 → 0.129 | 1.378 → 1.115 |
 | `base` | 2.29 | 9.55 | 0.39 | 0.30 | 0.221 → 0.136 | 1.060 → 0.896 |
+| `smart` | 1.87 | 4.87 | 0.95 | 0.70 | 0.179 → 0.102 | 1.002 → 0.834 |
+| `multilingual` | 6.03 | 100.00 | 2.22 | 2.73 | **0.164 → 0.217** | 1.136 → 1.007 |
+| `decoder` | 4.03 | 10.92 | 3.37 | 2.21 | 0.304 → **0.081** | 2.026 → 1.028 |
 
 Accuracy is unchanged on both sides, as temperature scaling never reorders
-candidates. Binary rows need heavy smoothing while wide rows need sharpening —
-the models are underconfident once their mass spreads across many options.
-`tiny` reaching the T=100 boundary for binary rows is a fit at the edge of the
-search domain and should be read as "this model's binary scores carry little
-usable signal", not as a well-determined temperature. Profiles for `tiny` and
-`base` are committed under `calibration/`.
+candidates. Binary rows generally need heavy smoothing while wide rows need
+sharpening. `tiny` and `multilingual` reach the T=100 search boundary for binary
+rows: that is a fit at the edge of the domain and should be read as "this
+model's binary scores carry little usable signal", not as a determined
+temperature.
+
+**The decoder is the clearest win.** It was the overconfident backend
+(test ECE 0.275, abstaining on 7.3 % of cases that should abstain). With its
+profile, on the test split: ECE 0.275 → 0.077, NLL 1.892 → 0.874, and the
+ambiguous abstention rate 0.073 → 0.802. See
+`benchmarks/reports/decoder-mps-test-calibrated.json`.
+
+**Two negative results, both reproducible from the committed reports.**
+
+*`multilingual` regresses on ECE while improving on NLL.* Per candidate count on
+validation, its accuracy at twelve options is 0.718 against a mean confidence of
+0.594 — it is already underconfident there — yet the fit chose T=2.73 and
+flattened it further, to a mean confidence of 0.266 (slice ECE 0.295 → 0.565).
+Temperature is fitted to minimize NLL, which is dominated by confidently wrong
+rows; smoothing those gains more NLL than sharpening the correct ones loses. Its
+profile is committed as evidence and should not be adopted without checking on
+your own data.
+
+*A per-count profile breaks a single margin threshold.* Scaling each count by its
+own temperature is not comparable between counts. For `base` on the test split
+the answered set at margin ≥ 0.5 flipped from 73 % of binary rows (0.863
+accuracy) to none of them, and to 43 % of four-way rows (0.602 accuracy), moving
+pooled accuracy-when-answered from 0.830 to 0.586 without any within-count
+regression. Benchmark reports now carry `objective_by_choice_count` so this is
+visible instead of hidden inside a pooled table, and
+[docs/calibration.md](docs/calibration.md) says to choose thresholds per count.
+`base` also improved on validation and regressed on test (ECE 0.149 → 0.184),
+which the differing candidate-count mixes across splits explain.
 
 ## Remaining work
 
-- Fit profiles for `smart`, `multilingual` and `decoder`, and per task family;
-  the decoder in particular is overconfident (test ECE 0.275) and abstained on
-  only 7.3 % of ambiguous cases without one.
+- Fit profiles per task family, not only per candidate count: the split-to-split
+  regression for `base` and the ECE regression for `multilingual` both point at
+  a single temperature per width being too coarse.
+- Choose and publish operating thresholds per candidate count now that a
+  per-count profile makes one global margin threshold incomparable.
+- Consider fitting to a calibration-aware objective rather than NLL, since the
+  two disagree for `multilingual`.
 - Extend calibration to the statement and rubric paths, which are scored through
   different code and are currently excluded from fitting.
 - Address negation and instruction steering, which every current backend fails:

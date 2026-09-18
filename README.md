@@ -203,13 +203,18 @@ opendecision calibrate --model base --dataset benchmarks/datasets/core.jsonl \
 model = DecisionModel("base", calibration="calibration/base.json")
 ```
 
-Profiles for `tiny` and `base`, fitted on the calibration split of the committed
+Profiles for all five backends, fitted on the calibration split of the committed
 corpus, are in [calibration/](calibration/). A temperature is fitted per
-candidate count, because the same checkpoint can be overconfident on yes/no
-rows and underconfident across twelve options: `base` fits 9.55 for two
-candidates and 0.30 for twelve. On the held-out validation split this moved
-`base` from ECE 0.221 to 0.136 and NLL 1.060 to 0.896, with accuracy unchanged —
+candidate count, because the same checkpoint can be overconfident on yes/no rows
+and underconfident across twelve options: `base` fits 9.55 for two candidates
+and 0.30 for twelve. On held-out validation this moved `base` from ECE 0.221 to
+0.136 and the `decoder` from 0.304 to 0.081, with accuracy unchanged —
 temperature scaling never reorders candidates.
+
+Two results argue against adopting a profile blindly: `multilingual` improves
+NLL but **worsens** ECE, and a per-count profile makes one global
+`margin_threshold` incomparable across counts. Both are measured and explained
+in [calibration](docs/calibration.md) and [PROGRESS.md](PROGRESS.md).
 
 Fit on the calibration split, select thresholds on validation, then evaluate
 the untouched test split. A profile checks checkpoint, template, precision,
