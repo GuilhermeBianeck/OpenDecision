@@ -98,6 +98,26 @@ def test_json_state_and_option_files(tmp_path, capsys):
     assert "--choices-json" in capsys.readouterr().err
 
 
+def test_ask_command(tmp_path, capsys):
+    questions = tmp_path / "questions.json"
+    questions.write_text(
+        json.dumps(
+            {
+                "team": {"type": "choice", "question": "Team?", "choices": ["billing", "other"]},
+                "urgent": {"type": "boolean", "statement": "billing"},
+            }
+        )
+    )
+    args = ["ask", "--model", "demo", "--state", "billing issue", "--questions-json"]
+    assert main([*args, str(questions)]) == 0
+    answers = json.loads(capsys.readouterr().out)
+    assert answers["team"]["choice"] == "billing"
+    assert answers["urgent"]["type"] == "boolean"
+    questions.write_text(json.dumps([]))
+    assert main([*args, str(questions)]) == 1
+    assert "--questions-json" in capsys.readouterr().err
+
+
 def test_bad_model_clean_error(capsys):
     assert (
         main(

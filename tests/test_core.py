@@ -289,12 +289,73 @@ def test_ties_break_on_labels_not_descriptions():
     assert result.choice == "a"
 
 
+def test_ask_mixes_question_types_under_caller_ids():
+    backend = StatementBackend([2.0, 0.0, -1.0])
+    backend.scores = [1.0, 3.0, 0.0]
+    model = DecisionModel(backend=backend)
+    answers = model.ask(
+        state={"message": "card charged twice"},
+        questions={
+            "team": {
+                "type": "choice",
+                "question": "Which team?",
+                "choices": ["technical", {"label": "billing", "description": "payments"}, "other"],
+                "include_raw_scores": True,
+            },
+            "urgent": {"type": "boolean", "statement": "The customer is angry."},
+            "severity": {
+                "type": "score",
+                "question": "How severe?",
+                "levels": ["cosmetic", "degraded", "outage"],
+                "margin_threshold": 0.99,
+            },
+            "refund": {
+                "type": "boolean",
+                "statement": "A refund is requested.",
+                "unsupported_threshold": 0.01,
+            },
+        },
+    )
+    assert list(answers) == ["team", "urgent", "severity", "refund"]
+    assert answers["team"].type == "choice" and answers["team"].choice == "billing"
+    assert answers["team"].raw_scores["billing"] == 3.0
+    assert answers["urgent"].type == "boolean" and answers["urgent"].value is True
+    assert answers["severity"].type == "score" and answers["severity"].abstained
+    assert answers["severity"].legend["2"] == "outage"
+    assert answers["refund"].value is None  # its own unsupported threshold applied
+    # One candidate batch for choice+score, one statement batch for booleans.
+    assert [r.question for r in backend.requests] == ["Which team?", "How severe?"]
+    assert [r.statement for r in backend.statements] == [
+        "The customer is angry.",
+        "A refund is requested.",
+    ]
+    assert all(r.state == {"message": "card charged twice"} for r in backend.requests)
+
+
+@pytest.mark.parametrize(
+    "questions",
+    [
+        {},
+        {" ": {"type": "choice", "question": "q", "choices": ["a", "b"]}},
+        {"q": {"type": "ranking", "question": "q", "choices": ["a", "b"]}},
+        {"q": {"type": "choice", "question": "q", "choices": ["a"]}},
+        {"q": {"type": "boolean", "statement": " "}},
+        {"q": {"type": "score", "question": "q", "levels": ["a", "a"]}},
+        {f"q{i}": {"type": "boolean", "statement": "s"} for i in range(129)},
+    ],
+)
+def test_ask_validates_questions(questions):
+    with pytest.raises(ValidationError):
+        DecisionModel(backend=FixedBackend()).ask(state="", questions=questions)
+
+
 def test_many_questions_and_batch_size_errors():
     model = DecisionModel(backend=FixedBackend())
     result = model.decide_many(
         state="shared", questions={"retry?": ["yes", "no"], "review?": ["yes", "no"]}
     )
     assert list(result) == ["retry?", "review?"]
+    assert all(r.type == "choice" for r in result.values())
     assert model.choose_batch([]) == []
     with pytest.raises(ValueError):
         model.decide_many(state="", questions={})

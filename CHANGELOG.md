@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `ask` answers independent typed questions (choice, boolean, score) about one
+  state under caller-chosen ids, with per-question thresholds (Python, HTTP
+  `/v1/ask`, CLI, TypeScript). Results carry a `type` discriminator. The HTTP
+  multi-label limit now matches the Python limit of 128 labels.
 - Choices may carry a description, a `not_for` boundary and examples
   (`ChoiceOption`); results stay keyed by label. State may be a record or a list
   of texts and is rendered deterministically before scoring. CLI accepts

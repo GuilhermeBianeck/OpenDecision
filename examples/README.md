@@ -3,7 +3,7 @@
 Install from this repository with `pip install -e '.[inference,server]'`, then explicitly download a model with `opendecision pull base`. The Python examples and server subsequently use cached weights offline.
 
 - `python python_quickstart.py`: one decision with abstention.
-- `python agent_routing.py`: several independent questions sharing the same state.
+- `python agent_routing.py`: mixed choice, boolean and score questions sharing one structured state via `ask`.
 - Start `opendecision serve`, then run `python http_client.py` for HTTP.
 - `typescript_client.ts`: typed local HTTP client; build instructions in `packages/typescript/README.md`.
 

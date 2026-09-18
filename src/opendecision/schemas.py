@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 Probability = Annotated[float, Field(ge=0, le=1, allow_inf_nan=False)]
 
 MAX_STATE_CHARACTERS = 262_144
+MAX_QUESTIONS_PER_STATE = 128
 
 StateValue = str | dict[str, Any] | list[str]
 """Context to decide about: plain text, a record with named fields, or a list of texts."""
@@ -245,6 +246,7 @@ class DecisionResult(PublicModel):
     ``confidence`` is always the top-one minus top-two probability margin.
     """
 
+    type: Literal["choice"] = "choice"
     choice: str | None
     probabilities: dict[str, Probability]
     normalized_probabilities: dict[str, Probability]
@@ -305,6 +307,7 @@ class BooleanResult(PublicModel):
     was scored as a two-way choice and ``unsupported`` is null.
     """
 
+    type: Literal["boolean"] = "boolean"
     value: bool | None
     probability: Probability
     unsupported: Probability | None = None
@@ -326,6 +329,7 @@ class ScoreResult(PublicModel):
     The score is a probability-weighted position, not a calibrated magnitude.
     """
 
+    type: Literal["score"] = "score"
     score: float = Field(ge=0, allow_inf_nan=False)
     level: int | None
     probabilities: dict[str, Probability]
@@ -354,5 +358,98 @@ class RankedChoice(PublicModel):
 
 
 class RankingResult(PublicModel):
+    type: Literal["ranking"] = "ranking"
     ranking: list[RankedChoice]
     decision: DecisionResult
+
+
+class ChoiceQuestion(PublicModel):
+    """One finite choice over the shared state of a :class:`QuestionsRequest`."""
+
+    type: Literal["choice"] = "choice"
+    question: str = Field(min_length=1, max_length=8192)
+    choices: list[str | ChoiceOption] = Field(min_length=2, max_length=256)
+    abstain_threshold: Probability | None = None
+    margin_threshold: Probability | None = None
+    include_raw_scores: bool = False
+
+    @field_validator("question")
+    @classmethod
+    def nonblank_question(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("question must not be blank")
+        return value
+
+    @field_validator("choices")
+    @classmethod
+    def valid_choices(cls, value: list[str | ChoiceOption]) -> list[str | ChoiceOption]:
+        return _validate_choices(value)
+
+
+class BooleanQuestion(PublicModel):
+    """One statement about the shared state."""
+
+    type: Literal["boolean"] = "boolean"
+    statement: str = Field(min_length=1, max_length=8192)
+    abstain_threshold: Probability | None = None
+    margin_threshold: Probability | None = None
+    unsupported_threshold: Probability | None = None
+
+    @field_validator("statement")
+    @classmethod
+    def nonblank_statement(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("statement must not be blank")
+        return value
+
+
+class ScoreQuestion(PublicModel):
+    """One ordered rubric over the shared state."""
+
+    type: Literal["score"] = "score"
+    question: str = Field(min_length=1, max_length=8192)
+    levels: list[str] = Field(min_length=2, max_length=10)
+    abstain_threshold: Probability | None = None
+    margin_threshold: Probability | None = None
+    include_raw_scores: bool = False
+
+    @field_validator("question")
+    @classmethod
+    def nonblank_question(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("question must not be blank")
+        return value
+
+    @field_validator("levels")
+    @classmethod
+    def valid_levels(cls, value: list[str]) -> list[str]:
+        return ScoreRequest.valid_levels(value)
+
+
+Question = Annotated[ChoiceQuestion | BooleanQuestion | ScoreQuestion, Field(discriminator="type")]
+Answer = Annotated[DecisionResult | BooleanResult | ScoreResult, Field(discriminator="type")]
+
+
+class QuestionsRequest(PublicModel):
+    """Independent typed questions about one state, keyed by caller-chosen ids.
+
+    Every question sees the same state and is evaluated independently; the ids
+    only route answers back and are never shown to the model. Whether the state
+    is encoded once or once per candidate is a backend property.
+    """
+
+    state: StateValue
+    questions: dict[str, Question] = Field(min_length=1, max_length=MAX_QUESTIONS_PER_STATE)
+
+    _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
+
+    @field_validator("questions")
+    @classmethod
+    def valid_ids(cls, value: dict[str, Question]) -> dict[str, Question]:
+        if any(not key.strip() or len(key) > 256 for key in value):
+            raise ValueError("question ids must be nonblank and at most 256 characters")
+        return value
+
+    @property
+    def state_text(self) -> str:
+        return render_state(self.state)

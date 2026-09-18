@@ -30,8 +30,12 @@ pairs and process them in bounded microbatches. Booleans and `multi_label` label
 statements about the state: an NLI backend scores each statement directly and returns
 entailment, neutral, and contradiction logits (`StatementBackend`); the neutral share
 becomes `unsupported`. Other backends score each statement as a two-way choice.
-`decide_many` repeats the shared state per question; there is no shared encoder
-cache in the alpha.
+`ask` accepts independent typed questions about one state under caller ids. It
+issues one candidate batch for choice and score questions and one statement batch
+for booleans, then returns answers in request order, each with its own thresholds.
+The cross-encoder backends still encode the state once per candidate pair; there
+is no shared encoder cache in the alpha, so cost grows with the number of
+candidates across all questions. Answers carry a `type` discriminator.
 
 Weights load lazily from pinned local cache entries. Explicit `pull` is the only
 default model download operation. The server ensures loading during startup.

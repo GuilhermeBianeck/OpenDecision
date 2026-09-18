@@ -61,7 +61,8 @@ fixture, not an AI quality baseline.**
 | Finite choice, boolean, ranking | `choose`, `boolean`, `rank` |
 | Ordered rubric score | `score` (expected level index over 2–10 described levels) |
 | Independent labels | `multi_label` (one binary distribution per label) |
-| Shared-state questions and batches | `decide_many`, `choose_batch` |
+| Typed questions over one state | `ask` (mixed choice / boolean / score, keyed by your ids) |
+| Batches | `choose_batch`, `statement_batch`, `score_batch`, `decide_many` |
 | Four open-weight model adapters | `tiny`, `base`, `smart`, `multilingual` |
 | Local resident model server | FastAPI on `127.0.0.1:8042` |
 | Temperature calibration and abstention | Separate profiles; probability and margin thresholds |
@@ -100,6 +101,37 @@ if either its `abstain_threshold` (minimum top probability) or `margin_threshold
 is not met. Equality passes. Thresholds are task-specific and not safety guarantees.
 Include an explicit “none of these” choice when appropriate. Ties use a stable
 lexicographic tie-break; set a positive margin threshold to abstain on ties.
+
+### Ask several questions about one state
+
+`ask` evaluates independent typed questions about the same state and returns
+answers under your own ids. Mix choice, boolean and score questions; each
+carries its own thresholds. Compose the answers in code rather than asking one
+compound question.
+
+```python
+answers = model.ask(
+    state={"message": "My card was charged twice and I need this fixed today."},
+    questions={
+        "team": {
+            "type": "choice",
+            "question": "Which team should handle this?",
+            "choices": ["billing", "fraud", "technical", "other"],
+        },
+        "urgent": {"type": "boolean", "statement": "The customer asks for same-day resolution."},
+        "frustration": {
+            "type": "score",
+            "question": "How frustrated is the customer?",
+            "levels": ["calm", "irritated", "angry"],
+        },
+    },
+)
+answers["team"].choice, answers["urgent"].value, answers["frustration"].score
+```
+
+Every answer carries a `type` field (`choice`, `boolean`, `score`, `ranking`).
+Whether a backend encodes the state once or once per candidate is a backend
+property; see [architecture](docs/architecture.md).
 
 ### Describe the options, structure the state
 
