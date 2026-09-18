@@ -26,6 +26,14 @@ model and checkpoint revision, serialization template, precision, maximum sequen
 length, timestamp, and before/after calibration NLL. Incompatible model identities
 are rejected. The same identity can still encounter a different task distribution.
 
+A profile also records the smallest and largest number of candidates it was
+fitted on (`choice_count_min`, `choice_count_max`). One temperature is shared
+by every choice count, but it was only observed on that range: a temperature
+fitted on yes/no rows says nothing about a ten-way decision. Each result reports
+`metadata.calibration_covers_choice_count` (`true`, `false`, or `null` when the
+profile predates this field) so callers can treat out-of-range decisions as
+uncalibrated. Fit separate profiles per task family when candidate counts differ.
+
 `probabilities` exposes the effective distribution. `calibrated_probabilities`
 is null without a profile; `normalized_probabilities` always retains the original
 softmax. For the effective distribution:

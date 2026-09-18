@@ -32,6 +32,10 @@ class CalibrationProfile(PublicModel):
     dataset_sha256: str | None = None
     split: Literal["calibration"] = "calibration"
     sample_count: int = Field(ge=1)
+    # Number of candidates per fitted row. One temperature is shared by every
+    # choice count; it was only observed on this range.
+    choice_count_min: int | None = Field(default=None, ge=2)
+    choice_count_max: int | None = Field(default=None, ge=2)
     nll_before: float = Field(ge=0)
     nll_after: float = Field(ge=0)
     created_at: str
@@ -39,6 +43,12 @@ class CalibrationProfile(PublicModel):
     def transform(self, scores: Sequence[float]) -> list[float]:
         """Apply this profile without changing candidate ordering."""
         return softmax(scores, self.temperature)
+
+    def covers(self, choice_count: int) -> bool | None:
+        """Whether this many candidates was seen while fitting; None if unrecorded."""
+        if self.choice_count_min is None or self.choice_count_max is None:
+            return None
+        return self.choice_count_min <= choice_count <= self.choice_count_max
 
     def save(self, path: str | Path) -> None:
         target = Path(path)
@@ -79,6 +89,8 @@ def fit_temperature(
 
     The caller must supply held-out calibration rows, never final test rows.
     This is a global temperature, not per-class or out-of-domain calibration.
+    The profile records the range of candidate counts it was fitted on; a
+    temperature fitted on binary rows is not evidence for ten-way decisions.
     """
     if not score_rows or len(score_rows) != len(labels):
         raise CalibrationError("Provide equally sized, nonempty score rows and labels")
@@ -111,6 +123,8 @@ def fit_temperature(
         precision=precision,
         dataset_sha256=dataset_sha256,
         sample_count=len(labels),
+        choice_count_min=min(len(row) for row in score_rows),
+        choice_count_max=max(len(row) for row in score_rows),
         nll_before=_nll(score_rows, labels, 1.0),
         nll_after=_nll(score_rows, labels, temperature),
         created_at=datetime.now(timezone.utc).isoformat(),
