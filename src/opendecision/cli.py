@@ -48,6 +48,12 @@ def _request_options(parser: argparse.ArgumentParser, *, choices: bool = True) -
         parser.add_argument("--raw-scores", action="store_true")
     parser.add_argument("--abstain-threshold", type=float, help="Minimum top probability")
     parser.add_argument("--margin-threshold", type=float, help="Minimum top-two probability margin")
+    if not choices:
+        parser.add_argument(
+            "--unsupported-threshold",
+            type=float,
+            help="Abstain when p(state settles neither way) exceeds this; NLI backends only",
+        )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -270,7 +276,9 @@ def run(args: argparse.Namespace) -> Any:
             "abstain_threshold": args.abstain_threshold,
             "margin_threshold": args.margin_threshold,
         }
-        if args.command != "boolean":
+        if args.command == "boolean":
+            request["unsupported_threshold"] = args.unsupported_threshold
+        else:
             request.update(choices=args.choices, include_raw_scores=args.raw_scores)
         return getattr(engine, "choose" if args.command == "decide" else args.command)(**request)
     if args.command == "benchmark":

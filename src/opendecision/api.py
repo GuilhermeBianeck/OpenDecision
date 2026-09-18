@@ -11,7 +11,14 @@ from typing import TYPE_CHECKING
 from .calibration import CalibrationProfile
 from .confidence import margin, softmax
 from .errors import BackendError, CalibrationError
-from .schemas import BooleanResult, DecisionRequest, DecisionResult, RankedChoice, RankingResult
+from .schemas import (
+    BooleanResult,
+    DecisionRequest,
+    DecisionResult,
+    RankedChoice,
+    RankingResult,
+    StatementRequest,
+)
 
 if TYPE_CHECKING:
     from .backends.base import DecisionBackend
@@ -134,6 +141,9 @@ class DecisionModel:
         elapsed_ms: float,
         inference_ms: float,
         batch_count: int,
+        *,
+        force_abstain: bool = False,
+        extra_metadata: dict[str, object] | None = None,
     ) -> DecisionResult:
         if len(scores) != len(request.choices) or not all(math.isfinite(s) for s in scores):
             raise BackendError("Backend must return exactly one finite score per choice")
@@ -144,8 +154,12 @@ class DecisionModel:
         top = min(range(len(effective)), key=lambda i: (-effective[i], request.choices[i]))
         confidence = margin(effective)
         abstained = (
-            request.abstain_threshold is not None and effective[top] < request.abstain_threshold
-        ) or (request.margin_threshold is not None and confidence < request.margin_threshold)
+            force_abstain
+            or (
+                request.abstain_threshold is not None and effective[top] < request.abstain_threshold
+            )
+            or (request.margin_threshold is not None and confidence < request.margin_threshold)
+        )
         metadata = {
             "revision": self.backend.revision,
             "device": self.backend.device,
@@ -161,6 +175,7 @@ class DecisionModel:
             "batch_inference_ms": inference_ms,
             "latency_scope": "batch_wall_including_lock",
             "calibration": self.calibration.model_dump() if self.calibration else None,
+            **(extra_metadata or {}),
         }
         backend_metadata = getattr(self.backend, "metadata", {})
         if isinstance(backend_metadata, dict):
@@ -180,6 +195,11 @@ class DecisionModel:
             metadata=metadata,
         )
 
+    @property
+    def supports_statements(self) -> bool:
+        """True when the backend judges statements as entailed, neutral or contradicted."""
+        return bool(getattr(self.backend, "supports_statements", False))
+
     def boolean(
         self,
         *,
@@ -187,22 +207,109 @@ class DecisionModel:
         question: str,
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
+        unsupported_threshold: float | None = None,
     ) -> BooleanResult:
-        """Return an independent yes/no decision with yes probability."""
-        result = self.choose(
+        """Return an independent yes/no decision with yes probability.
+
+        ``question`` is read as a statement about the state. With statement
+        scoring, ``probability`` is entailment versus contradiction and
+        ``unsupported`` is the probability that the state settles neither way;
+        ``unsupported_threshold`` abstains above it. Other backends score a
+        two-way ``yes``/``no`` choice and cannot honour ``unsupported_threshold``.
+        """
+        request = StatementRequest(
             state=state,
-            question=question,
-            choices=["yes", "no"],
+            statement=question,
             abstain_threshold=abstain_threshold,
             margin_threshold=margin_threshold,
+            unsupported_threshold=unsupported_threshold,
         )
-        return self._boolean_result(result)
+        return self.statement_batch([request])[0]
+
+    def statement_batch(self, requests: list[StatementRequest]) -> list[BooleanResult]:
+        """Score independent statements; each result is its own yes/no distribution."""
+        validated = [StatementRequest.model_validate(request) for request in requests]
+        if not validated:
+            return []
+        if len(validated) > 1024:
+            raise ValueError("at most 1024 statements per batch")
+        if not self.supports_statements:
+            if any(r.unsupported_threshold is not None for r in validated):
+                raise ValueError(
+                    f"unsupported_threshold requires statement scoring; backend "
+                    f"{self.backend.name!r} scores statements as a two-way choice"
+                )
+            choices = self.choose_batch([self._as_choice(request) for request in validated])
+            return [self._boolean_result(result) for result in choices]
+        started = time.perf_counter()
+        with self._lock:
+            inference_start = time.perf_counter()
+            rows = self.backend.score_statements(validated)
+            inference_ms = (time.perf_counter() - inference_start) * 1000
+            if len(rows) != len(validated):
+                raise BackendError("Backend returned the wrong number of statement rows")
+            elapsed_ms = (time.perf_counter() - started) * 1000
+            return [
+                self._statement_result(request, row, elapsed_ms, inference_ms, len(validated))
+                for request, row in zip(validated, rows)
+            ]
+
+    @staticmethod
+    def _as_choice(request: StatementRequest) -> DecisionRequest:
+        return DecisionRequest(
+            state=request.state,
+            question=request.statement,
+            choices=["yes", "no"],
+            abstain_threshold=request.abstain_threshold,
+            margin_threshold=request.margin_threshold,
+        )
+
+    def _statement_result(
+        self,
+        request: StatementRequest,
+        logits: list[float],
+        elapsed_ms: float,
+        inference_ms: float,
+        batch_count: int,
+    ) -> BooleanResult:
+        if len(logits) != 3 or not all(math.isfinite(value) for value in logits):
+            raise BackendError("Statement backends must return three finite logits")
+        entailment, neutral, contradiction = logits
+        # Yes versus no is decided between support and contradiction; the neutral
+        # mass is the separate, absolute signal that the state settles neither.
+        unsupported = softmax([entailment, neutral, contradiction])[1]
+        force_abstain = (
+            request.unsupported_threshold is not None
+            and unsupported > request.unsupported_threshold
+        )
+        decision = self._result(
+            self._as_choice(request),
+            [entailment, contradiction],
+            elapsed_ms,
+            inference_ms,
+            batch_count,
+            force_abstain=force_abstain,
+            extra_metadata={
+                "method": "statement",
+                "unsupported": unsupported,
+                "unsupported_definition": "p(neutral) over entailment, neutral, contradiction",
+                "unsupported_threshold": request.unsupported_threshold,
+            },
+        )
+        return BooleanResult(
+            value=None if decision.abstained else decision.choice == "yes",
+            probability=decision.probabilities["yes"],
+            unsupported=unsupported,
+            method="statement",
+            decision=decision,
+        )
 
     @staticmethod
     def _boolean_result(result: DecisionResult) -> BooleanResult:
         return BooleanResult(
             value=None if result.abstained else result.choice == "yes",
             probability=result.probabilities["yes"],
+            method="binary_choice",
             decision=result,
         )
 
@@ -244,21 +351,22 @@ class DecisionModel:
         labels: list[str],
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
+        unsupported_threshold: float | None = None,
     ) -> dict[str, BooleanResult]:
-        """Evaluate each label as its own binary question, never a shared softmax."""
+        """Evaluate each label as its own statement, never a shared softmax."""
         if not labels or len(labels) > 128 or len(set(labels)) != len(labels):
             raise ValueError("provide 1–128 unique labels")
         requests = [
-            DecisionRequest(
+            StatementRequest(
                 state=state,
-                question=label,
-                choices=["yes", "no"],
+                statement=label,
                 abstain_threshold=abstain_threshold,
                 margin_threshold=margin_threshold,
+                unsupported_threshold=unsupported_threshold,
             )
             for label in labels
         ]
-        return dict(zip(labels, map(self._boolean_result, self.choose_batch(requests))))
+        return dict(zip(labels, self.statement_batch(requests)))
 
     def decide_many(
         self,

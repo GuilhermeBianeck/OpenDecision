@@ -2,7 +2,14 @@
 
 from .api import DecisionModel
 from .calibration import CalibrationProfile, fit_temperature
-from .schemas import BooleanResult, DecisionRequest, DecisionResult, RankedChoice, RankingResult
+from .schemas import (
+    BooleanResult,
+    DecisionRequest,
+    DecisionResult,
+    RankedChoice,
+    RankingResult,
+    StatementRequest,
+)
 
 __version__ = "0.1.0a1"
 __all__ = [
@@ -12,6 +19,7 @@ __all__ = [
     "BooleanResult",
     "RankedChoice",
     "RankingResult",
+    "StatementRequest",
     "CalibrationProfile",
     "fit_temperature",
 ]

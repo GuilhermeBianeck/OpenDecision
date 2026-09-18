@@ -100,6 +100,13 @@ is not met. Equality passes. Thresholds are task-specific and not safety guarant
 Include an explicit “none of these” choice when appropriate. Ties use a stable
 lexicographic tie-break; set a positive margin threshold to abstain on ties.
 
+`boolean` and `multi_label` read their question as a **statement about the
+state**. With an NLI backend (`tiny`, `base`) the statement is scored directly:
+`probability` is entailment against contradiction, and `unsupported` is the
+probability that the state settles neither way — pass `unsupported_threshold`
+to abstain on it. Backends without statement scoring fall back to a two-way
+`yes`/`no` choice and report `method: "binary_choice"`.
+
 ```bash
 opendecision calibrate --model base --dataset benchmarks/datasets/core.jsonl \
   --output calibration/base.json

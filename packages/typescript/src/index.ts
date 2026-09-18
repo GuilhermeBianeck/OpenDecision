@@ -27,14 +27,21 @@ export interface DecisionResult {
 
 export interface BooleanRequest {
   state: string;
+  /** Read as a statement about the state. */
   question: string;
   abstain_threshold?: number | null;
   margin_threshold?: number | null;
+  /** Abstain when the state neither supports nor contradicts the statement; NLI backends only. */
+  unsupported_threshold?: number | null;
 }
 
 export interface BooleanResult {
   value: boolean | null;
+  /** Yes probability, even when abstained. */
   probability: number;
+  /** p(state settles neither way) under statement scoring; null for binary choice. */
+  unsupported: number | null;
+  method: "statement" | "binary_choice";
   decision: DecisionResult;
 }
 
@@ -54,6 +61,7 @@ export interface MultiLabelRequest {
   labels: string[];
   abstain_threshold?: number | null;
   margin_threshold?: number | null;
+  unsupported_threshold?: number | null;
 }
 
 export interface ModelInfo {
@@ -72,6 +80,8 @@ export interface HealthResult {
   model: string;
   inference: "local";
   telemetry: false;
+  /** Whether booleans are scored as statements (entailment vs contradiction). */
+  supports_statements: boolean;
 }
 
 export interface ClientOptions {

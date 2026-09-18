@@ -15,7 +15,7 @@ from opendecision.backends.skywork_reward import SkyworkRewardBackend
 from opendecision.backends.transformers import select_device
 from opendecision.errors import BackendError
 from opendecision.registry import create_backend
-from opendecision.schemas import DecisionRequest
+from opendecision.schemas import DecisionRequest, StatementRequest
 
 
 class FakeEncoded(dict):
@@ -92,6 +92,8 @@ def initialized_backend(**kwargs):
     backend._model = FakeModel()
     backend._torch = SimpleNamespace(inference_mode=contextlib.nullcontext)
     backend._entailment_index = 1
+    backend._neutral_index = 0
+    backend._contradiction_index = 2
     return backend
 
 
@@ -121,6 +123,47 @@ def test_truncation_retains_whole_question_and_choice_and_warns():
     assert "first candidate stays complete" in hypotheses[0]
     assert "second candidate also complete" in hypotheses[1]
     assert backend.metadata["truncated_candidates"] == 2
+
+
+def test_statements_return_entailment_neutral_contradiction_in_order():
+    backend = initialized_backend(batch_size=2)
+    assert backend.supports_statements
+    rows = backend.score_statements(
+        [
+            StatementRequest(state="s1", statement="the first claim"),
+            StatementRequest(state="s2", statement="another claim"),
+            StatementRequest(state="s3", statement="third"),
+        ]
+    )
+    # FakeModel emits [-999, i, 999]; columns are (entailment=1, neutral=0, contradiction=2).
+    assert rows == [[0.0, -999.0, 999.0], [1.0, -999.0, 999.0], [2.0, -999.0, 999.0]]
+    assert backend._model.calls == [2, 1]
+    premises, hypotheses, _ = backend._tokenizer.batches[0]
+    assert hypotheses == ["the first claim", "another claim"]
+    assert premises == ["s1", "s2"]
+
+
+def test_statement_state_truncation_preserves_the_statement():
+    backend = initialized_backend(max_length=40)
+    with pytest.warns(UserWarning, match="statements preserved"):
+        rows = backend.score_statements(
+            [StatementRequest(state=" ".join(f"w{i}" for i in range(200)), statement="keep me")]
+        )
+    assert len(rows) == 1
+    premises, hypotheses, _ = backend._tokenizer.batches[0]
+    assert hypotheses == ["keep me"]
+    assert "w199" not in premises[0]
+    assert backend.metadata["truncated_candidates"] == 1
+
+
+def test_non_nli_backends_decline_statements():
+    reward = SkyworkRewardBackend()
+    assert not reward.supports_statements
+    nli_without_labels = initialized_backend()
+    nli_without_labels._contradiction_index = None
+    with pytest.raises(BackendError, match="cannot score statements"):
+        nli_without_labels.score_statements([StatementRequest(state="s", statement="c")])
+    assert SkyworkRewardBackend().score_statements([]) == []
 
 
 def test_candidate_too_long_is_rejected_instead_of_silently_truncated():

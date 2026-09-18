@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -38,6 +38,28 @@ class DecisionRequest(PublicModel):
             raise ValueError("choices must be nonblank and at most 4096 characters")
         if len({choice.strip() for choice in value}) != len(value):
             raise ValueError("choices must be unique, including surrounding whitespace")
+        return value
+
+
+class StatementRequest(PublicModel):
+    """A yes/no statement about the state.
+
+    Backends with statement scoring evaluate it directly as entailment versus
+    contradiction; others fall back to a two-way choice. ``unsupported_threshold``
+    abstains when the state neither supports nor contradicts the statement.
+    """
+
+    state: str = Field(max_length=262_144)
+    statement: str = Field(min_length=1, max_length=8192)
+    abstain_threshold: Probability | None = None
+    margin_threshold: Probability | None = None
+    unsupported_threshold: Probability | None = None
+
+    @field_validator("statement")
+    @classmethod
+    def nonblank_statement(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("statement must not be blank")
         return value
 
 
@@ -101,11 +123,25 @@ class DecisionResult(PublicModel):
 
 
 class BooleanResult(PublicModel):
-    """``probability`` is the effective yes probability, even if abstained."""
+    """``probability`` is the effective yes probability, even if abstained.
+
+    ``method`` is ``"statement"`` when the backend scored the statement directly
+    against the state; ``unsupported`` is then the probability that the state
+    neither supports nor contradicts it. With ``"binary_choice"`` the statement
+    was scored as a two-way choice and ``unsupported`` is null.
+    """
 
     value: bool | None
     probability: Probability
+    unsupported: Probability | None = None
+    method: Literal["statement", "binary_choice"] = "binary_choice"
     decision: DecisionResult
+
+    @model_validator(mode="after")
+    def consistent_method(self) -> BooleanResult:
+        if (self.method == "statement") != (self.unsupported is not None):
+            raise ValueError("unsupported is reported exactly for statement scoring")
+        return self
 
 
 class RankedChoice(PublicModel):

@@ -30,6 +30,8 @@ Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `bo
 
 HTTP failures throw `OpenDecisionHTTPError` with `.status` and `.body`. Timeouts throw `OpenDecisionTimeoutError`; the default is 30 seconds, including response body reading. The client does not retry automatically. Returned TypeScript types describe the server contract; arbitrary responses are not runtime schema-validated.
 
+`BooleanResult.method` is `"statement"` when the server's model scores the statement directly against the state; `unsupported` is then the probability that the state settles neither way, and `unsupported_threshold` abstains above it. Servers whose model lacks statement scoring return `"binary_choice"`, `unsupported: null`, and reject `unsupported_threshold` with HTTP 422. `health()` reports `supports_statements`.
+
 `confidence` is the top-two probability margin. `probabilities` contains calibrated scores only when the server has a matching calibration profile; otherwise it equals `normalized_probabilities`. Neither field is an automatic guarantee of correctness. `BooleanResult.probability` is the yes probability even after abstention.
 
 The server binds to loopback by default, has no authentication, and sends no prompts to external services. Browser use across origins requires a reverse proxy or an explicit CORS policy configured by your application; the default server does not grant cross-origin access.

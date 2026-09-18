@@ -6,13 +6,13 @@ import math
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from opendecision.backends.catalog import MODEL_SPECS
 from opendecision.errors import BackendError
 
 if TYPE_CHECKING:
-    from opendecision.schemas import DecisionRequest
+    from opendecision.schemas import DecisionRequest, StatementRequest
 
 
 def select_device(requested: str, torch: Any) -> str:
@@ -43,7 +43,9 @@ class TransformersBackend:
 
     NLI uses the entailment logit (not the label index assumed across models).
     Reranking and reward backends use their single raw classification logit.
-    The caller owns normalization and calibration.
+    NLI checkpoints additionally score a statement directly against the state,
+    returning entailment, neutral and contradiction logits. The caller owns
+    normalization and calibration.
     """
 
     def __init__(
@@ -89,14 +91,22 @@ class TransformersBackend:
         self._tokenizer: Any = None
         self._torch: Any = None
         self._entailment_index: int | None = None
+        self._neutral_index: int | None = None
+        self._contradiction_index: int | None = None
         self._lock = threading.RLock()
         self._truncated_candidates = 0
         self.load_time_ms: float | None = None
 
     @property
+    def supports_statements(self) -> bool:
+        """Only NLI checkpoints can judge a statement as entailed or contradicted."""
+        return self.family == "nli"
+
+    @property
     def metadata(self) -> dict[str, Any]:
         return {
             "runtime": "transformers",
+            "supports_statements": self.supports_statements,
             "family": self.family,
             "template": self.template,
             "max_length": self.max_length,
@@ -156,6 +166,8 @@ class TransformersBackend:
                     if "entailment" not in labels:
                         raise BackendError("NLI checkpoint has no explicit entailment label.")
                     self._entailment_index = labels["entailment"]
+                    self._neutral_index = labels.get("neutral")
+                    self._contradiction_index = labels.get("contradiction")
                 elif model.config.num_labels != 1:
                     raise BackendError("Reward/reranker checkpoint must have one output logit.")
                 if self.family == "reward" and not tokenizer.chat_template:
@@ -212,16 +224,27 @@ class TransformersBackend:
         )
 
     def _fit_candidate(self, state: str, question: str, choice: str) -> tuple[str, str | None]:
+        return self._fit(
+            state, lambda s: self._serialize(s, question, choice), what="Question and choice"
+        )
+
+    def _fit_statement(self, state: str, statement: str) -> tuple[str, str | None]:
+        # A statement is the hypothesis itself; no template wraps it.
+        return self._fit(state, lambda s: (s, statement), what="Statement")
+
+    def _fit(
+        self, state: str, build: Callable[[str], tuple[str, str | None]], *, what: str
+    ) -> tuple[str, str | None]:
         """Truncate only state, reserving at least 32 state tokens where possible."""
-        pair = self._serialize(state, question, choice)
+        pair = build(state)
         if self._token_length(pair) <= self.max_length:
             return pair
         state_ids = self._tokenizer.encode(state, add_special_tokens=False)
-        required = self._token_length(self._serialize("", question, choice))
+        required = self._token_length(build(""))
         minimum_state = min(32, len(state_ids))
         if required + minimum_state > self.max_length:
             raise BackendError(
-                "Question and choice are too long for max_length while preserving state. "
+                f"{what} are too long for max_length while preserving state. "
                 "Shorten them or raise max_length within the model's context limit."
             )
         budget = min(len(state_ids), self.max_length - required)
@@ -229,7 +252,7 @@ class TransformersBackend:
             shortened = self._tokenizer.decode(
                 state_ids[:budget], skip_special_tokens=False, clean_up_tokenization_spaces=False
             )
-            pair = self._serialize(shortened, question, choice)
+            pair = build(shortened)
             length = self._token_length(pair)
             if length <= self.max_length:
                 self._truncated_candidates += 1
@@ -247,7 +270,10 @@ class TransformersBackend:
             0
         ]
 
-    def _infer_chunk(self, chunk: list[tuple[str, str | None]]) -> list[float]:
+    def _infer_chunk(
+        self, chunk: list[tuple[str, str | None]], columns: list[int]
+    ) -> list[list[float]]:
+        """Return the selected logit columns, one row per input pair."""
         encoded = self._tokenizer(
             [p[0] for p in chunk],
             text_pair=None if self.family == "reward" else [p[1] for p in chunk],
@@ -258,8 +284,36 @@ class TransformersBackend:
         ).to(self.device)
         with self._torch.inference_mode():
             logits = self._model(**encoded).logits
-            values = logits[:, self._entailment_index] if self.family == "nli" else logits[:, 0]
-            return values.detach().float().cpu().tolist()
+            series = [logits[:, column].detach().float().cpu().tolist() for column in columns]
+        return [list(row) for row in zip(*series)]
+
+    def _infer(
+        self, pairs: list[tuple[str, str | None]], columns: list[int], preserved: str
+    ) -> list[list[float]]:
+        """Microbatch all pairs under the lock; fail closed on any non-finite output."""
+        try:
+            if self._truncated_candidates:
+                warnings.warn(
+                    f"State truncated for {self._truncated_candidates} candidates; "
+                    f"{preserved} preserved. See result metadata.",
+                    UserWarning,
+                    stacklevel=3,
+                )
+            rows: list[list[float]] = []
+            for offset in range(0, len(pairs), self.batch_size):
+                rows.extend(self._infer_chunk(pairs[offset : offset + self.batch_size], columns))
+            if len(rows) != len(pairs) or not all(
+                math.isfinite(value) for row in rows for value in row
+            ):
+                raise BackendError("Backend returned missing or non-finite candidate scores.")
+            return rows
+        except BackendError:
+            raise
+        except Exception as exc:
+            raise BackendError(
+                f"{self.name} inference failed on {self.device}: {type(exc).__name__}. "
+                "Try device='cpu', a smaller batch_size, or a shorter max_length."
+            ) from exc
 
     def score_batch(self, requests: list[DecisionRequest]) -> list[list[float]]:
         if not requests:
@@ -267,32 +321,13 @@ class TransformersBackend:
         with self._lock:
             self.load()
             self._truncated_candidates = 0
-            try:
-                pairs = [
-                    self._fit_candidate(request.state, request.question, choice)
-                    for request in requests
-                    for choice in request.choices
-                ]
-                if self._truncated_candidates:
-                    warnings.warn(
-                        f"State truncated for {self._truncated_candidates} candidates; "
-                        "question and choices preserved. See result metadata.",
-                        UserWarning,
-                        stacklevel=2,
-                    )
-                scores: list[float] = []
-                for offset in range(0, len(pairs), self.batch_size):
-                    chunk = pairs[offset : offset + self.batch_size]
-                    scores.extend(self._infer_chunk(chunk))
-                if len(scores) != len(pairs) or not all(math.isfinite(s) for s in scores):
-                    raise BackendError("Backend returned missing or non-finite candidate scores.")
-            except BackendError:
-                raise
-            except Exception as exc:
-                raise BackendError(
-                    f"{self.name} inference failed on {self.device}: {type(exc).__name__}. "
-                    "Try device='cpu', a smaller batch_size, or a shorter max_length."
-                ) from exc
+            pairs = [
+                self._fit_candidate(request.state, request.question, choice)
+                for request in requests
+                for choice in request.choices
+            ]
+            column = self._entailment_index if self.family == "nli" else 0
+            scores = [row[0] for row in self._infer(pairs, [column], "question and choices")]
             grouped: list[list[float]] = []
             offset = 0
             for request in requests:
@@ -300,3 +335,22 @@ class TransformersBackend:
                 grouped.append(scores[offset : offset + count])
                 offset += count
             return grouped
+
+    def score_statements(self, requests: list[StatementRequest]) -> list[list[float]]:
+        """Return [entailment, neutral, contradiction] logits per statement."""
+        if not requests:
+            return []
+        with self._lock:
+            self.load()
+            if not self.supports_statements or None in (
+                self._neutral_index,
+                self._contradiction_index,
+            ):
+                raise BackendError(
+                    f"{self.name} cannot score statements: this requires an NLI checkpoint "
+                    "with entailment, neutral, and contradiction labels."
+                )
+            self._truncated_candidates = 0
+            pairs = [self._fit_statement(r.state, r.statement) for r in requests]
+            columns = [self._entailment_index, self._neutral_index, self._contradiction_index]
+            return self._infer(pairs, columns, "statements")
