@@ -49,6 +49,13 @@ the yes probability even when abstained; their `value` then becomes null. Multi-
 questions receive independent binary distributions. A ranking is still returned
 when its top-choice decision abstains.
 
+A rubric `score` is a decision over its level descriptions. Its `decision`
+carries the same normalized and calibrated distributions, `confidence`, and
+abstention behaviour as any choice; `score` re-keys that distribution by level
+index and reports its expectation. Calibrating the underlying choice therefore
+calibrates the level distribution, but not the numeric magnitude of `score`,
+which depends on how the rubric was written.
+
 With statement scoring (`method: "statement"`), a boolean's yes/no distribution
 is the softmax of the entailment and contradiction logits, so calibration and
 the two thresholds above apply to it unchanged. `unsupported` is the neutral

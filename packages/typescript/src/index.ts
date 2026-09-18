@@ -45,6 +45,29 @@ export interface BooleanResult {
   decision: DecisionResult;
 }
 
+/** Rate the state on ordered rubric levels, lowest first. */
+export interface ScoreRequest {
+  state: string;
+  question: string;
+  levels: string[];
+  abstain_threshold?: number | null;
+  margin_threshold?: number | null;
+  include_raw_scores?: boolean;
+}
+
+export interface ScoreResult {
+  /** Probability-weighted level index; may fall between two levels. */
+  score: number;
+  /** Most probable level index, or null when abstained. */
+  level: number | null;
+  /** Keyed by level index as a string, in rubric order. */
+  probabilities: Record<string, number>;
+  legend: Record<string, string>;
+  confidence: number;
+  abstained: boolean;
+  decision: DecisionResult;
+}
+
 export interface RankedChoice {
   choice: string;
   probability: number;
@@ -177,6 +200,9 @@ export class OpenDecision {
   }
   boolean(request: BooleanRequest): Promise<BooleanResult> {
     return this.request("/v1/boolean", request);
+  }
+  score(request: ScoreRequest): Promise<ScoreResult> {
+    return this.request("/v1/score", request);
   }
   multiLabel(request: MultiLabelRequest): Promise<Record<string, BooleanResult>> {
     return this.request("/v1/multi-label", request);

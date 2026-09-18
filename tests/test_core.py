@@ -174,6 +174,42 @@ def test_invalid_statement_logits_fail_closed(logits):
         DecisionModel(backend=StatementBackend(logits)).boolean(state="s", question="c")
 
 
+def test_score_is_expected_level_index_with_legend():
+    model = DecisionModel(backend=FixedBackend([0.0, 2.0, 0.0]))
+    result = model.score(
+        state="s",
+        question="How severe?",
+        levels=["none", "minor", "major"],
+        include_raw_scores=True,
+    )
+    probabilities = softmax([0.0, 2.0, 0.0])
+    assert result.level == 1
+    assert result.legend == {"0": "none", "1": "minor", "2": "major"}
+    assert list(result.probabilities) == ["0", "1", "2"]
+    assert result.probabilities["1"] == pytest.approx(probabilities[1])
+    # Symmetric mass around the middle level leaves the score exactly on it.
+    assert result.score == pytest.approx(1.0)
+    assert result.confidence == result.decision.confidence
+    assert result.decision.raw_scores == {"none": 0.0, "minor": 2.0, "major": 0.0}
+    skewed = DecisionModel(backend=FixedBackend([0.0, 0.0, 3.0])).score(
+        state="s", question="q", levels=["low", "mid", "high"]
+    )
+    assert skewed.level == 2
+    assert 1.5 < skewed.score < 2
+    assert skewed.score == pytest.approx(sum(i * p for i, p in enumerate(softmax([0.0, 0.0, 3.0]))))
+
+
+def test_score_abstains_and_validates_levels():
+    model = DecisionModel(backend=FixedBackend([1.0, 1.0]))
+    result = model.score(state="s", question="q", levels=["a", "b"], margin_threshold=0.1)
+    assert result.abstained and result.level is None
+    assert result.score == pytest.approx(0.5)
+    for levels in (["only"], ["a", "a"], ["a", " "], [str(i) for i in range(11)]):
+        with pytest.raises(ValidationError):
+            model.score(state="s", question="q", levels=levels)
+    assert model.score_batch([]) == []
+
+
 def test_many_questions_and_batch_size_errors():
     model = DecisionModel(backend=FixedBackend())
     result = model.decide_many(

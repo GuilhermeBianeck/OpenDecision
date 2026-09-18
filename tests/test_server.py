@@ -103,6 +103,22 @@ def test_unsupported_threshold_is_rejected_without_statement_scoring(client):
     assert plain["method"] == "binary_choice" and plain["unsupported"] is None
 
 
+def test_score_contract(client):
+    payload = {
+        "state": "Billing needs billing support urgently.",
+        "question": "How urgent is this?",
+        "levels": ["not urgent", "somewhat urgent", "billing urgent"],
+    }
+    body = client.post("/v1/score", json=payload).json()
+    assert body["legend"] == {"0": "not urgent", "1": "somewhat urgent", "2": "billing urgent"}
+    assert sum(body["probabilities"].values()) == pytest.approx(1)
+    assert body["level"] == 2
+    assert 0 <= body["score"] <= 2
+    assert body["decision"]["choice"] == "billing urgent"
+    assert client.post("/v1/score", json={**payload, "levels": ["one"]}).status_code == 422
+    assert "/v1/score" in client.get("/openapi.json").json()["paths"]
+
+
 def test_threshold_abstention(client):
     result = client.post("/v1/decide", json={**REQUEST, "abstain_threshold": 1}).json()
     assert result["abstained"] is True

@@ -8,6 +8,8 @@ from .schemas import (
     DecisionResult,
     RankedChoice,
     RankingResult,
+    ScoreRequest,
+    ScoreResult,
     StatementRequest,
 )
 
@@ -19,6 +21,8 @@ __all__ = [
     "BooleanResult",
     "RankedChoice",
     "RankingResult",
+    "ScoreRequest",
+    "ScoreResult",
     "StatementRequest",
     "CalibrationProfile",
     "fit_temperature",

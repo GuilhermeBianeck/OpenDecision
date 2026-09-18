@@ -34,7 +34,9 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--template", default="default", choices=("default", "short"))
 
 
-def _request_options(parser: argparse.ArgumentParser, *, choices: bool = True) -> None:
+def _request_options(
+    parser: argparse.ArgumentParser, *, candidates: str | None = "choices"
+) -> None:
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument(
         "--state", help="Context text (use --state-file for large or private input)"
@@ -43,8 +45,14 @@ def _request_options(parser: argparse.ArgumentParser, *, choices: bool = True) -
         "--state-file", type=Path, help="UTF-8 context file; '-' reads standard input"
     )
     parser.add_argument("--question", required=True)
-    if choices:
+    choices = candidates is not None
+    if candidates == "choices":
         parser.add_argument("--choices", nargs="+", required=True)
+    elif candidates == "levels":
+        parser.add_argument(
+            "--levels", nargs="+", required=True, help="Rubric levels from lowest to highest"
+        )
+    if choices:
         parser.add_argument("--raw-scores", action="store_true")
     parser.add_argument("--abstain-threshold", type=float, help="Minimum top probability")
     parser.add_argument("--margin-threshold", type=float, help="Minimum top-two probability margin")
@@ -68,10 +76,13 @@ def build_parser() -> argparse.ArgumentParser:
     pull.add_argument("name", nargs="?", default="base")
     pull.add_argument("--device", default="cpu", choices=("cpu", "mps", "cuda", "auto"))
     commands.add_parser("doctor", help="Inspect local hardware and optional runtimes")
-    for name in ("decide", "rank", "boolean"):
+    for name in ("decide", "rank", "boolean", "score"):
         command = commands.add_parser(name, help=f"Run local {name} inference")
         _model_options(command)
-        _request_options(command, choices=name != "boolean")
+        _request_options(
+            command,
+            candidates=None if name == "boolean" else "levels" if name == "score" else "choices",
+        )
     serve = commands.add_parser("serve", help="Start the local HTTP server")
     _model_options(serve)
     serve.add_argument("--host", default="127.0.0.1")
@@ -268,7 +279,7 @@ def run(args: argparse.Namespace) -> Any:
         return pull_model(args.name, device=args.device)
     if args.command == "doctor":
         return doctor()
-    if args.command in {"decide", "rank", "boolean"}:
+    if args.command in {"decide", "rank", "boolean", "score"}:
         engine = _load_model(args)
         request: dict[str, Any] = {
             "state": _state(args),
@@ -278,6 +289,8 @@ def run(args: argparse.Namespace) -> Any:
         }
         if args.command == "boolean":
             request["unsupported_threshold"] = args.unsupported_threshold
+        elif args.command == "score":
+            request.update(levels=args.levels, include_raw_scores=args.raw_scores)
         else:
             request.update(choices=args.choices, include_raw_scores=args.raw_scores)
         return getattr(engine, "choose" if args.command == "decide" else args.command)(**request)

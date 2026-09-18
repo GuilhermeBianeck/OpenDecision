@@ -15,7 +15,14 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from opendecision import DecisionModel
 from opendecision.errors import OpenDecisionError
 from opendecision.registry import list_models
-from opendecision.schemas import BooleanResult, DecisionRequest, DecisionResult, RankingResult
+from opendecision.schemas import (
+    BooleanResult,
+    DecisionRequest,
+    DecisionResult,
+    RankingResult,
+    ScoreRequest,
+    ScoreResult,
+)
 
 MAX_BODY_BYTES = 1_048_576
 MAX_BATCH_SIZE = 64
@@ -215,6 +222,11 @@ def create_app(
     def rank(request: DecisionRequest) -> RankingResult:
         with inference_slot() as engine:
             return engine.rank(**request.model_dump())
+
+    @app.post("/v1/score", response_model=ScoreResult)
+    def score(request: ScoreRequest) -> ScoreResult:
+        with inference_slot() as engine:
+            return engine.score(**request.model_dump())
 
     @app.post("/v1/boolean", response_model=BooleanResult)
     def boolean(request: BooleanRequest) -> BooleanResult:

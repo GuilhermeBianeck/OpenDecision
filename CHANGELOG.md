@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `score` rates the state on an ordered rubric of 2–10 described levels and
+  returns the most probable level, the distribution, a legend, and the
+  probability-weighted level index (Python, HTTP `/v1/score`, CLI, TypeScript).
 - Booleans and multi-label questions are scored as statements on NLI backends:
   yes/no is entailment against contradiction, `unsupported` reports the neutral
   share, and `unsupported_threshold` abstains on it. Other backends keep the

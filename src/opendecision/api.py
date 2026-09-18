@@ -17,6 +17,8 @@ from .schemas import (
     DecisionResult,
     RankedChoice,
     RankingResult,
+    ScoreRequest,
+    ScoreResult,
     StatementRequest,
 )
 
@@ -343,6 +345,62 @@ class DecisionModel:
             )
         ]
         return RankingResult(ranking=ranking, decision=result)
+
+    def score(
+        self,
+        *,
+        state: str,
+        question: str,
+        levels: list[str],
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+        include_raw_scores: bool = False,
+    ) -> ScoreResult:
+        """Rate the state on ordered levels; the score is the expected level index."""
+        request = ScoreRequest(
+            state=state,
+            question=question,
+            levels=levels,
+            abstain_threshold=abstain_threshold,
+            margin_threshold=margin_threshold,
+            include_raw_scores=include_raw_scores,
+        )
+        return self.score_batch([request])[0]
+
+    def score_batch(self, requests: list[ScoreRequest]) -> list[ScoreResult]:
+        """Score rubric requests as candidate decisions over their level descriptions."""
+        validated = [ScoreRequest.model_validate(request) for request in requests]
+        decisions = self.choose_batch(
+            [
+                DecisionRequest(
+                    state=request.state,
+                    question=request.question,
+                    choices=request.levels,
+                    abstain_threshold=request.abstain_threshold,
+                    margin_threshold=request.margin_threshold,
+                    include_raw_scores=request.include_raw_scores,
+                )
+                for request in validated
+            ]
+        )
+        return [
+            self._score_result(request, decision) for request, decision in zip(validated, decisions)
+        ]
+
+    @staticmethod
+    def _score_result(request: ScoreRequest, decision: DecisionResult) -> ScoreResult:
+        probabilities = {
+            str(index): decision.probabilities[level] for index, level in enumerate(request.levels)
+        }
+        return ScoreResult(
+            score=math.fsum(index * p for index, p in enumerate(probabilities.values())),
+            level=None if decision.abstained else request.levels.index(decision.choice),
+            probabilities=probabilities,
+            legend={str(index): level for index, level in enumerate(request.levels)},
+            confidence=decision.confidence,
+            abstained=decision.abstained,
+            decision=decision,
+        )
 
     def multi_label(
         self,
