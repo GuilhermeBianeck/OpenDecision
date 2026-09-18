@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Committed a five-backend report matrix on the expanded corpus test split
+  (`benchmarks/reports/*-mps-test.json`) and `scripts/compare_reports.py`, which
+  renders reports side by side into `benchmarks/reports/README.md`.
 - Benchmark corpus expanded from 232 to 538 seeds (2,320 to 6,578 rows): templated
   verification statements over authored records, negation pairs, embedded and
   authority-styled injections, twelve-option routing, six ordinal rubrics, and
