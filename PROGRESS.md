@@ -77,10 +77,17 @@ What the families show, with the number of test rows in each slice:
   0.699 overall and 0.917 on unperturbed states, against 0.429 / 0.667 for `base`
   and 0.250 / 0.333 for `tiny`. The cross-encoders also pay one forward pass per
   option here; the decoder pays one.
-- **Negation is near chance for every cross-encoder** (n = 234 rows, 18 seeds):
-  on unperturbed rule-plus-fact states `tiny` and `base` score 0.500 on a two-way
-  choice, `smart` 0.667, `decoder` 0.611. The NLI models choose the same option
-  whether the fact is affirmed or negated.
+- **Negation costs roughly half the answers, asymmetrically** (n = 234 test rows,
+  18 seeds; the polarity breakdown below uses all 60 unperturbed rows in the 10
+  scenarios, across every split). On the test split `tiny` and `base` score 0.500
+  on these two-way choices, `smart` 0.667 and `decoder` 0.611. Splitting `base`
+  by polarity shows where it goes: **0.967 when the fact affirms the rule's
+  condition and 0.533 when it negates it.** It is strongly scenario-dependent —
+  3 of the 10 scenarios handle negation perfectly and 2 fail completely — so read
+  the earlier "near chance" summary as describing the negated half, not negation
+  as a category. The failing pattern is consistent: the model picks the option
+  whose word appears in the rule clause ("Releases **proceed** only after the
+  smoke tests pass") regardless of whether the fact satisfies it.
 - **Embedded instructions steer every backend** (n = 52 rows, 4 seeds): `base`
   and `multilingual` follow the injected instruction on every row (0.000), `tiny`
   0.058, `smart` 0.077, `decoder` 0.269. The `authority_injection` variant, which
@@ -161,6 +168,29 @@ visible instead of hidden inside a pooled table, and
 `base` also improved on validation and regressed on test (ECE 0.149 → 0.184),
 which the differing candidate-count mixes across splits explain.
 
+### Two fixes, measured
+
+Neither failure above needs a new checkpoint. Both are fixed by asking the model
+a question it is good at and composing the result in code; see
+[docs/patterns.md](docs/patterns.md).
+
+**Decomposing a conditional rule recovers the negated half.** Asking the atomic
+factual question through the statement path and mapping the answer in code takes
+`base` from 0.533 to **0.933** on negated facts, while affirmed stays at 0.967
+(n = 60 rows, 10 scenarios). The statement path is the same mode that scores
+0.966 on the verification family, so this plays to the measured strength rather
+than working around it.
+
+**Screening the state detects planted instructions.** No serialization change
+fixed injection: quoting the state, the short hypothesis template, and scoring
+entailment against contradiction were all measured, and the best of them still
+left three quarters of injections successful. Screening the state with a separate
+statement before deciding does work. With `base` at the default 0.2 threshold it
+flags **97.5 %** of bracketed system-style injections and 54 % of injections
+written as ordinary prose, against **0.8 %** of clean states (n = 40 / 24 / 120).
+`opendecision.guards.screen` ships this. Prose-style injections remain the weak
+point, and a detector is not a security boundary.
+
 ## Remaining work
 
 - Fit profiles per task family, not only per candidate count: the split-to-split
@@ -172,10 +202,11 @@ which the differing candidate-count mixes across splits explain.
   two disagree for `multilingual`.
 - Extend calibration to the statement and rubric paths, which are scored through
   different code and are currently excluded from fitting.
-- Address negation and instruction steering, which every current backend fails:
-  candidate serialization that does not lexically restate the option, a small
-  fine-tune on the training split with held-out groups, or an instruction-free
-  prompt for the decoder are the obvious experiments.
+- Raise prose-injection recall, the weak half of screening; the serialization
+  experiments are exhausted, so the next candidates are a fine-tune on the
+  training split with held-out groups, or an ensemble of screening statements.
+- Measure whether routing every two-way choice through the statement path
+  automatically is a safe default, rather than a documented pattern.
 - Measure `permutations` for the decoder and the `short` template for the
   cross-encoders on the validation split before changing defaults.
 - Collect independently adjudicated, consented deployment data and calibrate per
