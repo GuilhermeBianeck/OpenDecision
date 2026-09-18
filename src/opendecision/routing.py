@@ -21,27 +21,42 @@ from opendecision.errors import BackendError
 
 @dataclass(frozen=True)
 class TaskProfile:
-    """A task shape, the backend measured best for it, and why."""
+    """A task shape, the backend measured best for it, and why.
+
+    ``portable`` is the best backend that runs anywhere. It differs from
+    ``backend`` when the strongest option needs MLX, which is Apple silicon only.
+    """
 
     task: str
     backend: str
     summary: str
     evidence: str
     runners_up: tuple[str, ...] = ()
+    portable: str | None = None
+
+    @property
+    def portable_backend(self) -> str:
+        """The recommendation for a machine without MLX."""
+        return self.portable or self.backend
 
     def describe(self) -> str:
         alternatives = f" Runners-up: {', '.join(self.runners_up)}." if self.runners_up else ""
-        return f"{self.task}: use '{self.backend}'. {self.summary} {self.evidence}{alternatives}"
+        elsewhere = f" Off Apple silicon use '{self.portable}'." if self.portable else ""
+        return (
+            f"{self.task}: use '{self.backend}'. {self.summary} "
+            f"{self.evidence}{alternatives}{elsewhere}"
+        )
 
 
 TASKS: dict[str, TaskProfile] = {
     "verification": TaskProfile(
         task="verification",
-        backend="base",
+        backend="qwen35",
         summary="Deciding whether a statement is supported by the state.",
-        evidence="Verification family: base 0.963, tiny 0.932, smart 0.812, decoder 0.696, "
-        "multilingual 0.446.",
-        runners_up=("tiny",),
+        evidence="Verification family: qwen35 0.989, qwen35_4b 0.983, base 0.963, tiny 0.932, "
+        "smart 0.812, decoder 0.696, lfm25 0.594, multilingual 0.446.",
+        runners_up=("qwen35_4b", "base"),
+        portable="base",
     ),
     "relevance": TaskProfile(
         task="relevance",
@@ -49,34 +64,39 @@ TASKS: dict[str, TaskProfile] = {
         summary="Picking which candidate best matches the state, by topic rather than by "
         "anything stated outright.",
         evidence="Matching 20 headlines to the right one of 15 brands: multilingual 0.85 "
-        "top-one against 0.25 for base scoring the same choice, and 0.15 for base scoring "
-        "each brand as its own rubric.",
-        runners_up=("decoder",),
+        "top-one, qwen35 0.80, base 0.25 scoring the same choice, base 0.15 scoring each "
+        "brand as its own rubric. Reranking is what this checkpoint was trained for.",
+        runners_up=("qwen35",),
     ),
     "ranking": TaskProfile(
         task="ranking",
         backend="multilingual",
         summary="Ordering every candidate, not just choosing one.",
-        evidence="Ranking family NDCG: multilingual 0.983, decoder 0.982, tiny 0.940, "
-        "smart 0.926, base 0.867.",
-        runners_up=("decoder",),
+        evidence="Ranking family NDCG: qwen35 0.984, multilingual 0.983, decoder 0.982, "
+        "lfm25 0.952, qwen35_4b 0.942, tiny 0.940, smart 0.926, base 0.867. The top three "
+        "are inside the noise of 52 rows; multilingual is the smallest of them.",
+        runners_up=("qwen35", "decoder"),
     ),
     "rubric": TaskProfile(
         task="rubric",
-        backend="smart",
+        backend="qwen35_4b",
         summary="Rating the state on ordered levels.",
-        evidence="Ordinal family exact level: smart 0.611, decoder 0.509, base 0.421, "
-        "multilingual 0.370, tiny 0.361.",
-        runners_up=("decoder",),
+        evidence="Ordinal family exact level: qwen35_4b 0.769, smart 0.611, decoder 0.509, "
+        "lfm25 0.509, qwen35 0.481, base 0.421, multilingual 0.370, tiny 0.361.",
+        runners_up=("smart",),
+        portable="smart",
     ),
     "policy": TaskProfile(
         task="policy",
-        backend="base",
+        backend="qwen35",
         summary="Applying a rule stated in the state to the facts also stated there.",
-        evidence="Agent-control family: base 0.750, multilingual 0.679, tiny 0.635, "
-        "smart 0.628, decoder 0.487. Decompose the rule into its condition first; that "
-        "moves negated facts from 0.533 to 0.933 (docs/patterns.md).",
-        runners_up=("multilingual",),
+        evidence="Agent-control family: qwen35 0.814, qwen35_4b 0.801, base 0.750, "
+        "multilingual 0.679, tiny 0.635, smart 0.628, decoder 0.487; lfm25 scores 0.840 "
+        "here but 0.596 overall with the worst calibration of any backend. On negated "
+        "facts qwen35_4b answers every unperturbed scenario correctly against 0.500 for "
+        "base, so decomposition (docs/patterns.md) matters less than it did.",
+        runners_up=("qwen35_4b", "base"),
+        portable="base",
     ),
     "stated_facts": TaskProfile(
         task="stated_facts",
@@ -93,26 +113,29 @@ TASKS: dict[str, TaskProfile] = {
         backend="decoder",
         summary="Many candidates for one question, where a cross-encoder would pay a "
         "forward pass each.",
-        evidence="Twelve-option routing on unperturbed states: decoder 0.917, multilingual "
-        "0.750, base 0.583, tiny 0.333. The decoder caps at 26 options; use "
-        "DecisionModel.choose_wide beyond that.",
-        runners_up=("multilingual",),
+        evidence="Twelve-option routing on unperturbed states: decoder 0.917, qwen35 0.917, "
+        "qwen35_4b 0.833, multilingual 0.750, base 0.583, lfm25 0.417, tiny 0.333. Both "
+        "decoders cap at 26 options; use DecisionModel.choose_wide beyond that.",
+        runners_up=("qwen35",),
     ),
     "many_questions": TaskProfile(
         task="many_questions",
         backend="decoder",
         summary="Several questions about one state, where the state should be read once.",
-        evidence="Thirteen boolean questions over a 1,500-token state: decoder 2.8 s, "
-        "base 41 s. The decoder keeps one KV-cache prefix per distinct state.",
+        evidence="Thirteen boolean questions over a 1,500-token state: decoder 0.88 s, "
+        "qwen35 1.02 s, base 4.18 s. Both decoders reuse an encoded prefix; the "
+        "cross-encoders re-read the state for every candidate.",
+        runners_up=("qwen35",),
     ),
     "classification": TaskProfile(
         task="classification",
-        backend="decoder",
+        backend="qwen35",
         summary="General labelling of a state into categories.",
-        evidence="Objective family: decoder 0.618, multilingual 0.582, base 0.569, "
-        "smart 0.538, tiny 0.346. Pooled across all objective families base leads at "
-        "0.675, so measure both on your own labels.",
-        runners_up=("multilingual", "base"),
+        evidence="Objective family: qwen35_4b 0.854, qwen35 0.813, decoder 0.618, "
+        "multilingual 0.582, base 0.569, smart 0.538, lfm25 0.462, tiny 0.346. Pooled over "
+        "every objective family the order holds: qwen35_4b 0.853, qwen35 0.799, base 0.675.",
+        runners_up=("qwen35_4b", "base"),
+        portable="base",
     ),
 }
 

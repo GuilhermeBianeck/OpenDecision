@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Measured the MLX candidates on the committed test split and made the evidence
+  part of the repository. `qwen35` reaches 0.799 pooled objective accuracy and
+  0.084 ECE against 0.675 and 0.102 for the previous best, and `qwen35_4b`
+  reaches 0.853 with 0.769 exact-level rubric scoring. `auto` selects `qwen35`
+  on Apple silicon and resolves identically for loading and pulling. The routing
+  table records the new measurements and names a portable alternative wherever
+  it recommends an MLX backend.
 - Added `opendecision.routing`, a measured table of which backend suits which
   question shape, reachable as `DecisionModel(task=...)`, `opendecision tasks`
   and `--task`. Added `choose_wide`, which scores candidate sets larger than a
