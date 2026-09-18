@@ -18,7 +18,7 @@ does not turn a proposal into an unsupported performance claim.
 | Local HTTP server | Implemented | FastAPI on loopback, resident load, bounded body/batch/concurrency |
 | TypeScript SDK | Implemented | Dependency-free fetch client with typed errors and contract tests |
 | Benchmark data and metrics | Implemented | 2,320 correlated synthetic rows; objective, control, ranking, ambiguity, subjective, trolley |
-| External Jev/Gemini adapters | Optional | Explicit credentials and command required; no live comparison included |
+| Generative LLM baseline adapter | Optional | Explicit credentials and command required; no live comparison included |
 | Quantization / ONNX | Experimental | Tiny-only manifest-bound CPU artifact; `scripts/export_onnx.py` is explicit and separately verified |
 | CoreML / MPS optimization matrix | Planned | Hardware-specific measurement needs dedicated runs |
 | Fine-tuning and distillation | Planned | Baseline first; scripts must preserve split isolation |
@@ -28,7 +28,7 @@ does not turn a proposal into an unsupported performance claim.
 The model adapters score candidates using different objectives. An adapter
 existing is not evidence that every arbitrary decision is accurate. The project
 requires real deployment data and independent evaluation before claiming that
-OpenDecision is “better than Jev.”
+OpenDecision is better than any other decision system.
 
 ## Acceptance checks
 

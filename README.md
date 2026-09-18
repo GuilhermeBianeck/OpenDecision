@@ -12,8 +12,9 @@ candidates with open-weight classifiers, reward models, and rerankers, without
 generating an answer token by token. Inference runs locally, without an API key.
 
 This repository is named **OpenDecision**; the Python package is **opendecision**.
-The alpha establishes a measurable local alternative for decision workloads.
-It does **not** establish that these models outperform Jev or a frontier LLM.
+The alpha establishes a measurable local runtime for decision workloads.
+It does **not** establish that these models outperform hosted decision services
+or frontier LLMs; every quality claim must come from a committed benchmark report.
 
 ## Start locally
 
@@ -64,7 +65,7 @@ fixture, not an AI quality baseline.**
 | Local resident model server | FastAPI on `127.0.0.1:8042` |
 | Temperature calibration and abstention | Separate profiles; probability and margin thresholds |
 | Reproducible evaluation | JSON + Markdown reports; grouped synthetic splits |
-| Optional external comparison | Explicit Jev / Gemini invocation only |
+| Optional generative LLM baseline | Explicit invocation with your own credentials |
 | Python and TypeScript clients | In-process Python; HTTP TypeScript |
 
 See [progress and measured evidence](PROGRESS.md), [the assessment](docs/project-assessment.md),
@@ -141,7 +142,7 @@ pytest
 Synthetic benchmark cases are transparent regression fixtures, not independent
 human judgments. Moral cases have no universal accuracy label. External provider
 comparisons require an explicit command and credentials; local use does not.
-No Jev comparison has been measured unless a report explicitly records it.
+No comparison against a remote service has been measured unless a report records it.
 
 The main limitations are task transfer, calibration shift, finite context,
 linear work per candidate, and potentially high confidence on wrong answers.

@@ -13,6 +13,6 @@
   },
   "engines": {"node": ">=20"},
   "license": "MIT",
-  "repository": {"type": "git", "url": "https://github.com/GuilhermeBianeck/DecisionMachine.git", "directory": "packages/typescript"},
+  "repository": {"type": "git", "url": "https://github.com/GuilhermeBianeck/OpenDecision.git", "directory": "packages/typescript"},
   "devDependencies": {"typescript": "~5.9.3"}
 }

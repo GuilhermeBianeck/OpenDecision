@@ -82,53 +82,11 @@ def test_demo_infrastructure_report_and_raw_scores(tmp_path):
 
 
 def test_missing_credentials_skip(monkeypatch):
-    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    for provider in ("jev", "gemini"):
-        with pytest.raises(ExternalUnavailable, match="not set"):
-            create_external_model(provider)
-
-
-def test_jev_documented_request_and_response(monkeypatch):
-    monkeypatch.setenv("TYPESAFE_API_KEY", "test-placeholder")
-
-    def handle(request):
-        assert str(request.url) == "https://api.typesafe.ai/v1/systemone"
-        body = json.loads(request.content)
-        assert body["state"] == "A billing problem"
-        assert body["questions"]["decision"] == {
-            "type": "choice",
-            "instructions": "Which team?",
-            "criteria": {"billing": None, "technical": None},
-        }
-        return httpx.Response(
-            200,
-            json={
-                "model": "jev-fixture",
-                "answers": {
-                    "decision": {
-                        "type": "choice",
-                        "choice": "billing",
-                        "probabilities": {"billing": 0.8, "technical": 0.2},
-                        "confidence": 0.7,
-                    }
-                },
-                "usage": {"input_tokens": 12},
-            },
-        )
-
-    model = RemoteDecisionModel("jev", transport=httpx.MockTransport(handle))
-    result = model.choose(
-        state="A billing problem",
-        question="Which team?",
-        choices=["billing", "technical"],
-        margin_threshold=0.7,
-    )
-    assert result.abstained
-    assert result.confidence == pytest.approx(0.6)
-    assert result.metadata["provider_confidence"] == 0.7
-    assert result.model == "jev-fixture"
-    model.close()
+    with pytest.raises(ExternalUnavailable, match="not set"):
+        create_external_model("gemini")
+    with pytest.raises(ValueError, match="Unsupported provider"):
+        create_external_model("unknown-provider")
 
 
 def test_gemini_discloses_self_reported_probabilities(monkeypatch):
@@ -154,14 +112,33 @@ def test_gemini_discloses_self_reported_probabilities(monkeypatch):
 
 
 def test_invalid_remote_distribution_fails_without_silent_normalization(monkeypatch):
-    monkeypatch.setenv("TYPESAFE_API_KEY", "test-placeholder")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-placeholder")
     response = {
-        "model": "jev-test",
-        "answers": {"decision": {"probabilities": {"a": 0.8, "b": 0.8}}},
+        "candidates": [{"content": {"parts": [{"text": '{"probabilities": [0.8, 0.8]}'}]}}],
+        "modelVersion": "gemini-fixture",
     }
     model = RemoteDecisionModel(
-        "jev", transport=httpx.MockTransport(lambda request: httpx.Response(200, json=response))
+        "gemini", transport=httpx.MockTransport(lambda request: httpx.Response(200, json=response))
     )
     with pytest.raises(ExternalProviderError, match="invalid"):
         model.choose(state="context", question="question", choices=["a", "b"])
+    model.close()
+
+
+def test_remote_thresholds_apply_to_self_reported_distribution(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-placeholder")
+    response = {
+        "candidates": [{"content": {"parts": [{"text": '{"probabilities": [0.8, 0.2]}'}]}}],
+        "modelVersion": "gemini-fixture",
+    }
+    model = RemoteDecisionModel(
+        "gemini", transport=httpx.MockTransport(lambda request: httpx.Response(200, json=response))
+    )
+    result = model.choose(
+        state="context", question="question", choices=["a", "b"], margin_threshold=0.7
+    )
+    assert result.abstained
+    assert result.confidence == pytest.approx(0.6)
+    assert result.model == "gemini-fixture"
+    assert result.metadata["remote_state_transmitted"] is True
     model.close()

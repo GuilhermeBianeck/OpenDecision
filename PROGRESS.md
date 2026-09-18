@@ -17,7 +17,7 @@ Updated 18 September 2026.
 - Added synthetic benchmark generation, grouped data splits, objective/control/
   ranking/subjective/ambiguous/trolley families, ECE/Brier/NLL/AUROC, selective
   metrics, robustness probes, and JSON/Markdown reports.
-- Added optional, explicitly invoked Jev and Gemini comparison adapters. No secrets
+- Added an optional, explicitly invoked generative LLM baseline adapter. No secrets
   or external credentials are committed.
 - Added CI, Docker examples, Python examples, docs, and focused tests.
 
@@ -30,7 +30,7 @@ contract tests pass. Real tiny DeBERTa and base ModernBERT cached smoke tests
 pass on CPU. The 24-case CPU validation reports were run on the reference Apple
 Silicon machine. Tiny measured 100% accuracy on this small synthetic slice with
 29.16 ms warm p50; base measured 92.86% with 63.52 ms warm p50. These are
-descriptive smoke results, not generalization or Jev comparisons.
+descriptive smoke results, not evidence of generalization.
 
 - [tiny CPU validation JSON](benchmarks/reports/tiny-cpu-validation.json)
 - [base CPU validation JSON](benchmarks/reports/base-cpu-validation.json)
@@ -38,7 +38,7 @@ descriptive smoke results, not generalization or Jev comparisons.
 The checked-in synthetic corpus contains 2,320 rows from 232 authored seeds and
 55 semantic groups. It is correlated project-authored data, not 2,320 independent
 human validations. The current report is a plumbing and baseline artifact, not a
-Jev comparison or superiority claim.
+superiority claim over any other system.
 
 ## Remaining work
 
@@ -55,8 +55,8 @@ Jev comparison or superiority claim.
 
 ## Deviations from the master specification
 
-The alpha does not claim low-double-digit latency, Jev parity, 2,000 independent
-examples, automatic safe decisions, full score/rubric parity, or that MPS is faster
+The alpha does not claim low-double-digit latency, parity with hosted decision
+services, 2,000 independent examples, automatic safe decisions, full score/rubric parity, or that MPS is faster
 than CPU. Those are explicit research targets. External APIs are optional and
 never required for local inference. Timestamps in this progress note describe
 actual work and measured runs; repository history is kept truthful.
