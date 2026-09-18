@@ -70,4 +70,6 @@ def test_demo_is_explicit_infrastructure_only_and_order_equivariant():
 def test_download_allowlist_excludes_pickle_and_code():
     assert "model.safetensors" in DOWNLOAD_PATTERNS
     assert "chat_template.jinja" in DOWNLOAD_PATTERNS
+    assert "processor_config.json" in DOWNLOAD_PATTERNS
+    assert "preprocessor_config.json" in DOWNLOAD_PATTERNS
     assert not any(pattern.endswith((".bin", ".py", ".onnx")) for pattern in DOWNLOAD_PATTERNS)

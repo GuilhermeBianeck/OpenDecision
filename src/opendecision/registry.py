@@ -11,6 +11,7 @@ from opendecision.errors import BackendError
 
 # Do not fetch pickle weights, Python modules, unrelated ONNX variants, or assets.
 DOWNLOAD_PATTERNS = [
+    ".gitattributes",
     "config.json",
     "model.safetensors",
     "model-*.safetensors",
@@ -26,6 +27,9 @@ DOWNLOAD_PATTERNS = [
     "sentencepiece.bpe.model",
     "chat_template.jinja",
     "generation_config.json",
+    "preprocessor_config.json",
+    "processor_config.json",
+    "video_preprocessor_config.json",
     "README.md",
     "LICENSE*",
     "NOTICE*",
