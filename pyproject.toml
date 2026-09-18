@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opendecision"
+version = "0.1.0a1"
+description = "Local, typed decision scoring with open-weight models and explicit uncertainty"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Guilherme", email = "guilhermebianeck@gmail.com"}]
+keywords = ["local-ai", "decision-engine", "calibration", "classification", "apple-silicon"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+dependencies = ["pydantic>=2.10,<3"]
+
+[project.optional-dependencies]
+inference = ["torch>=2.6,<3", "transformers>=4.52.3,<5", "huggingface-hub>=0.30,<1", "sentencepiece>=0.2", "safetensors>=0.5"]
+server = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1"]
+external = ["httpx>=0.28,<1"]
+onnx = ["onnxruntime>=1.20,<2", "onnx>=1.17,<2", "optimum-onnx>=0.0.3,<1"]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "httpx>=0.28,<1", "ruff>=0.11,<1", "build>=1.2,<2"]
+
+[project.scripts]
+opendecision = "opendecision.cli:main"
+
+[project.urls]
+Repository = "https://github.com/GuilhermeBianeck/DecisionMachine"
+Issues = "https://github.com/GuilhermeBianeck/DecisionMachine/issues"
+Documentation = "https://github.com/GuilhermeBianeck/DecisionMachine/tree/main/docs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opendecision"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires explicitly downloaded model weights", "slow: long-running measurement"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
