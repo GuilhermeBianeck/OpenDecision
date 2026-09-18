@@ -5,16 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from opendecision.backends.catalog import MODEL_SPECS, backend_options
 from opendecision.backends.transformers import TransformersBackend
 from opendecision.errors import BackendError
-
-if TYPE_CHECKING:
-    from opendecision.schemas import DecisionRequest
 
 
 def hash_file(path: Path) -> str:
@@ -119,6 +115,8 @@ class OnnxBackend(TransformersBackend):
                 config = json.loads((self._directory / "config.json").read_text())
                 labels = {value.lower(): int(key) for key, value in config["id2label"].items()}
                 self._entailment_index = labels["entailment"]
+                self._neutral_index = labels.get("neutral")
+                self._contradiction_index = labels.get("contradiction")
                 tokenizer = AutoTokenizer.from_pretrained(
                     str(self._directory), local_files_only=True, trust_remote_code=False
                 )
@@ -141,7 +139,10 @@ class OnnxBackend(TransformersBackend):
             self._tokenizer, self._model = tokenizer, session
             self.load_time_ms = (time.perf_counter() - started) * 1000
 
-    def _infer_chunk(self, chunk: list[tuple[str, str | None]]) -> list[float]:
+    def _infer_chunk(
+        self, chunk: list[tuple[str, str | None]], columns: list[int]
+    ) -> list[list[float]]:
+        """Run one microbatch through ONNX Runtime; the base class owns batching."""
         encoded = self._tokenizer(
             [pair[0] for pair in chunk],
             text_pair=[pair[1] for pair in chunk],
@@ -151,36 +152,5 @@ class OnnxBackend(TransformersBackend):
         )
         inputs = {name: value for name, value in encoded.items() if name in self._input_names}
         logits = self._model.run(["logits"], inputs)[0]
-        return logits[:, self._entailment_index].astype(float).tolist()
-
-    def score_batch(self, requests: list[DecisionRequest]) -> list[list[float]]:
-        """Score flattened candidate pairs through ONNX Runtime, preserving boundaries."""
-        if not requests:
-            return []
-        with self._lock:
-            self.load()
-            self._truncated_candidates = 0
-            pairs = [
-                self._fit_candidate(request.state, request.question, choice)
-                for request in requests
-                for choice in request.choices
-            ]
-            if self._truncated_candidates:
-                warnings.warn(
-                    f"State truncated for {self._truncated_candidates} candidates; "
-                    "question and choices preserved. See result metadata.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-            scores: list[float] = []
-            for offset in range(0, len(pairs), self.batch_size):
-                scores.extend(self._infer_chunk(pairs[offset : offset + self.batch_size]))
-            if len(scores) != len(pairs):
-                raise BackendError("ONNX returned the wrong number of candidate scores.")
-            grouped: list[list[float]] = []
-            offset = 0
-            for request in requests:
-                count = len(request.choices)
-                grouped.append(scores[offset : offset + count])
-                offset += count
-            return grouped
+        series = [logits[:, column].astype(float).tolist() for column in columns]
+        return [list(row) for row in zip(*series)]
