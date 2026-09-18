@@ -43,9 +43,9 @@ result = model.choose(
     abstain_threshold=0.80,
     margin_threshold=0.20,
 )
-print(result.choice)                  # None when a threshold is not met
-print(result.probabilities)           # normalized scores; calibrated if a profile is loaded
-print(result.confidence)              # top-one minus top-two probability
+print(result.choice)  # None when a threshold is not met
+print(result.probabilities)  # normalized scores; calibrated if a profile is loaded
+print(result.confidence)  # top-one minus top-two probability
 print(result.metadata["calibrated"])
 ```
 
