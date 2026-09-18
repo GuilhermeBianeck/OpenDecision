@@ -17,8 +17,38 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opendecision.metrics import classification_metrics, percentile, ranking_metrics
-from opendecision.schemas import DecisionRequest
+from opendecision.api import DecisionModel
+from opendecision.metrics import (
+    classification_metrics,
+    ordinal_metrics,
+    percentile,
+    ranking_metrics,
+)
+from opendecision.schemas import DecisionRequest, ScoreRequest, StatementRequest
+
+Family = Literal[
+    "objective",
+    "agent_control",
+    "ranking",
+    "subjective",
+    "ambiguous",
+    "verification",
+    "robustness",
+    "ordinal",
+]
+OBJECTIVE_FAMILIES = ("objective", "agent_control", "verification", "robustness")
+# Result metadata that is identical for every row of one report; kept once under runtime.
+STATIC_METADATA_KEYS = (
+    "revision",
+    "device",
+    "precision",
+    "template",
+    "max_length",
+    "calibrated",
+    "calibration",
+    "confidence_definition",
+    "latency_scope",
+)
 
 
 class BenchmarkCase(BaseModel):
@@ -26,12 +56,18 @@ class BenchmarkCase(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     id: str
-    family: Literal["objective", "agent_control", "ranking", "subjective", "ambiguous"]
+    family: Family
     group_id: str
     split: Literal["train", "calibration", "validation", "test"]
+    # ``choice`` scores ``choices``; ``boolean`` scores ``statement`` with choices
+    # fixed to yes/no; ``score`` rates ``levels`` and ``choices`` mirrors them.
+    kind: Literal["choice", "boolean", "score"] = "choice"
     state: str
     question: str
     choices: list[str]
+    statement: str | None = None
+    levels: list[str] | None = None
+    target_level: int | None = None
     target: str | None = None
     expected_abstain: bool = False
     reference_policy: str | None = None
@@ -43,6 +79,22 @@ class BenchmarkCase(BaseModel):
     @model_validator(mode="after")
     def validate_case(self) -> BenchmarkCase:
         DecisionRequest(state=self.state, question=self.question, choices=self.choices)
+        if self.kind == "boolean":
+            if self.statement is None or self.choices != ["yes", "no"]:
+                raise ValueError("boolean cases need a statement and choices ['yes', 'no']")
+            StatementRequest(state=self.state, statement=self.statement)
+        elif self.statement is not None:
+            raise ValueError("only boolean cases carry a statement")
+        if self.kind == "score":
+            if self.levels is None or self.levels != self.choices or self.target_level is None:
+                raise ValueError("score cases need levels mirrored in choices and a target_level")
+            ScoreRequest(state=self.state, question=self.question, levels=self.levels)
+            if not 0 <= self.target_level < len(self.levels):
+                raise ValueError("target_level must index a level")
+            if self.target != self.levels[self.target_level]:
+                raise ValueError("target must be the description of target_level")
+        elif self.levels is not None or self.target_level is not None:
+            raise ValueError("only score cases carry levels")
         if self.target is not None and self.target not in self.choices:
             raise ValueError("target must be a choice")
         if self.family == "subjective" and self.target is not None and not self.reference_policy:
@@ -54,12 +106,25 @@ class BenchmarkCase(BaseModel):
             raise ValueError("target_ranking must contain each choice exactly once")
         return self
 
-    def to_request(self) -> DecisionRequest:
+    def to_request(self) -> DecisionRequest | StatementRequest | ScoreRequest:
+        threshold = 0.55 if self.expected_abstain else None
+        if self.kind == "boolean":
+            return StatementRequest(
+                state=self.state, statement=self.statement, abstain_threshold=threshold
+            )
+        if self.kind == "score":
+            return ScoreRequest(
+                state=self.state,
+                question=self.question,
+                levels=self.levels,
+                abstain_threshold=threshold,
+                include_raw_scores=True,
+            )
         return DecisionRequest(
             state=self.state,
             question=self.question,
             choices=self.choices,
-            abstain_threshold=0.55 if self.expected_abstain else None,
+            abstain_threshold=threshold,
             include_raw_scores=True,
         )
 
@@ -123,6 +188,97 @@ def _distribution(result: Any, name: str = "probabilities") -> dict[str, float]:
     return dict(getattr(result, name))
 
 
+def _evaluate(model: Any, cases: list[BenchmarkCase]) -> list[Any]:
+    """Score one chunk, one batch call per kind, and return results in case order.
+
+    Models without statement or score batches (remote baselines) fall back to
+    two-way and level-wise choices with the same request thresholds.
+    """
+    results: list[Any] = [None] * len(cases)
+    by_kind: dict[str, list[int]] = defaultdict(list)
+    for index, case in enumerate(cases):
+        by_kind[case.kind].append(index)
+    for kind, indexes in by_kind.items():
+        requests = [cases[i].to_request() for i in indexes]
+        if kind == "boolean" and hasattr(model, "statement_batch"):
+            outputs = model.statement_batch(requests)
+        elif kind == "score" and hasattr(model, "score_batch"):
+            outputs = model.score_batch(requests)
+        elif kind == "choice":
+            outputs = model.choose_batch(requests)
+        else:
+            decisions = model.choose_batch(
+                [
+                    DecisionRequest(
+                        state=r.state,
+                        question=getattr(r, "statement", None) or r.question,
+                        choices=["yes", "no"] if kind == "boolean" else r.levels,
+                        abstain_threshold=r.abstain_threshold,
+                        include_raw_scores=kind == "score",
+                    )
+                    for r in requests
+                ]
+            )
+            outputs = [
+                DecisionModel._boolean_result(d)
+                if kind == "boolean"
+                else DecisionModel._score_result(r, d)
+                for r, d in zip(requests, decisions)
+            ]
+        if len(outputs) != len(indexes):
+            raise ValueError("Model returned a different result count from request count")
+        for index, output in zip(indexes, outputs):
+            results[index] = output
+    return results
+
+
+def _row(case: BenchmarkCase, result: Any) -> dict[str, Any]:
+    """Flatten any result kind onto the shared decision fields, without state text."""
+    decision = getattr(result, "decision", result)
+    row = {
+        "id": case.id,
+        "base_id": case.base_id,
+        "group_id": case.group_id,
+        "family": case.family,
+        "kind": case.kind,
+        "variant": case.variant,
+        "target": case.target,
+        "target_level": case.target_level,
+        "reference_policy": case.reference_policy,
+        "target_ranking": case.target_ranking,
+        "expected_abstain": case.expected_abstain,
+        "choice": decision.choice,
+        "probabilities": _distribution(decision),
+        "normalized_probabilities": _distribution(decision, "normalized_probabilities"),
+        "calibrated_probabilities": getattr(decision, "calibrated_probabilities", None),
+        "raw_scores": getattr(decision, "raw_scores", None),
+        "confidence": decision.confidence,
+        "top_probability": decision.top_probability,
+        "abstained": decision.abstained,
+        "reported_latency_ms": decision.latency_ms,
+        "metadata": getattr(decision, "metadata", {}),
+    }
+    metadata = dict(row.pop("metadata") or {})
+    details = metadata.pop("backend_details", None) or {}
+    # Per-row metadata keeps only what can differ between rows of one report.
+    row["metadata"] = {k: v for k, v in metadata.items() if k not in STATIC_METADATA_KEYS}
+    row["state_truncated"] = bool(
+        details.get("truncated_candidates") or details.get("truncated_states")
+    )
+    if case.kind == "boolean":
+        row.update(
+            value=result.value,
+            yes_probability=result.probability,
+            unsupported=getattr(result, "unsupported", None),
+            method=getattr(result, "method", "binary_choice"),
+        )
+    if case.kind == "score":
+        row.update(score=result.score, level=result.level, legend=result.legend)
+        # Level-indexed distribution for ordinal metrics; choice keys stay on descriptions.
+        row["level_probabilities"] = dict(result.probabilities)
+    return row
+
+
 def run_benchmark(
     model: Any,
     cases: list[BenchmarkCase],
@@ -150,10 +306,8 @@ def run_benchmark(
     for offset in range(0, len(selected), batch_size):
         chunk = selected[offset : offset + batch_size]
         chunk_start = time.perf_counter()
-        output = model.choose_batch([case.to_request() for case in chunk])
+        output = _evaluate(model, chunk)
         elapsed = (time.perf_counter() - chunk_start) * 1000
-        if len(output) != len(chunk):
-            raise ValueError("Model returned a different result count from request count")
         timings.append(elapsed)
         if offset:
             amortized.extend([elapsed / len(chunk)] * len(chunk))
@@ -161,34 +315,18 @@ def run_benchmark(
     total_s = time.perf_counter() - start
     process_s = time.process_time() - process_start
     for case, result in zip(selected, results, strict=True):
-        rows.append(
-            {
-                "id": case.id,
-                "base_id": case.base_id,
-                "group_id": case.group_id,
-                "family": case.family,
-                "variant": case.variant,
-                "target": case.target,
-                "reference_policy": case.reference_policy,
-                "target_ranking": case.target_ranking,
-                "expected_abstain": case.expected_abstain,
-                "choice": result.choice,
-                "probabilities": _distribution(result),
-                "normalized_probabilities": _distribution(result, "normalized_probabilities"),
-                "calibrated_probabilities": getattr(result, "calibrated_probabilities", None),
-                "raw_scores": getattr(result, "raw_scores", None),
-                "confidence": result.confidence,
-                "top_probability": result.top_probability,
-                "abstained": result.abstained,
-                "reported_latency_ms": result.latency_ms,
-                "metadata": getattr(result, "metadata", {}),
-            }
-        )
+        rows.append(_row(case, result))
+    first_metadata = dict(getattr(getattr(results[0], "decision", results[0]), "metadata", {}))
+    backend_details = dict(first_metadata.get("backend_details") or {})
+    for counter in ("truncated_candidates", "truncated_states"):
+        backend_details.pop(counter, None)
+    result_metadata = {k: v for k, v in first_metadata.items() if k in STATIC_METADATA_KEYS}
+    if backend_details:
+        result_metadata["backend_details"] = backend_details
     objective = [
-        row
-        for row in rows
-        if row["family"] in ("objective", "agent_control") and row["target"] is not None
+        row for row in rows if row["family"] in OBJECTIVE_FAMILIES and row["target"] is not None
     ]
+    ordinal = [row for row in rows if row["kind"] == "score" and row["target_level"] is not None]
     subjective = [row for row in rows if row["family"] == "subjective"]
     policy = [row for row in subjective if row["reference_policy"] and row["target"] is not None]
     ambiguous = [row for row in rows if row["expected_abstain"]]
@@ -206,7 +344,7 @@ def run_benchmark(
         paired_objective = [
             (a, b)
             for a, b in pairs
-            if a["family"] in ("objective", "agent_control") and a["target"] is not None
+            if a["family"] in OBJECTIVE_FAMILIES and a["target"] is not None
         ]
         robustness_report["perturbations"][variant] = {
             "pairs": len(pairs),
@@ -231,40 +369,56 @@ def run_benchmark(
             else None,
         }
     if robustness:
+        # Reversing options is only meaningful for free choices: rubric levels are
+        # ordered and boolean statements have no option order.
+        choice_cases = [case for case in selected if case.kind == "choice"]
         permuted = model.choose_batch(
             [
                 case.to_request().model_copy(update={"choices": list(reversed(case.choices))})
-                for case in selected
+                for case in choice_cases
             ]
         )
-        repeated = model.choose_batch([case.to_request() for case in selected])
-        if len(permuted) != len(rows) or len(repeated) != len(rows):
+        repeated = _evaluate(model, selected)
+        if len(permuted) != len(choice_cases) or len(repeated) != len(rows):
             raise ValueError("Robustness result count mismatch")
+        originals = [
+            result for case, result in zip(selected, results, strict=True) if case.kind == "choice"
+        ]
         robustness_report["choice_order"] = {
-            "count": len(rows),
+            "count": len(choice_cases),
             "choice_stability": mean(
-                [a.choice == b.choice for a, b in zip(results, permuted, strict=True)]
-            ),
+                [a.choice == b.choice for a, b in zip(originals, permuted, strict=True)]
+            )
+            if choice_cases
+            else None,
             "mean_total_variation": mean(
                 [
                     sum(abs(a.probabilities[c] - b.probabilities[c]) for c in a.probabilities) / 2
-                    for a, b in zip(results, permuted, strict=True)
+                    for a, b in zip(originals, permuted, strict=True)
                 ]
-            ),
+            )
+            if choice_cases
+            else None,
         }
         robustness_report["self_consistency"] = {
             "count": len(rows),
             "choice_stability": mean(
-                [a.choice == b.choice for a, b in zip(results, repeated, strict=True)]
+                [
+                    getattr(a, "decision", a).choice == getattr(b, "decision", b).choice
+                    for a, b in zip(results, repeated, strict=True)
+                ]
             ),
         }
-        for row, permuted_result in zip(rows, permuted, strict=True):
-            row["reversed_choice_order"] = {
-                "choice": permuted_result.choice,
-                "probabilities": dict(permuted_result.probabilities),
-                "confidence": permuted_result.confidence,
-                "abstained": permuted_result.abstained,
-            }
+        by_case_id = {case.id: result for case, result in zip(choice_cases, permuted)}
+        for row in rows:
+            permuted_result = by_case_id.get(row["id"])
+            if permuted_result is not None:
+                row["reversed_choice_order"] = {
+                    "choice": permuted_result.choice,
+                    "probabilities": dict(permuted_result.probabilities),
+                    "confidence": permuted_result.confidence,
+                    "abstained": permuted_result.abstained,
+                }
     backend = getattr(model, "backend", model)
     calibration = getattr(model, "calibration", None)
     if hasattr(calibration, "model_dump"):
@@ -288,6 +442,7 @@ def run_benchmark(
             "groups": len({c.group_id for c in selected}),
             "base_scenarios": len({c.base_id or c.id for c in selected}),
             "families": dict(Counter(c.family for c in selected)),
+            "kinds": dict(Counter(c.kind for c in selected)),
             "variants": dict(Counter(c.variant for c in selected)),
             "limit": limit,
             "synthetic": all(c.metadata.get("synthetic") for c in selected),
@@ -306,6 +461,7 @@ def run_benchmark(
             "processor": platform.processor(),
             "python": platform.python_version(),
             "dependencies": _versions(),
+            "result_metadata": result_metadata,
         },
         "objective": classification_metrics(objective),
         "objective_normalized": classification_metrics(
@@ -313,7 +469,47 @@ def run_benchmark(
         ),
         "by_family": {
             family: classification_metrics([r for r in objective if r["family"] == family])
-            for family in ("objective", "agent_control")
+            for family in OBJECTIVE_FAMILIES
+            if any(r["family"] == family for r in objective)
+        },
+        "by_variant": {
+            variant: classification_metrics([r for r in objective if r["variant"] == variant])
+            for variant in sorted({r["variant"] for r in objective})
+        },
+        "ordinal": ordinal_metrics(
+            [{**r, "probabilities": r["level_probabilities"]} for r in ordinal]
+        ),
+        "verification": {
+            "count": sum(1 for r in rows if r["kind"] == "boolean"),
+            "statement_scored": sum(1 for r in rows if r.get("method") == "statement"),
+            "mean_unsupported_when_target_no": mean(
+                [
+                    r["unsupported"]
+                    for r in rows
+                    if r["kind"] == "boolean"
+                    and r["target"] == "no"
+                    and r.get("unsupported") is not None
+                ]
+            )
+            if any(
+                r["kind"] == "boolean" and r["target"] == "no" and r.get("unsupported") is not None
+                for r in rows
+            )
+            else None,
+            "mean_unsupported_when_target_yes": mean(
+                [
+                    r["unsupported"]
+                    for r in rows
+                    if r["kind"] == "boolean"
+                    and r["target"] == "yes"
+                    and r.get("unsupported") is not None
+                ]
+            )
+            if any(
+                r["kind"] == "boolean" and r["target"] == "yes" and r.get("unsupported") is not None
+                for r in rows
+            )
+            else None,
         },
         "subjective": {
             "count": len(subjective),
@@ -380,12 +576,49 @@ def run_benchmark(
     }
 
 
+def _compact(value: Any) -> Any:
+    """Round floats to six decimals for the written file; metrics use full precision."""
+    if isinstance(value, float):
+        return round(value, 6)
+    if isinstance(value, dict):
+        return {k: _compact(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_compact(v) for v in value]
+    return value
+
+
+def _written_predictions(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compact rows for disk: without a calibration profile the normalized distribution
+    equals ``probabilities`` and is omitted."""
+    written = []
+    for row in rows:
+        row = dict(row)
+        if row.get("calibrated_probabilities") is None:
+            row.pop("normalized_probabilities", None)
+        written.append(_compact(row))
+    return written
+
+
 def write_report(report: dict[str, Any], output: str | Path) -> dict[str, str]:
-    """Write JSON plus a concise Markdown companion; output is a file prefix."""
+    """Write JSON plus a concise Markdown companion; output is a file prefix.
+
+    The JSON keeps every metric at full precision; prediction rows are rounded to
+    six decimals and omit ``normalized_probabilities`` when no calibration profile
+    was loaded, since it then equals ``probabilities``.
+    """
     prefix = Path(output)
     prefix.parent.mkdir(parents=True, exist_ok=True)
     json_path, md_path = prefix.with_suffix(".json"), prefix.with_suffix(".md")
-    json_path.write_text(json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
+    on_disk = {
+        **report,
+        "predictions": _written_predictions(report["predictions"]),
+        "predictions_note": (
+            "Rows are rounded to six decimals; normalized_probabilities is omitted when "
+            "calibrated_probabilities is null because it equals probabilities. Static result "
+            "metadata is under runtime.result_metadata."
+        ),
+    }
+    json_path.write_text(json.dumps(on_disk, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
     runtime, dataset, perf = report["runtime"], report["dataset"], report["performance"]
     lines = [
         "# OpenDecision benchmark report",
@@ -416,10 +649,32 @@ def write_report(report: dict[str, Any], output: str | Path) -> dict[str, str]:
     lines.extend(
         [
             "",
+            "## Objective accuracy by family",
+            "",
+            "| Family | Count | Accuracy | ECE |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+    )
+    for family, metrics in report["by_family"].items():
+        lines.append(
+            f"| {family} | {metrics['count']} | {metrics['accuracy']:.4f} | {metrics['ece']:.4f} |"
+        )
+    ordinal = report["ordinal"]
+    lines.extend(
+        [
+            "",
             "## Separate evaluation families",
             "",
             f"Policy agreement (not moral accuracy): `{report['subjective']['policy_agreement']}` across {report['subjective']['policy_labeled_count']} policy-labeled cases.",
             f"Ranking NDCG: `{report['ranking']['ndcg']}`. Ambiguous-case abstention rate: `{report['ambiguity']['abstention_rate']}`.",
+            (
+                f"Ordinal rubrics: {ordinal['count']} cases, exact level `{ordinal.get('exact_level_accuracy')}`, "
+                f"within one level `{ordinal.get('within_one_level_accuracy')}`, "
+                f"mean absolute expected error `{ordinal.get('mean_absolute_expected_error')}` level steps."
+                if ordinal["count"]
+                else "Ordinal rubrics: none in this split."
+            ),
+            f"Verification statements: {report['verification']['count']} cases, {report['verification']['statement_scored']} scored as statements.",
             "",
             "## Timing",
             "",
