@@ -4,6 +4,7 @@ from .api import DecisionModel
 from .calibration import CalibrationProfile, fit_temperature
 from .schemas import (
     BooleanResult,
+    ChoiceOption,
     DecisionRequest,
     DecisionResult,
     RankedChoice,
@@ -16,6 +17,7 @@ from .schemas import (
 __version__ = "0.1.0a1"
 __all__ = [
     "DecisionModel",
+    "ChoiceOption",
     "DecisionRequest",
     "DecisionResult",
     "BooleanResult",

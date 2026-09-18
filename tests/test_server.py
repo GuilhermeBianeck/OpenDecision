@@ -103,6 +103,41 @@ def test_unsupported_threshold_is_rejected_without_statement_scoring(client):
     assert plain["method"] == "binary_choice" and plain["unsupported"] is None
 
 
+def test_structured_state_and_options_over_http(client):
+    body = client.post(
+        "/v1/decide",
+        json={
+            "state": {"message": "billing support needed", "channel": "email"},
+            "question": "Which team?",
+            "choices": [
+                {"label": "billing", "description": "invoices and payments"},
+                "technical",
+            ],
+        },
+    ).json()
+    assert body["choice"] == "billing"
+    assert set(body["probabilities"]) == {"billing", "technical"}
+    assert (
+        client.post(
+            "/v1/boolean", json={"state": ["billing", "support"], "question": "billing?"}
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/v1/multi-label", json={"state": {"a": "x" * 262_200}, "labels": ["x"]}
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            "/v1/decide",
+            json={"state": "", "question": "q", "choices": ["a", {"label": "a"}]},
+        ).status_code
+        == 422
+    )
+
+
 def test_score_contract(client):
     payload = {
         "state": "Billing needs billing support urgently.",

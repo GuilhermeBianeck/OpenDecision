@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Choices may carry a description, a `not_for` boundary and examples
+  (`ChoiceOption`); results stay keyed by label. State may be a record or a list
+  of texts and is rendered deterministically before scoring. CLI accepts
+  `--state-json` and `--choices-json`.
 - `score` rates the state on an ordered rubric of 2–10 described levels and
   returns the most probable level, the distribution, a legend, and the
   probability-weighted level index (Python, HTTP `/v1/score`, CLI, TypeScript).

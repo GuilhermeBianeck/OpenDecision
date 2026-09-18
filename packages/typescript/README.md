@@ -30,6 +30,8 @@ Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `bo
 
 HTTP failures throw `OpenDecisionHTTPError` with `.status` and `.body`. Timeouts throw `OpenDecisionTimeoutError`; the default is 30 seconds, including response body reading. The client does not retry automatically. Returned TypeScript types describe the server contract; arbitrary responses are not runtime schema-validated.
 
+`state` may be a string, a record (`Record<string, unknown>`, rendered as `key: value` lines in your field order), or a list of strings. Each entry of `choices` may be a bare label or a `ChoiceOption` with `description`, `not_for`, and `examples`; results are keyed by `label`.
+
 `score(request)` rates the state on ordered `levels` (2–10 descriptions, lowest first) and returns `level` (most probable index or null when abstained), `legend`, the distribution keyed by level index, and `score`, the probability-weighted index.
 
 `BooleanResult.method` is `"statement"` when the server's model scores the statement directly against the state; `unsupported` is then the probability that the state settles neither way, and `unsupported_threshold` abstains above it. Servers whose model lacks statement scoring return `"binary_choice"`, `unsupported: null`, and reject `unsupported_threshold` with HTTP 422. `health()` reports `supports_statements`.

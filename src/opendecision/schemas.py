@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 from typing import Annotated, Any, Literal
 
@@ -9,20 +10,140 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 Probability = Annotated[float, Field(ge=0, le=1, allow_inf_nan=False)]
 
+MAX_STATE_CHARACTERS = 262_144
+
+StateValue = str | dict[str, Any] | list[str]
+"""Context to decide about: plain text, a record with named fields, or a list of texts."""
+
 
 class PublicModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
 
 
-class DecisionRequest(PublicModel):
-    """A finite choice problem. Thresholds apply to the effective distribution."""
+def _render_scalar(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    if value is None or isinstance(value, (bool, int, float)):
+        return json.dumps(value)
+    raise ValueError("state values must be text, numbers, booleans, null, records, or lists")
 
-    state: str = Field(max_length=262_144)
+
+def _render_fields(record: dict[str, Any], depth: int) -> list[str]:
+    indent = "  " * depth
+    lines: list[str] = []
+    for key, value in record.items():
+        if isinstance(value, dict):
+            lines.append(f"{indent}{key}:")
+            lines.extend(_render_fields(value, depth + 1))
+        elif isinstance(value, list):
+            if all(not isinstance(item, (dict, list)) for item in value):
+                lines.append(f"{indent}{key}: " + ", ".join(_render_scalar(v) for v in value))
+            else:
+                lines.append(f"{indent}{key}:")
+                for item in value:
+                    if isinstance(item, dict):
+                        nested = _render_fields(item, depth + 2)
+                        lines.append(
+                            f"{indent}  -" + (nested[0][len(indent) + 3 :] if nested else "")
+                        )
+                        lines.extend(nested[1:])
+                    else:
+                        lines.append(f"{indent}  - {_render_scalar(item)}")
+        else:
+            lines.append(f"{indent}{key}: {_render_scalar(value)}")
+    return lines
+
+
+def render_state(state: StateValue) -> str:
+    """Deterministic text for a state value, in the caller's field order.
+
+    Text passes through unchanged. A record becomes ``key: value`` lines with
+    nested records indented; a list becomes one ``- item`` line per entry.
+    Field names are part of what the model reads, so name them meaningfully.
+    """
+    if isinstance(state, str):
+        return state
+    if isinstance(state, list):
+        return "\n".join(f"- {_render_scalar(item)}" for item in state)
+    if isinstance(state, dict):
+        return "\n".join(_render_fields(state, 0))
+    raise ValueError("state must be text, a record, or a list of texts")
+
+
+def validate_state(value: StateValue) -> StateValue:
+    """Reject unrenderable or oversized state at the boundary, before any model runs."""
+    rendered = render_state(value)
+    if len(rendered) > MAX_STATE_CHARACTERS:
+        raise ValueError(f"state renders to more than {MAX_STATE_CHARACTERS} characters")
+    return value
+
+
+class ChoiceOption(PublicModel):
+    """A candidate with optional text that separates it from its neighbours.
+
+    Only ``label`` identifies the option in results. The other fields are shown
+    to the model alongside the label; use them when bare labels are ambiguous.
+    """
+
+    label: str = Field(min_length=1, max_length=4096)
+    description: str | None = Field(default=None, max_length=4096)
+    not_for: str | None = Field(default=None, max_length=4096)
+    examples: list[Annotated[str, Field(min_length=1, max_length=1024)]] | None = Field(
+        default=None, max_length=8
+    )
+
+    @field_validator("label")
+    @classmethod
+    def nonblank_label(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("label must not be blank")
+        return value
+
+    @field_validator("examples")
+    @classmethod
+    def nonblank_examples(cls, value: list[str] | None) -> list[str] | None:
+        if value is not None and any(not example.strip() for example in value):
+            raise ValueError("examples must not be blank")
+        return value
+
+    def render(self) -> str:
+        """Text presented to the model for this candidate."""
+        text = f"{self.label}: {self.description}" if self.description else self.label
+        if self.not_for:
+            text += f". Not for: {self.not_for}"
+        if self.examples:
+            text += ". Examples: " + "; ".join(self.examples)
+        return text
+
+
+def _labels(choices: list[str | ChoiceOption]) -> list[str]:
+    return [choice.label if isinstance(choice, ChoiceOption) else choice for choice in choices]
+
+
+def _validate_choices(value: list[str | ChoiceOption]) -> list[str | ChoiceOption]:
+    labels = _labels(value)
+    if any(not label.strip() or len(label) > 4096 for label in labels):
+        raise ValueError("choices must be nonblank and at most 4096 characters")
+    if len({label.strip() for label in labels}) != len(labels):
+        raise ValueError("choices must be unique, including surrounding whitespace")
+    return value
+
+
+class DecisionRequest(PublicModel):
+    """A finite choice problem. Thresholds apply to the effective distribution.
+
+    ``choices`` may mix bare labels and :class:`ChoiceOption` entries. Results
+    are always keyed by label.
+    """
+
+    state: StateValue
     question: str = Field(min_length=1, max_length=8192)
-    choices: list[str] = Field(min_length=2, max_length=256)
+    choices: list[str | ChoiceOption] = Field(min_length=2, max_length=256)
     abstain_threshold: Probability | None = None
     margin_threshold: Probability | None = None
     include_raw_scores: bool = False
+
+    _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
     @field_validator("question")
     @classmethod
@@ -33,12 +154,25 @@ class DecisionRequest(PublicModel):
 
     @field_validator("choices")
     @classmethod
-    def valid_choices(cls, value: list[str]) -> list[str]:
-        if any(not choice.strip() or len(choice) > 4096 for choice in value):
-            raise ValueError("choices must be nonblank and at most 4096 characters")
-        if len({choice.strip() for choice in value}) != len(value):
-            raise ValueError("choices must be unique, including surrounding whitespace")
-        return value
+    def valid_choices(cls, value: list[str | ChoiceOption]) -> list[str | ChoiceOption]:
+        return _validate_choices(value)
+
+    @property
+    def state_text(self) -> str:
+        return render_state(self.state)
+
+    @property
+    def labels(self) -> list[str]:
+        """Result keys, in request order."""
+        return _labels(self.choices)
+
+    @property
+    def candidate_texts(self) -> list[str]:
+        """What the model reads for each candidate, in request order."""
+        return [
+            choice.render() if isinstance(choice, ChoiceOption) else choice
+            for choice in self.choices
+        ]
 
 
 class StatementRequest(PublicModel):
@@ -49,11 +183,13 @@ class StatementRequest(PublicModel):
     abstains when the state neither supports nor contradicts the statement.
     """
 
-    state: str = Field(max_length=262_144)
+    state: StateValue
     statement: str = Field(min_length=1, max_length=8192)
     abstain_threshold: Probability | None = None
     margin_threshold: Probability | None = None
     unsupported_threshold: Probability | None = None
+
+    _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
     @field_validator("statement")
     @classmethod
@@ -61,6 +197,10 @@ class StatementRequest(PublicModel):
         if not value.strip():
             raise ValueError("statement must not be blank")
         return value
+
+    @property
+    def state_text(self) -> str:
+        return render_state(self.state)
 
 
 class ScoreRequest(PublicModel):
@@ -71,12 +211,14 @@ class ScoreRequest(PublicModel):
     level index, so it can fall between two levels.
     """
 
-    state: str = Field(max_length=262_144)
+    state: StateValue
     question: str = Field(min_length=1, max_length=8192)
     levels: list[str] = Field(min_length=2, max_length=10)
     abstain_threshold: Probability | None = None
     margin_threshold: Probability | None = None
     include_raw_scores: bool = False
+
+    _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
     @field_validator("question")
     @classmethod

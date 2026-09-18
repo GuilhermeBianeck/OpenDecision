@@ -1,8 +1,19 @@
+/** Context to decide about: text, a record with named fields, or a list of texts. */
+export type StateValue = string | Record<string, unknown> | string[];
+
+/** A candidate with optional text that separates it from its neighbours. Results key by label. */
+export interface ChoiceOption {
+  label: string;
+  description?: string | null;
+  not_for?: string | null;
+  examples?: string[] | null;
+}
+
 /** A finite-choice request, evaluated locally by a resident HTTP server. */
 export interface DecisionRequest {
-  state: string;
+  state: StateValue;
   question: string;
-  choices: string[];
+  choices: (string | ChoiceOption)[];
   abstain_threshold?: number | null;
   margin_threshold?: number | null;
   include_raw_scores?: boolean;
@@ -26,7 +37,7 @@ export interface DecisionResult {
 }
 
 export interface BooleanRequest {
-  state: string;
+  state: StateValue;
   /** Read as a statement about the state. */
   question: string;
   abstain_threshold?: number | null;
@@ -47,7 +58,7 @@ export interface BooleanResult {
 
 /** Rate the state on ordered rubric levels, lowest first. */
 export interface ScoreRequest {
-  state: string;
+  state: StateValue;
   question: string;
   levels: string[];
   abstain_threshold?: number | null;
@@ -80,7 +91,7 @@ export interface RankingResult {
 }
 
 export interface MultiLabelRequest {
-  state: string;
+  state: StateValue;
   labels: string[];
   abstain_threshold?: number | null;
   margin_threshold?: number | null;
