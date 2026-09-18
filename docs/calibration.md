@@ -31,7 +31,28 @@ model and checkpoint revision, serialization template, precision, maximum sequen
 length, timestamp, and before/after calibration NLL. Precision resolves with the
 device, so the repository ships `<name>.json` fitted at the GPU default and
 `<name>-float32.json` at the CPU default; loading the wrong one raises a
-`CalibrationError` naming `precision` rather than silently rescaling. Incompatible model identities
+`CalibrationError` naming `precision` rather than silently rescaling. The MLX
+backends are the exception: their weights are quantised for Apple silicon and
+have no CPU counterpart, so they ship a single profile and no `-float32`
+variant.
+
+### A profile is not always worth loading
+
+Temperature scaling is fitted to minimize NLL on the calibration split, and a
+backend that is already well calibrated has nothing to gain. Measured on the
+held-out validation split:
+
+| Backend | Uncalibrated ECE | After a fitted profile | Shipped? |
+| --- | ---: | ---: | --- |
+| `qwen35_4b` | 0.195 | 0.073 | yes |
+| `lfm25` | 0.210 | 0.163 | yes |
+| `qwen35` | **0.061** | 0.115 | **no** |
+
+`qwen35` arrives better calibrated than any other backend and a fitted profile
+makes it worse on ECE, NLL and Brier at once, so none is committed for it. Fit
+one against your own data if your distribution differs, and read the held-out
+report the `calibrate` command prints before adopting it. A profile that
+regresses is a result, not a failure to fit. Incompatible model identities
 are rejected. The same identity can still encounter a different task distribution.
 
 ## One temperature per candidate count
