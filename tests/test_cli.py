@@ -14,6 +14,8 @@ def test_models_and_doctor(capsys):
     report = json.loads(capsys.readouterr().out)
     assert report["python"]
     assert isinstance(report["mps_available"], bool)
+    if report["mps_available"] and not report["cuda_available"]:
+        assert report["recommended_device"] == "mps"
 
 
 @pytest.mark.parametrize("command", ["decide", "rank", "boolean"])

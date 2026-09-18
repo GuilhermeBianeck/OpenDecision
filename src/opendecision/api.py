@@ -51,15 +51,16 @@ class DecisionModel:
         backend: DecisionBackend | None = None,
         calibration: CalibrationProfile | str | Path | None = None,
         batch_size: int = 32,
-        max_length: int = 512,
+        max_length: int | None = None,
         template: str = "default",
         **backend_options: object,
     ) -> None:
+        """``max_length=None`` uses the model's context, capped at 2048 tokens."""
         from .registry import create_backend
 
         if not 1 <= batch_size <= 1024:
             raise ValueError("batch_size must be between 1 and 1024")
-        if not 32 <= max_length <= 8192:
+        if max_length is not None and not 32 <= max_length <= 8192:
             raise ValueError("max_length must be between 32 and 8192")
         started = time.perf_counter()
         self.backend = (
@@ -76,7 +77,11 @@ class DecisionModel:
         )
         self.initialization_ms = (time.perf_counter() - started) * 1000
         self.template = template
-        self.max_length = max_length
+        # The resolved limit is part of the calibration identity, so record what
+        # the backend actually applies rather than the caller's None.
+        self.max_length = (
+            max_length if max_length is not None else getattr(self.backend, "max_length", 512)
+        )
         self.batch_size = batch_size
         self.calibration = (
             CalibrationProfile.load(calibration)

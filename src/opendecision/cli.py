@@ -33,7 +33,10 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--calibration", type=Path, help="Matching calibration profile JSON")
     parser.add_argument("--batch-size", type=int, default=32, help="Candidate microbatch size")
     parser.add_argument(
-        "--max-length", type=int, default=512, help="Maximum tokenized input length"
+        "--max-length",
+        type=int,
+        default=None,
+        help="Maximum tokenized input length (default: model context, capped at 2048)",
     )
     parser.add_argument("--template", default="default", choices=("default", "short"))
 
@@ -185,7 +188,7 @@ def doctor() -> dict[str, Any]:
         "onnxruntime_available": importlib.util.find_spec("onnxruntime") is not None,
         "recommended_device": "cpu",
         "recommended_backend": "base",
-        "recommendation": "Start with base on CPU; benchmark MPS explicitly on Apple Silicon.",
+        "recommendation": "Start with base; device='auto' selects CUDA, then MPS, then CPU.",
     }
     try:
         import psutil
@@ -215,6 +218,8 @@ def doctor() -> dict[str, Any]:
             report["cuda_available"] = bool(torch.cuda.is_available())
             if report["cuda_available"]:
                 report["recommended_device"] = "cuda"
+            elif report["mps_available"]:
+                report["recommended_device"] = "mps"
         except (ImportError, OSError, RuntimeError) as error:
             report["torch_error"] = str(error)
     else:
@@ -295,7 +300,7 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         model=backend.model_id,
         revision=backend.revision,
         template=args.template,
-        max_length=args.max_length,
+        max_length=engine.max_length,
         precision=backend.precision,
         task_family="objective_agent_control",
         dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),

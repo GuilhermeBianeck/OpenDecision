@@ -83,10 +83,13 @@ and [the requirements map](docs/requirements.md) for implementation and verifica
 | `multilingual` | BGE reranker v2 m3 | Multilingual relevance ranking |
 
 These aliases name model families, not quality guarantees. `auto` currently
-selects `base`; automatic device selection is conservative. Use `--device mps`
-or `device="mps"` to measure Apple GPU inference explicitly. CPU remains supported.
-The 16 GB Apple Silicon target can run these models, but published latency and
-memory targets are research goals. Downloads are about 0.28–2.27 GB of weights;
+selects `base`. `device="auto"` selects CUDA, then MPS, then CPU; on the
+reference 16 GB Apple Silicon machine MPS measured 1.2–3.5× faster than CPU for
+every model (see [device policy](docs/model-licenses.md#device-and-precision-policy)).
+Pass `device="cpu"` to opt out. The default sequence limit is the model's
+context capped at 2,048 tokens (`tiny` is limited to 512 by its checkpoint);
+set `max_length` explicitly to change it. Published latency and memory targets
+remain research goals. Downloads are about 0.28–2.27 GB of weights;
 runtime memory is additional. Review [pinned models and licenses](docs/model-licenses.md).
 
 ## Probabilities and uncertainty

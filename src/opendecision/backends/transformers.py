@@ -15,10 +15,25 @@ if TYPE_CHECKING:
     from opendecision.schemas import DecisionRequest, StatementRequest
 
 
+DEFAULT_MAX_LENGTH_CAP = 2048
+"""Default sequence limit: the checkpoint's context, capped here for predictable memory."""
+
+
+def default_max_length(context_limit: int) -> int:
+    return min(context_limit, DEFAULT_MAX_LENGTH_CAP)
+
+
 def select_device(requested: str, torch: Any) -> str:
-    """Prefer CUDA when present; CPU is the portable default on Apple hardware."""
+    """Resolve ``auto`` to CUDA, then MPS, then CPU.
+
+    MPS measured 1.2-3.5x faster than CPU for every registered model across
+    32-1000 token states on the reference 16 GB Apple Silicon machine
+    (see docs/model-licenses.md). Pass ``device="cpu"`` to opt out.
+    """
     if requested == "auto":
-        return "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            return "cuda"
+        return "mps" if torch.backends.mps.is_available() else "cpu"
     if requested == "cpu":
         return requested
     if requested == "mps":
@@ -58,11 +73,13 @@ class TransformersBackend:
         context_limit: int,
         device: str = "auto",
         batch_size: int = 32,
-        max_length: int = 512,
+        max_length: int | None = None,
         template: str = "default",
         precision: str = "float32",
         model_path: str | None = None,
     ) -> None:
+        if max_length is None:
+            max_length = default_max_length(context_limit)
         if batch_size < 1 or max_length < 16:
             raise BackendError("batch_size must be positive and max_length at least 16.")
         if max_length > context_limit:
