@@ -9,7 +9,7 @@ Initial public alpha groundwork:
 - pinned NLI, reward, reranker, demo, and experimental ONNX backend contracts;
 - FastAPI loopback server and dependency-free TypeScript client;
 - grouped synthetic benchmark corpus, metrics, robustness probes, and JSON/Markdown reports;
-- optional, explicit Jev and Gemini comparison adapters;
+- optional, explicitly invoked generative LLM baseline adapter;
 - model-license notes, CI, Docker examples, and contributor/security documentation.
 
-This release makes no Jev parity, universal accuracy, safety, or latency claim.
+This release makes no universal accuracy, safety, or latency claim.

@@ -75,7 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
         "benchmark", help="Evaluate a labeled dataset and save a report"
     )
     _model_options(benchmark)
-    benchmark.add_argument("--models", help="Comma-separated local:base,local:smart,jev,gemini")
+    benchmark.add_argument("--models", help="Comma-separated local:base,local:smart,gemini[:model]")
     benchmark.add_argument("--dataset", type=Path, default=Path("benchmarks/datasets/core.jsonl"))
     benchmark.add_argument("--output", type=Path, default=Path("benchmarks/reports/latest"))
     benchmark.add_argument("--split", default="test", choices=("calibration", "validation", "test"))
@@ -176,7 +176,7 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
     for name in names:
         if name.startswith("local:"):
             engine = _load_model(args, name=name.removeprefix("local:"))
-        elif name == "jev" or name.startswith(("gemini", "jev:")):
+        elif name == "gemini" or name.startswith("gemini:"):
             from opendecision.external import ExternalUnavailable, create_external_model
 
             try:
@@ -185,7 +185,7 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
                 skipped.append({"model": name, "reason": str(error)})
                 continue
         else:
-            raise ValueError(f"Unknown provider {name!r}; use local:<model>, jev, or gemini")
+            raise ValueError(f"Unknown provider {name!r}; use local:<model> or gemini[:model]")
         report = run_benchmark(
             engine,
             cases,

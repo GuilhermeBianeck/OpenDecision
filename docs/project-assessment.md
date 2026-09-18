@@ -7,8 +7,9 @@ Assessment date: 18 September 2026.
 A useful local decision runtime is feasible on a 16 GB Apple Silicon Mac. The
 defensible initial advantage is control: cached offline inference, private input,
 open implementation, replaceable models, and reproducible evaluation. Whether
-it is more accurate, faster, or better calibrated than Jev is an empirical
-question. No live Jev comparison was available for this alpha.
+it is more accurate, faster, or better calibrated than a hosted decision service
+or a generative LLM is an empirical question that only committed benchmark
+reports can answer.
 
 The master specification mixes an attainable software alpha with a research
 program. The runtime, API, calibration tools, benchmark infrastructure, and
@@ -16,13 +17,14 @@ packaging can be implemented now. Reliable performance across arbitrary
 decisions, tightly calibrated uncertainty under distribution shift, sub-20 ms
 latency, and shared-state encoding require further evidence and likely training.
 
-## Where the design fits
+## The decision contract
 
-TypeSafe documents Jev as a model that consumes a state and typed questions,
-returning decisions and distributions directly. Its documented primitives
-include choice, rubric score, and a yes probability. Questions are evaluated
-independently over the same state. See the [official introduction](https://docs.typesafe.ai/introduction)
-and [HTTP contract](https://docs.typesafe.ai/api), checked on the assessment date.
+OpenDecision models a decision as **state + question + finite choices**, answered
+with a typed result, a distribution over the choices, and an explicit uncertainty
+margin. Several independent questions can share one state. The contract is
+deliberately narrow: no free-text generation, no parsing of model output, and
+no hidden reasoning trace. Application code composes atomic questions and owns
+every side effect.
 
 OpenDecision starts with candidate scoring: an NLI encoder estimates support
 for a hypothesis; a reward model rates a candidate response; a reranker scores
@@ -45,9 +47,9 @@ workloads is a project hypothesis, not a statement from those model authors.
 | Platform assumptions | MPS may lose to CPU for small jobs | Explicit devices, measured reports, and a repeatable performance matrix |
 | Unsafe application decisions | Model confidence can be mistaken for authority | Keep permission enforcement outside the model |
 
-The finite-choice API deliberately does not implement Jev's complete protocol or
-rubric-score semantics. The external adapter compares the shared choice subset.
-`decide_many` flattens requests; it does not claim Jev's shared-state architecture.
+`decide_many` flattens requests into independent candidate pairs; it does not
+claim a shared-state architecture. Cost grows with the number of candidates and
+the length of the state until a backend can reuse an encoded state.
 
 ## Evidence required for “better”
 
