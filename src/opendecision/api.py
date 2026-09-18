@@ -90,6 +90,10 @@ class DecisionModel:
         )
         self._lock = threading.Lock()
         if self.calibration is not None:
+            # A profile is bound to the precision actually used, which resolves with
+            # the device, so load now rather than compare against an unresolved None.
+            if getattr(self.backend, "precision", "") is None:
+                self.backend.ensure_loaded()
             expected = {
                 "backend": self.backend.name,
                 "model": self.backend.model_id,

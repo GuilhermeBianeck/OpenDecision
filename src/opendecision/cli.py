@@ -40,6 +40,12 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
         help="Maximum tokenized input length (default: model context, capped at 2048)",
     )
     parser.add_argument("--template", default="default", choices=("default", "short"))
+    parser.add_argument(
+        "--precision",
+        default=None,
+        choices=("float32", "float16", "bfloat16"),
+        help="Default: bfloat16 on a GPU, float32 on CPU",
+    )
 
 
 def _request_options(
@@ -167,6 +173,7 @@ def _load_model(args: argparse.Namespace, *, name: str | None = None):
         batch_size=args.batch_size,
         max_length=args.max_length,
         template=args.template,
+        precision=args.precision,
     )
 
 
@@ -204,6 +211,7 @@ def doctor() -> dict[str, Any]:
         "cuda_available": False,
         "onnxruntime_available": importlib.util.find_spec("onnxruntime") is not None,
         "recommended_device": "cpu",
+        "recommended_precision": "float32",
         "recommended_backend": "base",
         "recommendation": "Start with base; device='auto' selects CUDA, then MPS, then CPU.",
     }
@@ -237,6 +245,9 @@ def doctor() -> dict[str, Any]:
                 report["recommended_device"] = "cuda"
             elif report["mps_available"]:
                 report["recommended_device"] = "mps"
+            from opendecision.backends.transformers import default_precision
+
+            report["recommended_precision"] = default_precision(report["recommended_device"])
         except (ImportError, OSError, RuntimeError) as error:
             report["torch_error"] = str(error)
     else:
@@ -373,7 +384,7 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         revision=backend.revision,
         template=args.template,
         max_length=engine.max_length,
-        precision=backend.precision,
+        precision=backend.precision,  # resolved during the scoring above
         task_family="objective_agent_control",
         dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
         per_choice_count=not args.pooled,
@@ -454,6 +465,7 @@ def run(args: argparse.Namespace) -> Any:
             batch_size=args.batch_size,
             max_length=args.max_length,
             template=args.template,
+            precision=args.precision,
         )
         uvicorn.run(app, host=args.host, port=args.port, access_log=False)
         return None

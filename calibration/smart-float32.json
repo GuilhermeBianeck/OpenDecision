@@ -1,11 +1,11 @@
 {
   "version": 1,
   "method": "temperature_scaling",
-  "temperature": 1.8724390973567793,
+  "temperature": 1.8663916204855227,
   "temperatures": {
-    "2": 4.875035561978438,
-    "4": 0.9471098596711384,
-    "12": 0.7137983837205816
+    "2": 4.87090063605568,
+    "4": 0.9548396242396655,
+    "12": 0.699714653422032
   },
   "backend": "smart",
   "model": "Skywork/Skywork-Reward-V2-Qwen3-0.6B",
@@ -13,13 +13,13 @@
   "template": "default",
   "task_family": "objective_agent_control",
   "max_length": 2048,
-  "precision": "bfloat16",
+  "precision": "float32",
   "dataset_sha256": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
   "split": "calibration",
   "sample_count": 741,
   "choice_count_min": 2,
   "choice_count_max": 12,
-  "nll_before": 1.0912850706896782,
-  "nll_after": 0.923675241445444,
-  "created_at": "2026-09-18T14:46:13.775744+00:00"
+  "nll_before": 1.089753686215138,
+  "nll_after": 0.92077383720264,
+  "created_at": "2026-09-18T14:53:59.808720+00:00"
 }

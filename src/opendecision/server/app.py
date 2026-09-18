@@ -143,6 +143,7 @@ def create_app(
     batch_size: int = 32,
     max_length: int | None = None,
     template: str = "default",
+    precision: str | None = None,
 ) -> FastAPI:
     """Create an HTTP service; load its model once when the lifespan starts.
 
@@ -167,6 +168,7 @@ def create_app(
                 batch_size=batch_size,
                 max_length=max_length,
                 template=template,
+                precision=precision,
             )
             await run_in_threadpool(app.state.engine.backend.ensure_loaded)
         yield

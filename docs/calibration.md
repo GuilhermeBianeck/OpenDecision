@@ -28,7 +28,10 @@ split. It rejects an existing profile during fitting. The low-level Python
 `fit_temperature` function accepts scores and indexes, so its caller must enforce
 the same split discipline. Profiles store the data hash, sample count, task family,
 model and checkpoint revision, serialization template, precision, maximum sequence
-length, timestamp, and before/after calibration NLL. Incompatible model identities
+length, timestamp, and before/after calibration NLL. Precision resolves with the
+device, so the repository ships `<name>.json` fitted at the GPU default and
+`<name>-float32.json` at the CPU default; loading the wrong one raises a
+`CalibrationError` naming `precision` rather than silently rescaling. Incompatible model identities
 are rejected. The same identity can still encounter a different task distribution.
 
 ## One temperature per candidate count
