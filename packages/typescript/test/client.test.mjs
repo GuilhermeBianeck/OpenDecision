@@ -23,6 +23,13 @@ test("routes requests and serializes the documented batch envelope", async () =>
     "/health", "/v1/models"
   ]);
   assert.deepEqual(JSON.parse(calls[0].options.body), request);
+  const structured = {
+    state: {message: "charged twice", order_id: "A-104"},
+    question: "Team?",
+    choices: ["technical", {label: "billing", description: "payments and refunds", examples: ["charged twice"]}],
+  };
+  await client.choose(structured);
+  assert.deepEqual(JSON.parse(calls.at(-1).options.body), structured);
   assert.deepEqual(JSON.parse(calls[1].options.body), {requests: [request]});
   assert.deepEqual(JSON.parse(calls[4].options.body).levels, ["none", "minor", "major"]);
   assert.equal(calls[6].options.method, "GET");

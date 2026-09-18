@@ -108,6 +108,23 @@ def test_flattened_batches_restore_request_boundaries_and_entailment_column():
     assert all(batch[2]["truncation"] is False for batch in backend._tokenizer.batches)
 
 
+def test_structured_state_and_option_text_are_serialized_for_the_model():
+    backend = initialized_backend()
+    backend.score_batch(
+        [
+            DecisionRequest(
+                state={"ticket": "card charged twice", "tier": "gold"},
+                question="Which team?",
+                choices=["technical", {"label": "billing", "description": "payments and refunds"}],
+            )
+        ]
+    )
+    premises, hypotheses, _ = backend._tokenizer.batches[0]
+    assert premises == ["ticket: card charged twice\ntier: gold"] * 2
+    assert "billing: payments and refunds" in hypotheses[1]
+    assert "technical" in hypotheses[0]
+
+
 def test_truncation_retains_whole_question_and_choice_and_warns():
     backend = initialized_backend(max_length=64)
     with pytest.warns(UserWarning, match="State truncated for 2"):

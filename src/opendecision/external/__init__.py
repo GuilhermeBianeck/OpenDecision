@@ -9,7 +9,7 @@ import time
 from typing import Any
 from urllib.parse import quote
 
-from opendecision.schemas import DecisionRequest, DecisionResult
+from opendecision.schemas import ChoiceOption, DecisionRequest, DecisionResult, StateValue
 
 
 class ExternalUnavailable(RuntimeError):
@@ -69,9 +69,15 @@ class RemoteDecisionModel:
         return [self.choose(**request.model_dump(exclude_none=True)) for request in requests]
 
     def choose(
-        self, *, state: str, question: str, choices: list[str], **thresholds: Any
+        self,
+        *,
+        state: StateValue,
+        question: str,
+        choices: list[str | ChoiceOption | dict[str, Any]],
+        **thresholds: Any,
     ) -> DecisionResult:
         request = DecisionRequest(state=state, question=question, choices=choices, **thresholds)
+        choices = request.labels
         started = time.perf_counter()
         schema = {
             "type": "object",
@@ -86,7 +92,12 @@ class RemoteDecisionModel:
             "required": ["probabilities"],
         }
         prompt = json.dumps(
-            {"state": state, "question": question, "choices_in_order": choices},
+            {
+                "state": request.state_text,
+                "question": question,
+                "choices_in_order": choices,
+                "choice_descriptions": request.candidate_texts,
+            },
             ensure_ascii=False,
         )
         response = self._client.post(

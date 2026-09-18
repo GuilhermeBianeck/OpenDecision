@@ -321,11 +321,13 @@ class TransformersBackend:
         with self._lock:
             self.load()
             self._truncated_candidates = 0
-            pairs = [
-                self._fit_candidate(request.state, request.question, choice)
-                for request in requests
-                for choice in request.choices
-            ]
+            pairs = []
+            for request in requests:
+                state_text = request.state_text  # rendered once per request
+                pairs.extend(
+                    self._fit_candidate(state_text, request.question, candidate)
+                    for candidate in request.candidate_texts
+                )
             column = self._entailment_index if self.family == "nli" else 0
             scores = [row[0] for row in self._infer(pairs, [column], "question and choices")]
             grouped: list[list[float]] = []
@@ -351,6 +353,6 @@ class TransformersBackend:
                     "with entailment, neutral, and contradiction labels."
                 )
             self._truncated_candidates = 0
-            pairs = [self._fit_statement(r.state, r.statement) for r in requests]
+            pairs = [self._fit_statement(r.state_text, r.statement) for r in requests]
             columns = [self._entailment_index, self._neutral_index, self._contradiction_index]
             return self._infer(pairs, columns, "statements")

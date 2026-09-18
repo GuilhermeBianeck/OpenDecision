@@ -4,9 +4,10 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 from pydantic import ValidationError
 
-from opendecision import DecisionModel, DecisionRequest
+from opendecision import ChoiceOption, DecisionModel, DecisionRequest
 from opendecision.confidence import softmax
 from opendecision.errors import BackendError
+from opendecision.schemas import render_state
 
 
 class FixedBackend:
@@ -208,6 +209,84 @@ def test_score_abstains_and_validates_levels():
         with pytest.raises(ValidationError):
             model.score(state="s", question="q", levels=levels)
     assert model.score_batch([]) == []
+
+
+def test_structured_state_renders_deterministically():
+    record = {
+        "message": "charged twice",
+        "order": {"id": "A-1", "items": ["x", "y"]},
+        "events": [{"kind": "refund", "ok": True}, "note"],
+        "amount": 12.5,
+        "vip": None,
+    }
+    assert render_state(record) == (
+        "message: charged twice\n"
+        "order:\n  id: A-1\n  items: x, y\n"
+        "events:\n  - kind: refund\n    ok: true\n  - note\n"
+        "amount: 12.5\n"
+        "vip: null"
+    )
+    assert render_state(["first", "second"]) == "- first\n- second"
+    assert render_state("plain") == "plain"
+    assert DecisionRequest(state=record, question="q", choices=["a", "b"]).state_text.startswith(
+        "message:"
+    )
+    with pytest.raises(ValidationError, match="state values"):
+        DecisionRequest(state={"bad": {1, 2}}, question="q", choices=["a", "b"])
+    with pytest.raises(ValidationError, match="more than"):
+        DecisionRequest(state={"k": "x" * 262_200}, question="q", choices=["a", "b"])
+
+
+def test_option_descriptions_reach_the_backend_but_results_key_by_label():
+    backend = FixedBackend([1.0, 3.0])
+    result = DecisionModel(backend=backend).choose(
+        state={"message": "my card was charged twice"},
+        question="Which team?",
+        choices=[
+            "technical",
+            {
+                "label": "billing",
+                "description": "payments, refunds and duplicate charges",
+                "not_for": "stolen cards",
+                "examples": ["I was charged twice", "refund my order"],
+            },
+        ],
+        include_raw_scores=True,
+    )
+    assert result.choice == "billing"
+    assert set(result.probabilities) == {"technical", "billing"}
+    assert result.raw_scores == {"technical": 1.0, "billing": 3.0}
+    request = backend.requests[0]
+    assert request.labels == ["technical", "billing"]
+    assert request.candidate_texts == [
+        "technical",
+        "billing: payments, refunds and duplicate charges. Not for: stolen cards. "
+        "Examples: I was charged twice; refund my order",
+    ]
+    assert request.state_text == "message: my card was charged twice"
+    assert isinstance(request.choices[1], ChoiceOption)
+
+
+@pytest.mark.parametrize(
+    "choices",
+    [
+        ["billing", {"label": "billing", "description": "x"}],
+        [{"label": " ", "description": "x"}, "b"],
+        [{"label": "a", "examples": [" "]}, "b"],
+        [{"label": "a", "unexpected": 1}, "b"],
+    ],
+)
+def test_invalid_options(choices):
+    with pytest.raises(ValidationError):
+        DecisionRequest(state="", question="q", choices=choices)
+
+
+def test_ties_break_on_labels_not_descriptions():
+    model = DecisionModel(backend=FixedBackend([0, 0]))
+    result = model.choose(
+        state="", question="?", choices=[{"label": "b", "description": "aaa"}, "a"]
+    )
+    assert result.choice == "a"
 
 
 def test_many_questions_and_batch_size_errors():

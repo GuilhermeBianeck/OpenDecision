@@ -79,6 +79,25 @@ def test_private_state_file(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out)["choice"] == "billing"
 
 
+def test_json_state_and_option_files(tmp_path, capsys):
+    state = tmp_path / "state.json"
+    state.write_text(json.dumps({"message": "billing question", "priority": 2}))
+    choices = tmp_path / "choices.json"
+    choices.write_text(
+        json.dumps([{"label": "billing", "description": "invoices and payments"}, "technical"])
+    )
+    args = ["decide", "--model", "demo", "--state-json", str(state), "--question", "Team?"]
+    assert main([*args, "--choices-json", str(choices)]) == 0
+    assert json.loads(capsys.readouterr().out)["choice"] == "billing"
+    state.write_text(json.dumps("just text"))
+    assert main([*args, "--choices", "billing", "technical"]) == 1
+    assert "--state-json" in capsys.readouterr().err
+    state.write_text(json.dumps(["billing question", "priority two"]))
+    choices.write_text(json.dumps({"label": "not a list"}))
+    assert main([*args, "--choices-json", str(choices)]) == 1
+    assert "--choices-json" in capsys.readouterr().err
+
+
 def test_bad_model_clean_error(capsys):
     assert (
         main(

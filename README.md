@@ -101,6 +101,31 @@ is not met. Equality passes. Thresholds are task-specific and not safety guarant
 Include an explicit “none of these” choice when appropriate. Ties use a stable
 lexicographic tie-break; set a positive margin threshold to abstain on ties.
 
+### Describe the options, structure the state
+
+Bare labels are often ambiguous. Any choice may be a `ChoiceOption` with a
+`description`, a `not_for` boundary, and `examples`; results stay keyed by
+`label`. The state may be text, a **record** with named fields, or a **list of
+texts**; records render as `key: value` lines in your field order, so field
+names are part of what the model reads.
+
+```python
+result = model.choose(
+    state={"message": "My card was charged twice for one order.", "channel": "email"},
+    question="Which team should handle this?",
+    choices=[
+        {
+            "label": "billing",
+            "description": "invoices, payments, refunds and duplicate charges",
+            "not_for": "stolen or cloned cards",
+        },
+        {"label": "fraud", "description": "unauthorized use of a card or account"},
+        "technical",
+        "other",
+    ],
+)
+```
+
 `score` rates the state on an **ordered rubric**: pass 2–10 level descriptions
 from lowest to highest, and receive `level` (the most probable index), a
 `legend`, the distribution over levels, and `score`, the probability-weighted

@@ -6,13 +6,14 @@ import math
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .calibration import CalibrationProfile
 from .confidence import margin, softmax
 from .errors import BackendError, CalibrationError
 from .schemas import (
     BooleanResult,
+    ChoiceOption,
     DecisionRequest,
     DecisionResult,
     RankedChoice,
@@ -20,6 +21,7 @@ from .schemas import (
     ScoreRequest,
     ScoreResult,
     StatementRequest,
+    StateValue,
 )
 
 if TYPE_CHECKING:
@@ -98,9 +100,9 @@ class DecisionModel:
     def choose(
         self,
         *,
-        state: str,
+        state: StateValue,
         question: str,
-        choices: list[str],
+        choices: list[str | ChoiceOption | dict[str, Any]],
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
         include_raw_scores: bool = False,
@@ -147,13 +149,14 @@ class DecisionModel:
         force_abstain: bool = False,
         extra_metadata: dict[str, object] | None = None,
     ) -> DecisionResult:
-        if len(scores) != len(request.choices) or not all(math.isfinite(s) for s in scores):
+        labels = request.labels
+        if len(scores) != len(labels) or not all(math.isfinite(s) for s in scores):
             raise BackendError("Backend must return exactly one finite score per choice")
         normalized = softmax(scores)
         calibrated = self.calibration.transform(scores) if self.calibration else None
         effective = calibrated if calibrated is not None else normalized
         # Deterministic tie-breaking is independent of caller option ordering.
-        top = min(range(len(effective)), key=lambda i: (-effective[i], request.choices[i]))
+        top = min(range(len(effective)), key=lambda i: (-effective[i], labels[i]))
         confidence = margin(effective)
         abstained = (
             force_abstain
@@ -183,14 +186,14 @@ class DecisionModel:
         if isinstance(backend_metadata, dict):
             metadata["backend_details"] = backend_metadata
         return DecisionResult(
-            choice=None if abstained else request.choices[top],
-            probabilities=dict(zip(request.choices, effective)),
-            normalized_probabilities=dict(zip(request.choices, normalized)),
-            calibrated_probabilities=dict(zip(request.choices, calibrated)) if calibrated else None,
+            choice=None if abstained else labels[top],
+            probabilities=dict(zip(labels, effective)),
+            normalized_probabilities=dict(zip(labels, normalized)),
+            calibrated_probabilities=dict(zip(labels, calibrated)) if calibrated else None,
             confidence=confidence,
             top_probability=effective[top],
             abstained=abstained,
-            raw_scores=dict(zip(request.choices, scores)) if request.include_raw_scores else None,
+            raw_scores=dict(zip(labels, scores)) if request.include_raw_scores else None,
             latency_ms=elapsed_ms,
             backend=self.backend.name,
             model=self.backend.model_id,
@@ -205,7 +208,7 @@ class DecisionModel:
     def boolean(
         self,
         *,
-        state: str,
+        state: StateValue,
         question: str,
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
@@ -318,9 +321,9 @@ class DecisionModel:
     def rank(
         self,
         *,
-        state: str,
+        state: StateValue,
         question: str,
-        choices: list[str],
+        choices: list[str | ChoiceOption | dict[str, Any]],
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
         include_raw_scores: bool = False,
@@ -349,7 +352,7 @@ class DecisionModel:
     def score(
         self,
         *,
-        state: str,
+        state: StateValue,
         question: str,
         levels: list[str],
         abstain_threshold: float | None = None,
@@ -405,7 +408,7 @@ class DecisionModel:
     def multi_label(
         self,
         *,
-        state: str,
+        state: StateValue,
         labels: list[str],
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
@@ -429,8 +432,8 @@ class DecisionModel:
     def decide_many(
         self,
         *,
-        state: str,
-        questions: dict[str, list[str]],
+        state: StateValue,
+        questions: dict[str, list[str | ChoiceOption | dict[str, Any]]],
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
     ) -> dict[str, DecisionResult]:

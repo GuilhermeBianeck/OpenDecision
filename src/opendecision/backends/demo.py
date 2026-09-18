@@ -42,6 +42,6 @@ class DemoBackend:
 
     def score_batch(self, requests: list[DecisionRequest]) -> list[list[float]]:
         return [
-            self.score_choices(state=r.state, question=r.question, choices=r.choices)
+            self.score_choices(state=r.state_text, question=r.question, choices=r.candidate_texts)
             for r in requests
         ]

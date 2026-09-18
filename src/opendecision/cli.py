@@ -44,10 +44,21 @@ def _request_options(
     source.add_argument(
         "--state-file", type=Path, help="UTF-8 context file; '-' reads standard input"
     )
+    source.add_argument(
+        "--state-json",
+        type=Path,
+        help="JSON file holding a record (object) or list of texts to use as the state",
+    )
     parser.add_argument("--question", required=True)
     choices = candidates is not None
     if candidates == "choices":
-        parser.add_argument("--choices", nargs="+", required=True)
+        options = parser.add_mutually_exclusive_group(required=True)
+        options.add_argument("--choices", nargs="+", help="Candidate labels")
+        options.add_argument(
+            "--choices-json",
+            type=Path,
+            help="JSON file: a list of labels or of {label, description, not_for, examples}",
+        )
     elif candidates == "levels":
         parser.add_argument(
             "--levels", nargs="+", required=True, help="Rubric levels from lowest to highest"
@@ -123,12 +134,26 @@ def _load_model(args: argparse.Namespace, *, name: str | None = None):
     )
 
 
-def _state(args: argparse.Namespace) -> str:
+def _state(args: argparse.Namespace) -> Any:
     if args.state is not None:
         return args.state
+    if getattr(args, "state_json", None) is not None:
+        loaded = json.loads(args.state_json.read_text(encoding="utf-8"))
+        if not isinstance(loaded, (dict, list)):
+            raise ValueError("--state-json must contain a JSON object or a list of texts")
+        return loaded
     if str(args.state_file) == "-":
         return sys.stdin.read()
     return args.state_file.read_text(encoding="utf-8")
+
+
+def _choices(args: argparse.Namespace) -> list[Any]:
+    if args.choices is not None:
+        return args.choices
+    loaded = json.loads(args.choices_json.read_text(encoding="utf-8"))
+    if not isinstance(loaded, list):
+        raise ValueError("--choices-json must contain a JSON list")
+    return loaded
 
 
 def doctor() -> dict[str, Any]:
@@ -292,7 +317,7 @@ def run(args: argparse.Namespace) -> Any:
         elif args.command == "score":
             request.update(levels=args.levels, include_raw_scores=args.raw_scores)
         else:
-            request.update(choices=args.choices, include_raw_scores=args.raw_scores)
+            request.update(choices=_choices(args), include_raw_scores=args.raw_scores)
         return getattr(engine, "choose" if args.command == "decide" else args.command)(**request)
     if args.command == "benchmark":
         return _benchmark(args)

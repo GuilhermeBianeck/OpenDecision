@@ -22,6 +22,8 @@ from opendecision.schemas import (
     RankingResult,
     ScoreRequest,
     ScoreResult,
+    StateValue,
+    validate_state,
 )
 
 MAX_BODY_BYTES = 1_048_576
@@ -84,11 +86,16 @@ class BatchRequest(BaseModel):
 
 class BooleanRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    state: str = Field(max_length=262_144)
+    state: StateValue
     question: str = Field(min_length=1, max_length=8_192)
     abstain_threshold: float | None = Field(default=None, ge=0, le=1)
     margin_threshold: float | None = Field(default=None, ge=0, le=1)
     unsupported_threshold: float | None = Field(default=None, ge=0, le=1)
+
+    @field_validator("state")
+    @classmethod
+    def renderable_state(cls, value: StateValue) -> StateValue:
+        return validate_state(value)
 
     @field_validator("question")
     @classmethod
@@ -100,13 +107,18 @@ class BooleanRequest(BaseModel):
 
 class MultiLabelRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    state: str = Field(max_length=262_144)
+    state: StateValue
     labels: list[Annotated[str, Field(min_length=1, max_length=8_192)]] = Field(
         min_length=1, max_length=MAX_BATCH_SIZE
     )
     abstain_threshold: float | None = Field(default=None, ge=0, le=1)
     margin_threshold: float | None = Field(default=None, ge=0, le=1)
     unsupported_threshold: float | None = Field(default=None, ge=0, le=1)
+
+    @field_validator("state")
+    @classmethod
+    def renderable_state(cls, value: StateValue) -> StateValue:
+        return validate_state(value)
 
     @field_validator("labels")
     @classmethod

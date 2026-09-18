@@ -18,6 +18,11 @@ identity checks, and output validation. A backend owns tokenization, device choi
 model loading, and raw scores. FastAPI holds one model instance for the process.
 The TypeScript client calls its HTTP endpoints; Python can work entirely in process.
 
+State may be text, a record, or a list of texts; `render_state` turns it into
+deterministic text once per request before any backend sees it. A choice may carry a
+description, a `not_for` boundary and examples; `candidate_texts` is what the model
+reads and `labels` is what results are keyed by.
+
 Each request has at least two unique nonblank choices. A rubric `score` is a choice
 over 2–10 ordered level descriptions whose distribution is re-keyed by level index
 and summarized as its expectation. Batches flatten all candidate
