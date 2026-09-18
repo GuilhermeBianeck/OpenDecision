@@ -25,6 +25,7 @@ DOWNLOAD_PATTERNS = [
     "spm.model",
     "sentencepiece.bpe.model",
     "chat_template.jinja",
+    "generation_config.json",
     "README.md",
     "LICENSE*",
     "NOTICE*",
@@ -32,11 +33,18 @@ DOWNLOAD_PATTERNS = [
 
 
 def _resolve_name(name: str) -> str:
-    aliases = {"auto": "base", "bge": "multilingual", "modernbert": "base", "deberta": "tiny"}
+    aliases = {
+        "auto": "base",
+        "bge": "multilingual",
+        "modernbert": "base",
+        "deberta": "tiny",
+        "qwen": "decoder",
+    }
     resolved = aliases.get(name, name)
     if resolved not in {*MODEL_SPECS, "demo", "onnx"}:
         raise BackendError(
-            f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, auto, demo, or onnx."
+            f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, auto, "
+            "demo, or onnx."
         )
     return resolved
 
@@ -84,6 +92,11 @@ def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> D
         from opendecision.backends.demo import DemoBackend
 
         return DemoBackend()
+    if resolved == "decoder":
+        from opendecision.backends.catalog import backend_options
+        from opendecision.backends.decoder import DecoderBackend
+
+        return DecoderBackend(**backend_options("decoder"), device=device, **kwargs)
     from opendecision.backends.bge_reranker import BGERerankerBackend
     from opendecision.backends.deberta import DebertaBackend
     from opendecision.backends.modernbert import ModernBertBackend

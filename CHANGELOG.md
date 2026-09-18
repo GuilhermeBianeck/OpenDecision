@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- New `decoder` backend (pinned Qwen3 0.6B, Apache-2.0): encodes each state once
+  into the KV cache and scores options by the next-token log-probability of
+  their letter, so many options and many questions per state cost little extra.
+  Supports statements as a true/unknown/false question and optional rotation
+  averaging (`permutations`).
 - `device="auto"` now resolves to MPS on Apple Silicon (after CUDA, before CPU),
   based on a published 1.2–3.5× measurement. The default `max_length` is the
   model's context capped at 2,048 tokens instead of a fixed 512.

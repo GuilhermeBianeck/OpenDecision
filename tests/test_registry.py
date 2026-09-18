@@ -18,6 +18,7 @@ def test_catalog_uses_immutable_unique_revisions_and_has_no_shared_mutation():
         "base",
         "smart",
         "multilingual",
+        "decoder",
         "demo",
         "onnx",
     }
