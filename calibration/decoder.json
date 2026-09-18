@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "method": "temperature_scaling",
+  "temperature": 4.0304446435236825,
+  "temperatures": {
+    "2": 10.924838626255605,
+    "4": 3.3706144146088746,
+    "12": 2.213987818459512
+  },
+  "backend": "decoder",
+  "model": "Qwen/Qwen3-0.6B",
+  "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "template": "default",
+  "task_family": "objective_agent_control",
+  "max_length": 2048,
+  "precision": "float32",
+  "dataset_sha256": "914ad6aaac290b4ba10ef5d40abd5a41b30e0cfe5cd0e3942c0ecdc46c28bfd3",
+  "split": "calibration",
+  "sample_count": 741,
+  "choice_count_min": 2,
+  "choice_count_max": 12,
+  "nll_before": 1.6480337344550926,
+  "nll_after": 0.9079328435461723,
+  "created_at": "2026-09-18T13:07:15.884539+00:00"
+}

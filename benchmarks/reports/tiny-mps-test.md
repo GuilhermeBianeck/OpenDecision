@@ -1,6 +1,6 @@
 # OpenDecision benchmark report
 
-Status: **measured**. Generated 2026-09-18T11:28:24.765223+00:00.
+Status: **measured**. Generated 2026-09-18T13:18:59.587218+00:00.
 
 Model `cross-encoder/nli-deberta-v3-xsmall`; revision `a150876415327c80daeff35ca6f68f5ed8cf5c24`; backend `tiny`; device `mps`; batch 1.
 
@@ -29,6 +29,17 @@ Dataset: 1726 decisions, 144 underlying scenarios, 25 groups, split `test`. SHA-
 | verification | 352 | 0.9318 | 0.0375 |
 | robustness | 286 | 0.3811 | 0.3094 |
 
+## Objective accuracy by candidate count
+
+A margin threshold is only comparable within one candidate count once a
+per-count calibration profile is applied. Read coverage per row, not pooled.
+
+| Candidates | Count | Accuracy | ECE | Coverage at margin >= 0.5 | Accuracy when answered |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2 | 690 | 0.7203 | 0.1132 | 0.6710 | 0.8294 |
+| 4 | 312 | 0.4199 | 0.1549 | 0.2051 | 0.4062 |
+| 12 | 156 | 0.2500 | 0.1661 | 0.0513 | 0.0000 |
+
 ## Separate evaluation families
 
 Policy agreement (not moral accuracy): `0.9090909090909091` across 44 policy-labeled cases.
@@ -39,10 +50,10 @@ Verification statements: 352 cases, 352 scored as statements.
 ## Timing
 
 Measurement: **in-process Python SDK; includes serialization and scoring**.
-Cold model load: `3635.728334018495` ms. First batch: `3880.893` ms.
-Warm batch latency: `{'p50': 24.49024998350069, 'p95': 195.3833997715264, 'p99': 381.5758800157345, 'samples': 1725}`. Amortized per decision: `{'p50': 24.49024998350069, 'p95': 195.3833997715264, 'p99': 381.5758800157345}`.
-Throughput including first batch: `19.466` decisions/s.
-Process lifetime peak RSS: `1066680320` bytes; this is not isolated model memory.
+Cold model load: `1893.5624160221778` ms. First batch: `2045.486` ms.
+Warm batch latency: `{'p50': 14.493292022962123, 'p95': 140.4654581914656, 'p99': 239.4641412771307, 'samples': 1725}`. Amortized per decision: `{'p50': 14.493292022962123, 'p95': 140.4654581914656, 'p99': 239.4641412771307}`.
+Throughput including first batch: `28.271` decisions/s.
+Process lifetime peak RSS: `902103040` bytes; this is not isolated model memory.
 
 ## Selective answering
 

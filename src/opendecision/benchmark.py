@@ -472,6 +472,14 @@ def run_benchmark(
             for family in OBJECTIVE_FAMILIES
             if any(r["family"] == family for r in objective)
         },
+        # A margin threshold is only comparable within one candidate count once a
+        # per-count calibration profile is applied, so report the slices separately.
+        "objective_by_choice_count": {
+            str(count): classification_metrics(
+                [r for r in objective if len(r["probabilities"]) == count]
+            )
+            for count in sorted({len(r["probabilities"]) for r in objective})
+        },
         "by_variant": {
             variant: classification_metrics([r for r in objective if r["variant"] == variant])
             for variant in sorted({r["variant"] for r in objective})
@@ -659,6 +667,35 @@ def write_report(report: dict[str, Any], output: str | Path) -> dict[str, str]:
         lines.append(
             f"| {family} | {metrics['count']} | {metrics['accuracy']:.4f} | {metrics['ece']:.4f} |"
         )
+    by_count = report.get("objective_by_choice_count") or {}
+    if by_count:
+        lines.extend(
+            [
+                "",
+                "## Objective accuracy by candidate count",
+                "",
+                "A margin threshold is only comparable within one candidate count once a",
+                "per-count calibration profile is applied. Read coverage per row, not pooled.",
+                "",
+                "| Candidates | Count | Accuracy | ECE | Coverage at margin >= 0.5 | Accuracy when answered |",
+                "| --- | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for count, metrics in sorted(by_count.items(), key=lambda item: int(item[0])):
+            row = next(
+                (
+                    t
+                    for t in metrics.get("coverage_by_margin_threshold", [])
+                    if t["min_margin"] == 0.5
+                ),
+                {},
+            )
+            selective = row.get("selective_accuracy")
+            selective_text = "" if selective is None else f"{selective:.4f}"
+            lines.append(
+                f"| {count} | {metrics['count']} | {metrics['accuracy']:.4f} "
+                f"| {metrics['ece']:.4f} | {row.get('coverage', 0):.4f} | {selective_text} |"
+            )
     ordinal = report["ordinal"]
     lines.extend(
         [

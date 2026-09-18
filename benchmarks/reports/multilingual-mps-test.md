@@ -1,6 +1,6 @@
 # OpenDecision benchmark report
 
-Status: **measured**. Generated 2026-09-18T11:47:16.875477+00:00.
+Status: **measured**. Generated 2026-09-18T13:28:39.415979+00:00.
 
 Model `BAAI/bge-reranker-v2-m3`; revision `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`; backend `multilingual`; device `mps`; batch 1.
 
@@ -29,6 +29,17 @@ Dataset: 1726 decisions, 144 underlying scenarios, 25 groups, split `test`. SHA-
 | verification | 352 | 0.4517 | 0.1965 |
 | robustness | 286 | 0.4056 | 0.4919 |
 
+## Objective accuracy by candidate count
+
+A margin threshold is only comparable within one candidate count once a
+per-count calibration profile is applied. Read coverage per row, not pooled.
+
+| Candidates | Count | Accuracy | ECE | Coverage at margin >= 0.5 | Accuracy when answered |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2 | 690 | 0.4855 | 0.2300 | 0.3609 | 0.3976 |
+| 4 | 312 | 0.5705 | 0.2527 | 0.7179 | 0.6295 |
+| 12 | 156 | 0.5128 | 0.2065 | 0.3141 | 0.7551 |
+
 ## Separate evaluation families
 
 Policy agreement (not moral accuracy): `0.7045454545454546` across 44 policy-labeled cases.
@@ -39,10 +50,10 @@ Verification statements: 352 cases, 0 scored as statements.
 ## Timing
 
 Measurement: **in-process Python SDK; includes serialization and scoring**.
-Cold model load: `5305.319582985248` ms. First batch: `5637.921` ms.
-Warm batch latency: `{'p50': 58.760292013175786, 'p95': 499.7030252008699, 'p99': 960.2440913137979, 'samples': 1725}`. Amortized per decision: `{'p50': 58.760292013175786, 'p95': 499.7030252008699, 'p99': 960.2440913137979}`.
-Throughput including first batch: `6.335` decisions/s.
-Process lifetime peak RSS: `763101184` bytes; this is not isolated model memory.
+Cold model load: `3719.928499951493` ms. First batch: `3974.060` ms.
+Warm batch latency: `{'p50': 40.08833400439471, 'p95': 345.8842415828258, 'p99': 648.1047880020924, 'samples': 1725}`. Amortized per decision: `{'p50': 40.08833400439471, 'p95': 345.8842415828258, 'p99': 648.1047880020924}`.
+Throughput including first batch: `9.199` decisions/s.
+Process lifetime peak RSS: `762855424` bytes; this is not isolated model memory.
 
 ## Selective answering
 

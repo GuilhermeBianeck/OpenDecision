@@ -134,6 +134,40 @@ def render(reports: list[dict[str, Any]]) -> str:
                 ],
             )
         )
+    counts = sorted({c for r in reports for c in r.get("objective_by_choice_count", {})}, key=int)
+    if counts:
+        lines += [
+            "",
+            "## Objective accuracy by candidate count",
+            "",
+            "Accuracy, then the share of rows clearing a 0.5 margin and their accuracy.",
+            "A per-count calibration profile makes that margin incomparable between counts.",
+            "",
+        ]
+        header = ["Report"] + [f"k={c}" for c in counts]
+        rows = []
+        for r in reports:
+            row = [r["_name"]]
+            for count in counts:
+                metrics = r.get("objective_by_choice_count", {}).get(count)
+                if not metrics:
+                    row.append("")
+                    continue
+                at_half = next(
+                    (
+                        t
+                        for t in metrics.get("coverage_by_margin_threshold", [])
+                        if t["min_margin"] == 0.5
+                    ),
+                    {},
+                )
+                selective = at_half.get("selective_accuracy")
+                row.append(
+                    f"{fmt(metrics['accuracy'])} · {fmt(at_half.get('coverage'))} cov"
+                    + (f" @ {fmt(selective)}" if selective is not None else "")
+                )
+            rows.append(row)
+        lines.extend(table(header, rows))
     lines += ["", "## Other families", ""]
     lines.extend(
         table(
