@@ -1,0 +1,281 @@
+"""Public local decision API. No inference network calls or prompt logging."""
+
+from __future__ import annotations
+
+import math
+import threading
+import time
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from .calibration import CalibrationProfile
+from .confidence import margin, softmax
+from .errors import BackendError, CalibrationError
+from .schemas import BooleanResult, DecisionRequest, DecisionResult, RankedChoice, RankingResult
+
+if TYPE_CHECKING:
+    from .backends.base import DecisionBackend
+
+
+class DecisionModel:
+    """Load a cached open-weight scorer, or supply a custom backend.
+
+    Download weights explicitly with ``opendecision pull base`` first.
+    The per-instance lock bounds simultaneous model inference; use batches
+    to improve throughput. Normalized scores alone are not calibrated.
+    """
+
+    def __init__(
+        self,
+        name: str = "base",
+        *,
+        device: str = "auto",
+        backend: DecisionBackend | None = None,
+        calibration: CalibrationProfile | str | Path | None = None,
+        batch_size: int = 32,
+        max_length: int = 512,
+        template: str = "default",
+        **backend_options: object,
+    ) -> None:
+        from .registry import create_backend
+
+        if not 1 <= batch_size <= 1024:
+            raise ValueError("batch_size must be between 1 and 1024")
+        if not 32 <= max_length <= 8192:
+            raise ValueError("max_length must be between 32 and 8192")
+        started = time.perf_counter()
+        self.backend = (
+            backend
+            if backend is not None
+            else create_backend(
+                name,
+                device=device,
+                batch_size=batch_size,
+                max_length=max_length,
+                template=template,
+                **backend_options,
+            )
+        )
+        self.initialization_ms = (time.perf_counter() - started) * 1000
+        self.template = template
+        self.max_length = max_length
+        self.batch_size = batch_size
+        self.calibration = (
+            CalibrationProfile.load(calibration)
+            if isinstance(calibration, (str, Path))
+            else calibration
+        )
+        self._lock = threading.Lock()
+        if self.calibration is not None:
+            expected = {
+                "backend": self.backend.name,
+                "model": self.backend.model_id,
+                "revision": self.backend.revision,
+                "template": self.template,
+                "max_length": self.max_length,
+                "precision": self.backend.precision,
+            }
+            mismatched = [
+                k for k, value in expected.items() if getattr(self.calibration, k) != value
+            ]
+            if mismatched:
+                raise CalibrationError("Calibration identity mismatch: " + ", ".join(mismatched))
+
+    @property
+    def load_time_ms(self) -> float | None:
+        """Actual checkpoint load time, available after the lazy backend has loaded."""
+        return getattr(self.backend, "load_time_ms", None)
+
+    def choose(
+        self,
+        *,
+        state: str,
+        question: str,
+        choices: list[str],
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+        include_raw_scores: bool = False,
+    ) -> DecisionResult:
+        """Score choices; abstain below either optional probability or margin threshold."""
+        request = DecisionRequest(
+            state=state,
+            question=question,
+            choices=choices,
+            abstain_threshold=abstain_threshold,
+            margin_threshold=margin_threshold,
+            include_raw_scores=include_raw_scores,
+        )
+        return self.choose_batch([request])[0]
+
+    def choose_batch(self, requests: list[DecisionRequest]) -> list[DecisionResult]:
+        """Score a request batch. Latency is shared batch wall time, not a percentile sample."""
+        validated = [DecisionRequest.model_validate(request) for request in requests]
+        if not validated:
+            return []
+        if len(validated) > 1024:
+            raise ValueError("at most 1024 requests per batch")
+        started = time.perf_counter()
+        with self._lock:
+            inference_start = time.perf_counter()
+            rows = self.backend.score_batch(validated)
+            inference_ms = (time.perf_counter() - inference_start) * 1000
+            if len(rows) != len(validated):
+                raise BackendError("Backend returned the wrong number of score rows")
+            elapsed_ms = (time.perf_counter() - started) * 1000
+            return [
+                self._result(request, row, elapsed_ms, inference_ms, len(validated))
+                for request, row in zip(validated, rows)
+            ]
+
+    def _result(
+        self,
+        request: DecisionRequest,
+        scores: list[float],
+        elapsed_ms: float,
+        inference_ms: float,
+        batch_count: int,
+    ) -> DecisionResult:
+        if len(scores) != len(request.choices) or not all(math.isfinite(s) for s in scores):
+            raise BackendError("Backend must return exactly one finite score per choice")
+        normalized = softmax(scores)
+        calibrated = self.calibration.transform(scores) if self.calibration else None
+        effective = calibrated if calibrated is not None else normalized
+        # Deterministic tie-breaking is independent of caller option ordering.
+        top = min(range(len(effective)), key=lambda i: (-effective[i], request.choices[i]))
+        confidence = margin(effective)
+        abstained = (
+            request.abstain_threshold is not None and effective[top] < request.abstain_threshold
+        ) or (request.margin_threshold is not None and confidence < request.margin_threshold)
+        metadata = {
+            "revision": self.backend.revision,
+            "device": self.backend.device,
+            "precision": self.backend.precision,
+            "template": self.template,
+            "max_length": self.max_length,
+            "calibrated": self.calibration is not None,
+            "confidence_definition": "top1_minus_top2",
+            "batch_size": batch_count,
+            "batch_inference_ms": inference_ms,
+            "latency_scope": "batch_wall_including_lock",
+            "calibration": self.calibration.model_dump() if self.calibration else None,
+        }
+        backend_metadata = getattr(self.backend, "metadata", {})
+        if isinstance(backend_metadata, dict):
+            metadata["backend_details"] = backend_metadata
+        return DecisionResult(
+            choice=None if abstained else request.choices[top],
+            probabilities=dict(zip(request.choices, effective)),
+            normalized_probabilities=dict(zip(request.choices, normalized)),
+            calibrated_probabilities=dict(zip(request.choices, calibrated)) if calibrated else None,
+            confidence=confidence,
+            top_probability=effective[top],
+            abstained=abstained,
+            raw_scores=dict(zip(request.choices, scores)) if request.include_raw_scores else None,
+            latency_ms=elapsed_ms,
+            backend=self.backend.name,
+            model=self.backend.model_id,
+            metadata=metadata,
+        )
+
+    def boolean(
+        self,
+        *,
+        state: str,
+        question: str,
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+    ) -> BooleanResult:
+        """Return an independent yes/no decision with yes probability."""
+        result = self.choose(
+            state=state,
+            question=question,
+            choices=["yes", "no"],
+            abstain_threshold=abstain_threshold,
+            margin_threshold=margin_threshold,
+        )
+        return self._boolean_result(result)
+
+    @staticmethod
+    def _boolean_result(result: DecisionResult) -> BooleanResult:
+        return BooleanResult(
+            value=None if result.abstained else result.choice == "yes",
+            probability=result.probabilities["yes"],
+            decision=result,
+        )
+
+    def rank(
+        self,
+        *,
+        state: str,
+        question: str,
+        choices: list[str],
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+        include_raw_scores: bool = False,
+    ) -> RankingResult:
+        """Rank candidates. A full ordering is returned even if the winner is abstained."""
+        result = self.choose(
+            state=state,
+            question=question,
+            choices=choices,
+            abstain_threshold=abstain_threshold,
+            margin_threshold=margin_threshold,
+            include_raw_scores=include_raw_scores,
+        )
+        ranking = [
+            RankedChoice(
+                choice=choice,
+                probability=probability,
+                raw_score=result.raw_scores[choice] if result.raw_scores else None,
+            )
+            for choice, probability in sorted(
+                result.probabilities.items(), key=lambda item: (-item[1], item[0])
+            )
+        ]
+        return RankingResult(ranking=ranking, decision=result)
+
+    def multi_label(
+        self,
+        *,
+        state: str,
+        labels: list[str],
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+    ) -> dict[str, BooleanResult]:
+        """Evaluate each label as its own binary question, never a shared softmax."""
+        if not labels or len(labels) > 128 or len(set(labels)) != len(labels):
+            raise ValueError("provide 1–128 unique labels")
+        requests = [
+            DecisionRequest(
+                state=state,
+                question=label,
+                choices=["yes", "no"],
+                abstain_threshold=abstain_threshold,
+                margin_threshold=margin_threshold,
+            )
+            for label in labels
+        ]
+        return dict(zip(labels, map(self._boolean_result, self.choose_batch(requests))))
+
+    def decide_many(
+        self,
+        *,
+        state: str,
+        questions: dict[str, list[str]],
+        abstain_threshold: float | None = None,
+        margin_threshold: float | None = None,
+    ) -> dict[str, DecisionResult]:
+        """Batch independent natural-language questions over a shared state."""
+        if not questions or len(questions) > 128:
+            raise ValueError("provide 1–128 questions")
+        requests = [
+            DecisionRequest(
+                state=state,
+                question=question,
+                choices=choices,
+                abstain_threshold=abstain_threshold,
+                margin_threshold=margin_threshold,
+            )
+            for question, choices in questions.items()
+        ]
+        return dict(zip(questions, self.choose_batch(requests)))
