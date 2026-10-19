@@ -76,8 +76,9 @@ class DecisionModel:
 
         if not 1 <= batch_size <= 1024:
             raise ValueError("batch_size must be between 1 and 1024")
-        if max_length is not None and not 32 <= max_length <= 8192:
-            raise ValueError("max_length must be between 32 and 8192")
+        # The upper bound is each backend's measured context limit, checked there.
+        if max_length is not None and max_length < 32:
+            raise ValueError("max_length must be at least 32")
         started = time.perf_counter()
         self.backend = (
             backend
