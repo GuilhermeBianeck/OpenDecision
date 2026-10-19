@@ -15,7 +15,8 @@ backends, calibration and routing as the native API.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Any, Literal
+import json
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
 from pydantic import Field, field_validator
 
@@ -36,39 +37,94 @@ if TYPE_CHECKING:
     from opendecision.api import DecisionModel
 
 
-def _nonblank(value: str) -> str:
-    if not value.strip():
-        raise ValueError("instructions must not be blank")
-    return value
+# Instructions and criteria may be any JSON value: plain text, a record such as
+# {"what": ..., "not_for": ..., "examples": [...]}, or a list.
+JsonValue = Union[str, int, float, bool, None, dict[str, Any], list[Any]]
+
+
+def render(value: Any, depth: int = 0) -> str:
+    """Deterministic text for a JSON value, preserving the caller's key order.
+
+    Text passes through. A record becomes ``key: value`` lines with nested
+    records indented; a list becomes ``- item`` lines. The model reads the
+    field names, so a rubric written as {what, not_for, examples} keeps its
+    structure instead of being flattened into one sentence.
+    """
+    indent = "  " * depth
+    if isinstance(value, str):
+        return value
+    if value is None or isinstance(value, (bool, int, float)):
+        return json.dumps(value)
+    if isinstance(value, dict):
+        lines = []
+        for key, item in value.items():
+            if isinstance(item, (dict, list)) and item:
+                lines.append(f"{indent}{key}:")
+                lines.append(render(item, depth + 1))
+            else:
+                lines.append(f"{indent}{key}: {render(item, depth + 1).strip()}")
+        return "\n".join(lines)
+    if isinstance(value, list):
+        lines = []
+        for item in value:
+            if isinstance(item, (dict, list)) and item:
+                nested = render(item, depth + 1).splitlines()
+                lines.append(f"{indent}- {nested[0].strip()}")
+                lines.extend(nested[1:])
+            else:
+                lines.append(f"{indent}- {render(item, depth + 1).strip()}")
+        return "\n".join(lines)
+    raise ValueError(f"cannot render a {type(value).__name__} as decision text")
+
+
+def _text(value: Any, what: str) -> str:
+    text = render(value).strip()
+    if not text:
+        raise ValueError(f"{what} must not be blank")
+    return text
 
 
 class ChoiceSpec(PublicModel):
     """Pick one option. Keys are the option names; values describe them."""
 
     type: Literal["choice"]
-    instructions: str = Field(min_length=1)
-    criteria: dict[str, str | None] = Field(min_length=2)
+    instructions: JsonValue
+    criteria: dict[str, JsonValue] = Field(min_length=2)
 
-    _nonblank = field_validator("instructions")(classmethod(lambda cls, v: _nonblank(v)))
+    _instructions = field_validator("instructions")(
+        classmethod(lambda cls, v: _text(v, "instructions") and v)
+    )
 
 
 class ScoreSpec(PublicModel):
-    """Rate on ordered levels, lowest first."""
+    """Rate on ordered levels, lowest first. Each level may be text or a record."""
 
     type: Literal["score"]
-    instructions: str = Field(min_length=1)
-    criteria: list[str] = Field(min_length=2, max_length=10)
+    instructions: JsonValue
+    criteria: list[JsonValue] = Field(min_length=2, max_length=10)
 
-    _nonblank = field_validator("instructions")(classmethod(lambda cls, v: _nonblank(v)))
+    _instructions = field_validator("instructions")(
+        classmethod(lambda cls, v: _text(v, "instructions") and v)
+    )
+
+
+class NoulCriteria(PublicModel):
+    """What counts as true and as false, when the boundary needs spelling out."""
+
+    true: JsonValue = None
+    false: JsonValue = None
 
 
 class NoulSpec(PublicModel):
     """A statement about the state; the answer is the probability it is true."""
 
     type: Literal["noul"]
-    instructions: str = Field(min_length=1)
+    instructions: JsonValue
+    criteria: NoulCriteria | None = None
 
-    _nonblank = field_validator("instructions")(classmethod(lambda cls, v: _nonblank(v)))
+    _instructions = field_validator("instructions")(
+        classmethod(lambda cls, v: _text(v, "instructions") and v)
+    )
 
 
 QuestionSpec = Annotated[ChoiceSpec | ScoreSpec | NoulSpec, Field(discriminator="type")]
@@ -110,18 +166,37 @@ class SystemOneResponse(PublicModel):
     answers: dict[str, AnswerSpec]
 
 
+def _statement(spec: NoulSpec) -> str:
+    """The statement, with any true/false definitions folded in as plain clauses."""
+    statement = _text(spec.instructions, "instructions")
+    if spec.criteria is None:
+        return statement
+    clauses = []
+    if spec.criteria.true is not None:
+        clauses.append(f"It counts as true when: {render(spec.criteria.true).strip()}")
+    if spec.criteria.false is not None:
+        clauses.append(f"It counts as false when: {render(spec.criteria.false).strip()}")
+    return "\n".join([statement, *clauses])
+
+
 def _to_question(spec: ChoiceSpec | ScoreSpec | NoulSpec) -> Any:
     if isinstance(spec, ChoiceSpec):
         return ChoiceQuestion(
-            question=spec.instructions,
+            question=_text(spec.instructions, "instructions"),
             choices=[
-                ChoiceOption(label=label, description=description)
+                ChoiceOption(
+                    label=label,
+                    description=None if description is None else render(description).strip(),
+                )
                 for label, description in spec.criteria.items()
             ],
         )
     if isinstance(spec, ScoreSpec):
-        return ScoreQuestion(question=spec.instructions, levels=spec.criteria)
-    return BooleanQuestion(statement=spec.instructions)
+        return ScoreQuestion(
+            question=_text(spec.instructions, "instructions"),
+            levels=[_text(level, "score level") for level in spec.criteria],
+        )
+    return BooleanQuestion(statement=_statement(spec))
 
 
 def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:

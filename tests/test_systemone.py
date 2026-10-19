@@ -150,3 +150,83 @@ def test_malformed_requests_are_rejected_with_422(client, mutation):
 
 def test_the_route_is_documented(client):
     assert "/v1/systemone" in client.get("/openapi.json").json()["paths"]
+
+
+def _recorded(question):
+    """Send one question and return what the backend was asked."""
+    seen = []
+
+    class Recording(StatementBackend):
+        def score_batch(self, requests):
+            seen.extend(requests)
+            return [[1.0] + [0.0] * (len(r.choices) - 1) for r in requests]
+
+    engine = DecisionModel(backend=Recording())
+    with TestClient(create_app("demo", decision_model=engine)) as client:
+        response = client.post(
+            "/v1/systemone", json={"state": "s", "model": "m", "questions": {"q": question}}
+        )
+    assert response.status_code == 200, response.text
+    return seen, engine.backend.statements
+
+
+def test_structured_option_criteria_keep_their_field_names():
+    seen, _ = _recorded(
+        {
+            "type": "choice",
+            "instructions": {"task": "Route the ticket", "audience": "support"},
+            "criteria": {
+                "billing": {
+                    "what": "Charges and refunds",
+                    "not_for": "Login problems",
+                    "examples": ["double charge", "refund request"],
+                },
+                "other": ["anything", "else"],
+            },
+        }
+    )
+    request = seen[0]
+    assert request.labels == ["billing", "other"]
+    assert request.candidate_texts[0] == (
+        "billing: what: Charges and refunds\n"
+        "not_for: Login problems\n"
+        "examples:\n  - double charge\n  - refund request"
+    )
+    assert request.candidate_texts[1] == "other: - anything\n- else"
+    assert "task: Route the ticket" in request.question
+    assert "audience: support" in request.question
+
+
+def test_score_levels_may_be_records():
+    seen, _ = _recorded(
+        {
+            "type": "score",
+            "instructions": "How severe?",
+            "criteria": [{"level": "minor", "means": "cosmetic"}, "major", "critical"],
+        }
+    )
+    assert any("level: minor" in text for text in seen[0].candidate_texts)
+
+
+def test_noul_definitions_are_folded_into_the_statement():
+    _, statements = _recorded(
+        {
+            "type": "noul",
+            "instructions": "The customer wants a refund.",
+            "criteria": {"true": "They ask for money back", "false": {"not": ["store credit"]}},
+        }
+    )
+    assert statements[0].statement == (
+        "The customer wants a refund.\n"
+        "It counts as true when: They ask for money back\n"
+        "It counts as false when: not:\n  - store credit"
+    )
+
+
+@pytest.mark.parametrize("instructions", [{}, [], "", "   "])
+def test_blank_structured_instructions_are_rejected(client, instructions):
+    import copy
+
+    request = copy.deepcopy(SPEC_REQUEST)
+    request["questions"]["is_urgent"]["instructions"] = instructions
+    assert client.post("/v1/systemone", json=request).status_code == 422
