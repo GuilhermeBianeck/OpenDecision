@@ -148,7 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--request-batch-size", type=int, default=1)
     consistency = commands.add_parser(
         "consistency",
-        help="Measure negation consistency",
+        help="Measure negation consistency and option-order invariance",
     )
     _model_options(consistency)
     consistency.add_argument(
@@ -158,6 +158,8 @@ def build_parser() -> argparse.ArgumentParser:
     consistency.add_argument(
         "--split", default="test", choices=("calibration", "validation", "test", "all")
     )
+    consistency.add_argument("--permutations", type=int, default=3)
+    consistency.add_argument("--seed", type=int, default=0)
     consistency.add_argument("--output", type=Path, help="Write the report as JSON here")
     calibrate = commands.add_parser(
         "calibrate", help="Fit temperature using only the calibration split"
@@ -321,15 +323,28 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _consistency(args: argparse.Namespace) -> dict[str, Any]:
-    from opendecision.consistency import load_negation_pairs, negation_consistency
+    from opendecision.benchmark import load_dataset
+    from opendecision.consistency import (
+        load_negation_pairs,
+        negation_consistency,
+        order_invariance,
+    )
 
     engine = _load_model(args)
     keep = (lambda split: True) if args.split == "all" else (lambda split: split == args.split)
     pairs = [pair for pair in load_negation_pairs(args.pairs) if keep(pair["split"])]
+    choices = [
+        case.to_request().model_copy(update={"abstain_threshold": None})
+        for case in load_dataset(args.dataset)
+        if case.kind == "choice" and case.variant == "base" and keep(case.split)
+    ]
     report = {
         "model": engine.backend.model_id,
         "split": args.split,
         "negation": negation_consistency(engine, pairs),
+        "choice_order": order_invariance(
+            engine, choices, permutations=args.permutations, seed=args.seed
+        ),
     }
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
