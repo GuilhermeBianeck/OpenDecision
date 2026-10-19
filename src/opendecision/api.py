@@ -30,6 +30,8 @@ from .schemas import (
     StatementRequest,
     StateValue,
 )
+from .systemone import SystemOneRequest, SystemOneResponse
+from .systemone import answer as answer_systemone
 
 if TYPE_CHECKING:
     from .backends.base import DecisionBackend
@@ -596,6 +598,15 @@ class DecisionModel:
         for (key, _), result in zip(statements, self.statement_batch([r for _, r in statements])):
             answers[key] = result
         return {key: answers[key] for key in request.questions}
+
+    def systemone(self, request: SystemOneRequest | dict[str, Any]) -> SystemOneResponse:
+        """Answer a request in the shared ``/v1/systemone`` format, in process.
+
+        Accepts the same JSON a server would receive, as a dict or a validated
+        :class:`~opendecision.systemone.SystemOneRequest`, and returns the same
+        response the server would send.
+        """
+        return answer_systemone(self, SystemOneRequest.model_validate(request))
 
     def decide_many(
         self,

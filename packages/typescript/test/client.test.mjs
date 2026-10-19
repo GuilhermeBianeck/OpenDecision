@@ -71,3 +71,25 @@ test("checks configuration and malformed server responses", async () => {
   const client = new OpenDecision({fetch: async () => new Response("{broken json")});
   await assert.rejects(client.health(), /invalid JSON/);
 });
+
+test("sends the shared systemone request unchanged", async () => {
+  const calls = [];
+  const reply = {model: "m", answers: {is_urgent: {type: "noul", noul: 0.9}}, usage: {input_tokens: 5, output_tokens: 0}};
+  const client = new OpenDecision({fetch: async (url, options) => {
+    calls.push({url, options});
+    return new Response(JSON.stringify(reply), {status: 200});
+  }});
+  const shared = {
+    state: "I have been waiting three days.",
+    model: "any-name",
+    questions: {
+      team: {type: "choice", instructions: "Which team?", criteria: {billing: {what: "payments"}, sales: null}},
+      frustration: {type: "score", instructions: "How frustrated?", criteria: ["calm", "angry"]},
+      is_urgent: {type: "noul", instructions: "It is urgent.", criteria: {true: "a deadline is named"}},
+    },
+  };
+  assert.deepEqual(await client.systemone(shared), reply);
+  assert.equal(new URL(calls[0].url).pathname, "/v1/systemone");
+  assert.equal(calls[0].options.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].options.body), shared);
+});
