@@ -63,11 +63,9 @@ On generated pictures with known answers (`scripts/image_probe.py`,
 | Colour, 24 images (choice) | 100 % |
 | Count from one to four (score) | 95.8 % |
 | "More than N objects" (statement) | 95.8 % |
-| Locating one target among two distractors (box), 6 scenes | all found, mean IoU 0.92 |
+| Locating one target among two distractors (box), 24 scenes | all found, mean IoU 0.89 |
 
-Four questions about one image take 2.1 s; one box takes 1.4 s. Peak memory is
-4.02 GB. The box probe is a small sample: on the 16 GB reference machine,
-with other applications running, the memory watchdog that halts any job
-leaving under 35 % free stopped it after six scenes. These are synthetic
-shapes, not photographs or documents; measure on your own images before
-relying on either question.
+Four questions about one image take 2.1 s; one box takes 1.2 s. Peak memory is
+4.02 GB. Every box overlapped its target by at least half; the lowest
+intersection over union was 0.78. These are synthetic shapes, not photographs
+or documents; measure on your own images before relying on either question.
