@@ -10,6 +10,7 @@ import copy
 import time
 from typing import Any
 
+from opendecision.backends.catalog import MODEL_SPECS
 from opendecision.backends.decoder import (
     LETTERS,
     MIN_STATE_TOKENS,
@@ -17,6 +18,7 @@ from opendecision.backends.decoder import (
     DecoderBackend,
 )
 from opendecision.errors import BackendError
+from opendecision.memory import MLX_CACHE_LIMIT_BYTES, check_memory
 
 
 def common_prefix_length(rows: list[list[int]]) -> int:
@@ -65,6 +67,9 @@ class MLXDecoderBackend(DecoderBackend):
 
                 if not mx.metal.is_available():
                     raise BackendError("MLX scoring requires an available Apple Metal GPU.")
+                check_memory(MODEL_SPECS[self.name])
+                # Process-wide: bounds the reuse cache of freed GPU buffers.
+                mx.set_cache_limit(MLX_CACHE_LIMIT_BYTES)
                 # Resolve locally first and pass a path: mlx-lm cannot implicitly fetch.
                 path = snapshot_download(
                     self.model_id, revision=self.revision, local_files_only=True

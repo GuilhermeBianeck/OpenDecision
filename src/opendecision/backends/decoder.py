@@ -22,6 +22,7 @@ from opendecision.backends.transformers import (
     select_device,
 )
 from opendecision.errors import BackendError
+from opendecision.memory import check_memory
 
 if TYPE_CHECKING:
     from opendecision.schemas import DecisionRequest, StatementRequest
@@ -137,6 +138,8 @@ class DecoderBackend:
             if self._model is not None:
                 return
             started = time.perf_counter()
+            if self.name in MODEL_SPECS:
+                check_memory(MODEL_SPECS[self.name])
             try:
                 import torch
                 from transformers import AutoModelForCausalLM, AutoTokenizer

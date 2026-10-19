@@ -59,6 +59,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "Apache-2.0",
         "parameters": 2_000_000_000,
         "weights_bytes": 1_722_271_785,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 2_570_000_000,
         "context_limit": 8192,
         "description": "Qwen3.5 2B, MLX affine Q4; general local decision candidate.",
     },
@@ -70,6 +72,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "LFM-1.0",
         "parameters": 1_200_000_000,
         "weights_bytes": 658_540_250,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 1_450_000_000,
         "context_limit": 8192,
         "description": "LFM2.5 1.2B instruct, MLX affine Q4; fast local decision candidate.",
     },
@@ -81,6 +85,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "Apache-2.0",
         "parameters": 4_000_000_000,
         "weights_bytes": 3_034_300_695,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 4_470_000_000,
         "context_limit": 8192,
         "description": "Qwen3.5 4B, MLX affine Q4; quality-focused local decision candidate.",
     },

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from opendecision.backends.catalog import MODEL_SPECS
 from opendecision.errors import BackendError
+from opendecision.memory import check_memory
 
 if TYPE_CHECKING:
     from opendecision.schemas import DecisionRequest, StatementRequest
@@ -155,6 +156,8 @@ class TransformersBackend:
             if self._model is not None:
                 return
             started = time.perf_counter()
+            if self.name in MODEL_SPECS:
+                check_memory(MODEL_SPECS[self.name])
             try:
                 import torch
                 from transformers import AutoModelForSequenceClassification, AutoTokenizer
