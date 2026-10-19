@@ -165,13 +165,21 @@ export interface SystemOneNoul {
   criteria?: {true?: JsonValue; false?: JsonValue} | null;
 }
 
-export type SystemOneQuestion = SystemOneChoice | SystemOneScore | SystemOneNoul;
+/** Experimental, vision backends only: where the named thing is in the request's one image. */
+export interface SystemOneBox {
+  type: "box";
+  instructions: JsonValue;
+}
+
+export type SystemOneQuestion = SystemOneChoice | SystemOneScore | SystemOneNoul | SystemOneBox;
 
 /** The shared `/v1/systemone` request. `model` is accepted as given. */
 export interface SystemOneRequest {
   state: StateValue;
   model: string;
   questions: Record<string, SystemOneQuestion>;
+  /** Up to four images as base64 data URIs or image parts; images may also sit inside `state`. */
+  images?: JsonValue[];
 }
 
 export interface SystemOneChoiceAnswer {
@@ -195,13 +203,25 @@ export interface SystemOneNoulAnswer {
   noul: number;
 }
 
-export type SystemOneAnswer = SystemOneChoiceAnswer | SystemOneScoreAnswer | SystemOneNoulAnswer;
+export interface SystemOneBoxAnswer {
+  type: "box";
+  /** [left, top, right, bottom] as fractions of the image; null when no box was found. */
+  box: [number, number, number, number] | null;
+  /** The same box in the original image's pixels. */
+  pixels: [number, number, number, number] | null;
+}
+
+export type SystemOneAnswer =
+  | SystemOneChoiceAnswer
+  | SystemOneScoreAnswer
+  | SystemOneNoulAnswer
+  | SystemOneBoxAnswer;
 
 export interface SystemOneResponse {
   /** The checkpoint that answered, not the requested name. */
   model: string;
   answers: Record<string, SystemOneAnswer>;
-  /** output_tokens is always 0: nothing is generated. */
+  /** output_tokens is 0 except for box answers, which are generated. */
   usage: {input_tokens: number; output_tokens: number};
 }
 

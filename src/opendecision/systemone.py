@@ -132,7 +132,18 @@ class NoulSpec(PublicModel):
     )
 
 
-QuestionSpec = Annotated[ChoiceSpec | ScoreSpec | NoulSpec, Field(discriminator="type")]
+class BoxSpec(PublicModel):
+    """Experimental: where the thing named by ``instructions`` is in the image."""
+
+    type: Literal["box"]
+    instructions: JsonValue
+
+    _instructions = field_validator("instructions")(
+        classmethod(lambda cls, v: _text(v, "instructions") and v)
+    )
+
+
+QuestionSpec = Annotated[ChoiceSpec | ScoreSpec | NoulSpec | BoxSpec, Field(discriminator="type")]
 
 
 class SystemOneRequest(PublicModel):
@@ -174,12 +185,23 @@ class NoulAnswer(PublicModel):
     noul: float
 
 
-AnswerSpec = Annotated[ChoiceAnswer | ScoreAnswer | NoulAnswer, Field(discriminator="type")]
+class BoxAnswer(PublicModel):
+    type: Literal["box"] = "box"
+    # [left, top, right, bottom] as fractions of the image, and in its pixels;
+    # null when the model gave no usable box.
+    box: list[float] | None
+    pixels: list[int] | None
+
+
+AnswerSpec = Annotated[
+    ChoiceAnswer | ScoreAnswer | NoulAnswer | BoxAnswer, Field(discriminator="type")
+]
 
 
 class Usage(PublicModel):
     """Tokens read and written. Decisions are read off one forward pass, so
-    nothing is generated and ``output_tokens`` is always zero."""
+    ``output_tokens`` is zero except for the experimental ``box`` question,
+    whose answer is generated."""
 
     input_tokens: int = Field(ge=0)
     output_tokens: int = Field(default=0, ge=0)
@@ -276,10 +298,30 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
     accepts whatever name an SDK sends by default, and the response reports the
     checkpoint that actually answered.
     """
-    questions = {key: _to_question(spec) for key, spec in request.questions.items()}
-    results = engine.ask(state=request.state, questions=questions, images=request.images)
+    boxes = {k: s for k, s in request.questions.items() if isinstance(s, BoxSpec)}
+    questions = {
+        key: _to_question(spec) for key, spec in request.questions.items() if key not in boxes
+    }
+    if boxes and len(request.images) != 1:
+        raise ValueError("box questions need exactly one image in the request")
+    results: dict[str, Any] = {}
+    if questions:
+        results = engine.ask(state=request.state, questions=questions, images=request.images)
+    generated = 0
+    for key, spec in boxes.items():
+        located = engine.locate(
+            state=request.state,
+            target=_text(spec.instructions, "instructions"),
+            image=request.images[0],
+        )
+        generated += located.output_tokens
+        results[key] = BoxAnswer(box=located.box, pixels=located.pixels)
+    usage = _usage(engine, request.state, questions)
     return SystemOneResponse(
         model=engine.backend.model_id,
-        answers={key: _to_answer(results[key]) for key in request.questions},
-        usage=_usage(engine, request.state, questions),
+        answers={
+            key: results[key] if key in boxes else _to_answer(results[key])
+            for key in request.questions
+        },
+        usage=usage.model_copy(update={"output_tokens": generated}),
     )

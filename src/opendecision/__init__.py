@@ -5,6 +5,7 @@ from .calibration import CalibrationProfile, fit_temperature
 from .schemas import (
     BooleanQuestion,
     BooleanResult,
+    BoxResult,
     ChoiceOption,
     ChoiceQuestion,
     DecisionRequest,
@@ -25,6 +26,7 @@ __all__ = [
     "DecisionRequest",
     "DecisionResult",
     "BooleanResult",
+    "BoxResult",
     "RankedChoice",
     "RankingResult",
     "ChoiceQuestion",

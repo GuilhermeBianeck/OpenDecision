@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 import time
 from typing import Any
 
@@ -160,3 +161,58 @@ class VisionDecisionBackend(DecisionMLXBackend):
                 ]
             )
             return [[row[0], NO_UNKNOWN, row[1]] for row in rows]
+
+    def locate(
+        self, state: str, target: str, image: str
+    ) -> tuple[list[float] | None, tuple[int, int], int]:
+        """The box around ``target`` in ``image``, the image's size, and tokens written.
+
+        The box is ``[left, top, right, bottom]`` as fractions of the image.
+
+        Unlike every other question this one generates text: the model writes
+        the box as JSON in Qwen's 0-1000 grid, which is parsed and normalised.
+        ``None`` means the answer held no usable box.
+        """
+        from mlx_vlm import generate
+        from PIL import Image
+
+        size = Image.open(io.BytesIO(decode_data_uri(image))).size
+        with self._lock:
+            self.load()
+            prompt = (
+                "<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>"
+                f"record: {state}\nLocate {target}. Output its bounding box as JSON: "
+                '{"bbox_2d": [x1, y1, x2, y2]}.<|im_end|>\n'
+                "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+            )
+            result = self._guard(
+                lambda: generate(
+                    self._model,
+                    self._processor,
+                    prompt,
+                    image=[_pil(image)],
+                    max_tokens=BOX_MAX_TOKENS,
+                    temperature=0.0,
+                    verbose=False,
+                )
+            )
+            tokens = int(getattr(result, "generation_tokens", 0))
+            return parse_box(getattr(result, "text", "")), size, tokens
+
+
+BOX_MAX_TOKENS = 48
+
+
+def parse_box(text: str) -> list[float] | None:
+    """Four numbers on Qwen's 0-1000 grid as ordered, clamped fractions, or None."""
+    number = r"\s*(-?\d+(?:\.\d+)?)\s*"
+    match = re.search(r"\[" + ",".join([number] * 4) + r"\]", text)
+    if match is None:
+        return None
+    numbers = [float(n) for n in match.groups()]
+    x1, y1, x2, y2 = (min(max(n / 1000, 0.0), 1.0) for n in numbers)
+    left, right = sorted((x1, x2))
+    top, bottom = sorted((y1, y2))
+    if right <= left or bottom <= top:
+        return None
+    return [left, top, right, bottom]

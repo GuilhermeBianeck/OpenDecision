@@ -467,3 +467,21 @@ class QuestionsRequest(PublicModel):
     @property
     def state_text(self) -> str:
         return render_state(self.state)
+
+
+class BoxResult(PublicModel):
+    """Where something is in an image. Experimental: the answer is generated text.
+
+    ``box`` is ``[left, top, right, bottom]`` as fractions of the image's width
+    and height; ``pixels`` is the same box in the original image's pixels.
+    Both are ``None`` when the model gave no usable box.
+    """
+
+    type: Literal["box"] = "box"
+    box: list[float] | None
+    pixels: list[int] | None
+    found: bool
+    output_tokens: int
+    latency_ms: float
+    backend: str
+    model: str

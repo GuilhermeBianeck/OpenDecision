@@ -11,11 +11,13 @@ from typing import TYPE_CHECKING, Any
 from .calibration import CalibrationProfile, bundled_profile
 from .confidence import margin, softmax
 from .errors import BackendError, CalibrationError
+from .images import validate_images
 from .schemas import (
     MAX_QUESTIONS_PER_STATE,
     Answer,
     BooleanQuestion,
     BooleanResult,
+    BoxResult,
     ChoiceOption,
     ChoiceQuestion,
     DecisionRequest,
@@ -29,6 +31,7 @@ from .schemas import (
     ScoreResult,
     StatementRequest,
     StateValue,
+    render_state,
 )
 from .systemone import SystemOneRequest, SystemOneResponse
 from .systemone import answer as answer_systemone
@@ -551,6 +554,40 @@ class DecisionModel:
             for label in labels
         ]
         return dict(zip(labels, self.statement_batch(requests)))
+
+    def locate(self, *, state: StateValue, target: str, image: str) -> BoxResult:
+        """Find ``target`` in ``image`` (a data URI) and return its bounding box.
+
+        Experimental and vision backends only. ``state`` is read alongside the
+        image as context; the model writes the box, so this is the one call
+        that generates text.
+        """
+        if not hasattr(self.backend, "locate"):
+            raise ValueError(
+                f"backend {self.backend.name!r} cannot locate objects in images; "
+                "use a vision backend such as 'lightning_vision'"
+            )
+        if not target.strip():
+            raise ValueError("target must not be blank")
+        (uri,) = validate_images([image])
+        started = time.perf_counter()
+        box, (width, height), tokens = self.backend.locate(render_state(state), target, uri)
+        return BoxResult(
+            box=box,
+            pixels=None
+            if box is None
+            else [
+                round(box[0] * width),
+                round(box[1] * height),
+                round(box[2] * width),
+                round(box[3] * height),
+            ],
+            found=box is not None,
+            output_tokens=tokens,
+            latency_ms=(time.perf_counter() - started) * 1000,
+            backend=self.backend.name,
+            model=self.backend.model_id,
+        )
 
     def _check_images(self, requests: list[Any]) -> None:
         if any(r.images for r in requests) and not getattr(self.backend, "supports_images", False):
