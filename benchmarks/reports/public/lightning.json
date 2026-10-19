@@ -1,0 +1,2999 @@
+{
+  "label": "lightning",
+  "notes": "opendecision serve --model lightning --max-length 8192 (the backend default), Apple M5 16 GB, one request at a time, no calibration profile",
+  "harness_commit": "609a664e81f46e03731600bd7bd9f1b7a61257c5",
+  "tiers": {
+    "original": {
+      "items": 72,
+      "answered": 72,
+      "correct": 72,
+      "accuracy": 1.0,
+      "chance": 0.3111111111111111,
+      "chance_corrected_accuracy": 1.0,
+      "ece": 0.13515843282747636,
+      "brier": 0.03888870828143059,
+      "latency_ms": {
+        "p50": 154.1142914993543,
+        "p95": 166.6565414499928
+      }
+    },
+    "easy": {
+      "items": 48,
+      "answered": 48,
+      "correct": 48,
+      "accuracy": 1.0,
+      "chance": 0.284375,
+      "chance_corrected_accuracy": 1.0,
+      "ece": 0.08678605081700724,
+      "brier": 0.011965021383284527,
+      "latency_ms": {
+        "p50": 149.95860450108012,
+        "p95": 161.45507279961748
+      }
+    },
+    "hard": {
+      "items": 111,
+      "answered": 111,
+      "correct": 84,
+      "accuracy": 0.7567567567567568,
+      "chance": 0.33618618618618623,
+      "chance_corrected_accuracy": 0.6335670662745986,
+      "ece": 0.10741941931522866,
+      "brier": 0.33431548806270195,
+      "latency_ms": {
+        "p50": 507.5423340022098,
+        "p95": 2755.8551664988045
+      }
+    }
+  },
+  "item_sha256": {
+    "original": "5c2414edb3006b8bfcb70fda433f0f9ca015759433849f8d3104328a1f7c4180",
+    "easy": "231df3c2c8e88a1a8c137ebe85de96ba70fabd330849098ac7b3c52c70b7172b",
+    "hard": "89e9e6becb33ed88c1de7d42dcc87531b2fb64cfaef4e1986faf7c37b3f80ebb"
+  },
+  "model": "netprojects/h2o-lightning-4b-mlx-q4",
+  "overall": {
+    "items": 231,
+    "answered": 231,
+    "correct": 204,
+    "accuracy": 0.8831168831168831,
+    "chance": 0.31760461760461756,
+    "chance_corrected_accuracy": 0.8287164305349968,
+    "ece": 0.10491530762648367,
+    "brier": 0.17525249869099818,
+    "latency_ms": {
+      "p50": 165.80491599961533,
+      "p95": 2081.993041500027
+    }
+  },
+  "predictions": [
+    {
+      "id": "original-policy-01-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1067,
+        "no": 0.8933
+      },
+      "latency_ms": 195.5
+    },
+    {
+      "id": "original-policy-01-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 161.8
+    },
+    {
+      "id": "original-policy-02-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9099,
+        "no": 0.0901
+      },
+      "latency_ms": 154.6
+    },
+    {
+      "id": "original-policy-02-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8081,
+        "no": 0.1919
+      },
+      "latency_ms": 154.5
+    },
+    {
+      "id": "original-policy-03-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.5927,
+        "no": 0.4073
+      },
+      "latency_ms": 154.8
+    },
+    {
+      "id": "original-policy-03-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8991,
+        "no": 0.1009
+      },
+      "latency_ms": 164.1
+    },
+    {
+      "id": "original-policy-04-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1259,
+        "no": 0.8741
+      },
+      "latency_ms": 163.5
+    },
+    {
+      "id": "original-policy-04-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 156.2
+    },
+    {
+      "id": "original-policy-05-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1259,
+        "no": 0.8741
+      },
+      "latency_ms": 154.6
+    },
+    {
+      "id": "original-policy-05-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.133,
+        "no": 0.867
+      },
+      "latency_ms": 151.3
+    },
+    {
+      "id": "original-policy-06-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8933,
+        "no": 0.1067
+      },
+      "latency_ms": 155.1
+    },
+    {
+      "id": "original-policy-06-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8267,
+        "no": 0.1733
+      },
+      "latency_ms": 153.3
+    },
+    {
+      "id": "original-intent-01-0",
+      "tier": "original",
+      "predicted": "refund",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0475,
+        "change_address": 0.0254,
+        "other": 0.0539,
+        "refund": 0.8425,
+        "status": 0.0307
+      },
+      "latency_ms": 146.4
+    },
+    {
+      "id": "original-intent-01-1",
+      "tier": "original",
+      "predicted": "refund",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0655,
+        "change_address": 0.0291,
+        "other": 0.0698,
+        "refund": 0.7983,
+        "status": 0.0373
+      },
+      "latency_ms": 146.7
+    },
+    {
+      "id": "original-intent-02-0",
+      "tier": "original",
+      "predicted": "status",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0174,
+        "change_address": 0.0287,
+        "other": 0.0473,
+        "refund": 0.0136,
+        "status": 0.893
+      },
+      "latency_ms": 144.5
+    },
+    {
+      "id": "original-intent-02-1",
+      "tier": "original",
+      "predicted": "status",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0141,
+        "change_address": 0.017,
+        "other": 0.0281,
+        "refund": 0.0117,
+        "status": 0.9291
+      },
+      "latency_ms": 144.5
+    },
+    {
+      "id": "original-intent-03-0",
+      "tier": "original",
+      "predicted": "change_address",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0241,
+        "change_address": 0.9051,
+        "other": 0.0213,
+        "refund": 0.0166,
+        "status": 0.033
+      },
+      "latency_ms": 161.6
+    },
+    {
+      "id": "original-intent-03-1",
+      "tier": "original",
+      "predicted": "change_address",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0216,
+        "change_address": 0.9201,
+        "other": 0.0203,
+        "refund": 0.0149,
+        "status": 0.023
+      },
+      "latency_ms": 153.5
+    },
+    {
+      "id": "original-intent-04-0",
+      "tier": "original",
+      "predicted": "cancel",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.9189,
+        "change_address": 0.0168,
+        "other": 0.0295,
+        "refund": 0.0179,
+        "status": 0.0168
+      },
+      "latency_ms": 152.0
+    },
+    {
+      "id": "original-intent-04-1",
+      "tier": "original",
+      "predicted": "cancel",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.9071,
+        "change_address": 0.0188,
+        "other": 0.0352,
+        "refund": 0.02,
+        "status": 0.0188
+      },
+      "latency_ms": 147.7
+    },
+    {
+      "id": "original-intent-05-0",
+      "tier": "original",
+      "predicted": "other",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0267,
+        "change_address": 0.0172,
+        "other": 0.8841,
+        "refund": 0.0499,
+        "status": 0.0221
+      },
+      "latency_ms": 150.7
+    },
+    {
+      "id": "original-intent-05-1",
+      "tier": "original",
+      "predicted": "other",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0269,
+        "change_address": 0.0174,
+        "other": 0.8917,
+        "refund": 0.0417,
+        "status": 0.0223
+      },
+      "latency_ms": 148.8
+    },
+    {
+      "id": "original-intent-06-0",
+      "tier": "original",
+      "predicted": "status",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0227,
+        "change_address": 0.0166,
+        "other": 0.0398,
+        "refund": 0.0156,
+        "status": 0.9054
+      },
+      "latency_ms": 114.8
+    },
+    {
+      "id": "original-intent-06-1",
+      "tier": "original",
+      "predicted": "status",
+      "correct": true,
+      "probabilities": {
+        "cancel": 0.0177,
+        "change_address": 0.0157,
+        "other": 0.0426,
+        "refund": 0.0138,
+        "status": 0.9102
+      },
+      "latency_ms": 153.3
+    },
+    {
+      "id": "original-ordinal-01-0",
+      "tier": "original",
+      "predicted": "0",
+      "correct": true,
+      "probabilities": {
+        "0": 0.8796,
+        "1": 0.0818,
+        "2": 0.0234,
+        "3": 0.0151
+      },
+      "latency_ms": 162.4
+    },
+    {
+      "id": "original-ordinal-01-1",
+      "tier": "original",
+      "predicted": "0",
+      "correct": true,
+      "probabilities": {
+        "0": 0.9109,
+        "1": 0.062,
+        "2": 0.0157,
+        "3": 0.0115
+      },
+      "latency_ms": 161.1
+    },
+    {
+      "id": "original-ordinal-02-0",
+      "tier": "original",
+      "predicted": "1",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0685,
+        "1": 0.8348,
+        "2": 0.0729,
+        "3": 0.0237
+      },
+      "latency_ms": 161.4
+    },
+    {
+      "id": "original-ordinal-02-1",
+      "tier": "original",
+      "predicted": "1",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0903,
+        "1": 0.8564,
+        "2": 0.0332,
+        "3": 0.0201
+      },
+      "latency_ms": 159.4
+    },
+    {
+      "id": "original-ordinal-03-0",
+      "tier": "original",
+      "predicted": "2",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0394,
+        "1": 0.0447,
+        "2": 0.8973,
+        "3": 0.0186
+      },
+      "latency_ms": 155.9
+    },
+    {
+      "id": "original-ordinal-03-1",
+      "tier": "original",
+      "predicted": "2",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0396,
+        "1": 0.0396,
+        "2": 0.9009,
+        "3": 0.0199
+      },
+      "latency_ms": 168.3
+    },
+    {
+      "id": "original-ordinal-04-0",
+      "tier": "original",
+      "predicted": "3",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0317,
+        "1": 0.0461,
+        "2": 0.0522,
+        "3": 0.87
+      },
+      "latency_ms": 165.8
+    },
+    {
+      "id": "original-ordinal-04-1",
+      "tier": "original",
+      "predicted": "3",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0298,
+        "1": 0.0434,
+        "2": 0.0557,
+        "3": 0.8711
+      },
+      "latency_ms": 155.6
+    },
+    {
+      "id": "original-ordinal-05-0",
+      "tier": "original",
+      "predicted": "0",
+      "correct": true,
+      "probabilities": {
+        "0": 0.8304,
+        "1": 0.0992,
+        "2": 0.0468,
+        "3": 0.0236
+      },
+      "latency_ms": 157.9
+    },
+    {
+      "id": "original-ordinal-05-1",
+      "tier": "original",
+      "predicted": "0",
+      "correct": true,
+      "probabilities": {
+        "0": 0.8321,
+        "1": 0.0877,
+        "2": 0.0566,
+        "3": 0.0236
+      },
+      "latency_ms": 157.1
+    },
+    {
+      "id": "original-ordinal-06-0",
+      "tier": "original",
+      "predicted": "2",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0385,
+        "1": 0.0675,
+        "2": 0.8758,
+        "3": 0.0182
+      },
+      "latency_ms": 158.1
+    },
+    {
+      "id": "original-ordinal-06-1",
+      "tier": "original",
+      "predicted": "2",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0233,
+        "1": 0.0318,
+        "2": 0.9299,
+        "3": 0.015
+      },
+      "latency_ms": 159.6
+    },
+    {
+      "id": "original-extraction-01-0",
+      "tier": "original",
+      "predicted": "pickup",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0417,
+        "pickup": 0.8913,
+        "post": 0.0253,
+        "unknown": 0.0417
+      },
+      "latency_ms": 110.5
+    },
+    {
+      "id": "original-extraction-01-1",
+      "tier": "original",
+      "predicted": "pickup",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.041,
+        "pickup": 0.8775,
+        "post": 0.032,
+        "unknown": 0.0495
+      },
+      "latency_ms": 113.0
+    },
+    {
+      "id": "original-extraction-02-0",
+      "tier": "original",
+      "predicted": "unknown",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0259,
+        "pickup": 0.0275,
+        "post": 0.0353,
+        "unknown": 0.9113
+      },
+      "latency_ms": 111.9
+    },
+    {
+      "id": "original-extraction-02-1",
+      "tier": "original",
+      "predicted": "unknown",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0309,
+        "pickup": 0.035,
+        "post": 0.0309,
+        "unknown": 0.9032
+      },
+      "latency_ms": 123.0
+    },
+    {
+      "id": "original-extraction-03-0",
+      "tier": "original",
+      "predicted": "courier",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.8591,
+        "pickup": 0.0428,
+        "post": 0.0276,
+        "unknown": 0.0705
+      },
+      "latency_ms": 123.9
+    },
+    {
+      "id": "original-extraction-03-1",
+      "tier": "original",
+      "predicted": "courier",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.8903,
+        "pickup": 0.0367,
+        "post": 0.0286,
+        "unknown": 0.0443
+      },
+      "latency_ms": 114.2
+    },
+    {
+      "id": "original-extraction-04-0",
+      "tier": "original",
+      "predicted": "post",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0303,
+        "pickup": 0.0268,
+        "post": 0.8863,
+        "unknown": 0.0567
+      },
+      "latency_ms": 112.1
+    },
+    {
+      "id": "original-extraction-04-1",
+      "tier": "original",
+      "predicted": "post",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0393,
+        "pickup": 0.027,
+        "post": 0.8944,
+        "unknown": 0.0393
+      },
+      "latency_ms": 111.0
+    },
+    {
+      "id": "original-extraction-05-0",
+      "tier": "original",
+      "predicted": "unknown",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0291,
+        "pickup": 0.0423,
+        "post": 0.0241,
+        "unknown": 0.9045
+      },
+      "latency_ms": 112.6
+    },
+    {
+      "id": "original-extraction-05-1",
+      "tier": "original",
+      "predicted": "unknown",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.0389,
+        "pickup": 0.0469,
+        "post": 0.0285,
+        "unknown": 0.8857
+      },
+      "latency_ms": 111.9
+    },
+    {
+      "id": "original-extraction-06-0",
+      "tier": "original",
+      "predicted": "courier",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.9195,
+        "pickup": 0.0245,
+        "post": 0.0245,
+        "unknown": 0.0315
+      },
+      "latency_ms": 121.9
+    },
+    {
+      "id": "original-extraction-06-1",
+      "tier": "original",
+      "predicted": "courier",
+      "correct": true,
+      "probabilities": {
+        "courier": 0.9097,
+        "pickup": 0.0292,
+        "post": 0.0258,
+        "unknown": 0.0353
+      },
+      "latency_ms": 117.4
+    },
+    {
+      "id": "original-adequacy-01-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7879,
+        "no": 0.2121
+      },
+      "latency_ms": 152.2
+    },
+    {
+      "id": "original-adequacy-01-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8355,
+        "no": 0.1645
+      },
+      "latency_ms": 151.0
+    },
+    {
+      "id": "original-adequacy-02-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1067,
+        "no": 0.8933
+      },
+      "latency_ms": 158.7
+    },
+    {
+      "id": "original-adequacy-02-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 161.5
+    },
+    {
+      "id": "original-adequacy-03-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1919,
+        "no": 0.8081
+      },
+      "latency_ms": 158.6
+    },
+    {
+      "id": "original-adequacy-03-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.2814,
+        "no": 0.7186
+      },
+      "latency_ms": 156.2
+    },
+    {
+      "id": "original-adequacy-04-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8741,
+        "no": 0.1259
+      },
+      "latency_ms": 154.1
+    },
+    {
+      "id": "original-adequacy-04-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8439,
+        "no": 0.1561
+      },
+      "latency_ms": 151.3
+    },
+    {
+      "id": "original-adequacy-05-0",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.3923,
+        "no": 0.6077
+      },
+      "latency_ms": 148.6
+    },
+    {
+      "id": "original-adequacy-05-1",
+      "tier": "original",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.2451,
+        "no": 0.7549
+      },
+      "latency_ms": 149.3
+    },
+    {
+      "id": "original-adequacy-06-0",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8597,
+        "no": 0.1403
+      },
+      "latency_ms": 150.4
+    },
+    {
+      "id": "original-adequacy-06-1",
+      "tier": "original",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.6792,
+        "no": 0.3208
+      },
+      "latency_ms": 152.5
+    },
+    {
+      "id": "original-routing-01-0",
+      "tier": "original",
+      "predicted": "math",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0146,
+        "coding_agent": 0.0107,
+        "document": 0.0088,
+        "general": 0.0478,
+        "math": 0.9025,
+        "tools": 0.0155
+      },
+      "latency_ms": 148.3
+    },
+    {
+      "id": "original-routing-01-1",
+      "tier": "original",
+      "predicted": "math",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0146,
+        "coding_agent": 0.0107,
+        "document": 0.0101,
+        "general": 0.0451,
+        "math": 0.9049,
+        "tools": 0.0146
+      },
+      "latency_ms": 154.2
+    },
+    {
+      "id": "original-routing-02-0",
+      "tier": "original",
+      "predicted": "coding",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.9051,
+        "coding_agent": 0.031,
+        "document": 0.0129,
+        "general": 0.0227,
+        "math": 0.0137,
+        "tools": 0.0146
+      },
+      "latency_ms": 151.6
+    },
+    {
+      "id": "original-routing-02-1",
+      "tier": "original",
+      "predicted": "coding",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.9115,
+        "coding_agent": 0.0259,
+        "document": 0.013,
+        "general": 0.0201,
+        "math": 0.0138,
+        "tools": 0.0157
+      },
+      "latency_ms": 155.3
+    },
+    {
+      "id": "original-routing-03-0",
+      "tier": "original",
+      "predicted": "coding_agent",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0274,
+        "coding_agent": 0.906,
+        "document": 0.0138,
+        "general": 0.0156,
+        "math": 0.0146,
+        "tools": 0.0227
+      },
+      "latency_ms": 149.3
+    },
+    {
+      "id": "original-routing-03-1",
+      "tier": "original",
+      "predicted": "coding_agent",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0308,
+        "coding_agent": 0.9,
+        "document": 0.0145,
+        "general": 0.0145,
+        "math": 0.0145,
+        "tools": 0.0255
+      },
+      "latency_ms": 162.4
+    },
+    {
+      "id": "original-routing-04-0",
+      "tier": "original",
+      "predicted": "document",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.019,
+        "coding_agent": 0.0244,
+        "document": 0.8599,
+        "general": 0.0456,
+        "math": 0.0178,
+        "tools": 0.0333
+      },
+      "latency_ms": 167.7
+    },
+    {
+      "id": "original-routing-04-1",
+      "tier": "original",
+      "predicted": "document",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0285,
+        "coding_agent": 0.05,
+        "document": 0.7817,
+        "general": 0.0774,
+        "math": 0.0184,
+        "tools": 0.0441
+      },
+      "latency_ms": 159.5
+    },
+    {
+      "id": "original-routing-05-0",
+      "tier": "original",
+      "predicted": "tools",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0106,
+        "coding_agent": 0.01,
+        "document": 0.0094,
+        "general": 0.0576,
+        "math": 0.0121,
+        "tools": 0.9003
+      },
+      "latency_ms": 157.2
+    },
+    {
+      "id": "original-routing-05-1",
+      "tier": "original",
+      "predicted": "tools",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0117,
+        "coding_agent": 0.0117,
+        "document": 0.0086,
+        "general": 0.1838,
+        "math": 0.0104,
+        "tools": 0.7738
+      },
+      "latency_ms": 155.1
+    },
+    {
+      "id": "original-routing-06-0",
+      "tier": "original",
+      "predicted": "general",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0209,
+        "coding_agent": 0.0184,
+        "document": 0.0173,
+        "general": 0.8881,
+        "math": 0.0209,
+        "tools": 0.0344
+      },
+      "latency_ms": 157.7
+    },
+    {
+      "id": "original-routing-06-1",
+      "tier": "original",
+      "predicted": "general",
+      "correct": true,
+      "probabilities": {
+        "coding": 0.0249,
+        "coding_agent": 0.0194,
+        "document": 0.0161,
+        "general": 0.8767,
+        "math": 0.0219,
+        "tools": 0.041
+      },
+      "latency_ms": 169.4
+    },
+    {
+      "id": "easy-intent-00",
+      "tier": "easy",
+      "predicted": "track_order",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.0143,
+        "cancel_order": 0.0135,
+        "change_address": 0.0153,
+        "report_damage": 0.0119,
+        "track_order": 0.945
+      },
+      "latency_ms": 165.0
+    },
+    {
+      "id": "easy-intent-01",
+      "tier": "easy",
+      "predicted": "cancel_order",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.023,
+        "cancel_order": 0.92,
+        "change_address": 0.0191,
+        "report_damage": 0.0149,
+        "track_order": 0.023
+      },
+      "latency_ms": 153.8
+    },
+    {
+      "id": "easy-intent-02",
+      "tier": "easy",
+      "predicted": "change_address",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.0181,
+        "cancel_order": 0.015,
+        "change_address": 0.9289,
+        "report_damage": 0.0132,
+        "track_order": 0.0248
+      },
+      "latency_ms": 153.7
+    },
+    {
+      "id": "easy-intent-03",
+      "tier": "easy",
+      "predicted": "report_damage",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.0228,
+        "cancel_order": 0.0201,
+        "change_address": 0.0167,
+        "report_damage": 0.9094,
+        "track_order": 0.0311
+      },
+      "latency_ms": 150.9
+    },
+    {
+      "id": "easy-intent-04",
+      "tier": "easy",
+      "predicted": "billing_question",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.9247,
+        "cancel_order": 0.0231,
+        "change_address": 0.0149,
+        "report_damage": 0.014,
+        "track_order": 0.0231
+      },
+      "latency_ms": 152.9
+    },
+    {
+      "id": "easy-intent-05",
+      "tier": "easy",
+      "predicted": "track_order",
+      "correct": true,
+      "probabilities": {
+        "billing_question": 0.0143,
+        "cancel_order": 0.0143,
+        "change_address": 0.0153,
+        "report_damage": 0.0119,
+        "track_order": 0.9442
+      },
+      "latency_ms": 152.6
+    },
+    {
+      "id": "easy-intent-06",
+      "tier": "easy",
+      "predicted": "set_alarm",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.0204,
+        "send_message": 0.0169,
+        "set_alarm": 0.9217,
+        "turn_off_lights": 0.018,
+        "weather": 0.0231
+      },
+      "latency_ms": 148.7
+    },
+    {
+      "id": "easy-intent-07",
+      "tier": "easy",
+      "predicted": "play_music",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.9201,
+        "send_message": 0.0245,
+        "set_alarm": 0.0179,
+        "turn_off_lights": 0.0158,
+        "weather": 0.0216
+      },
+      "latency_ms": 147.3
+    },
+    {
+      "id": "easy-intent-08",
+      "tier": "easy",
+      "predicted": "weather",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.0144,
+        "send_message": 0.0127,
+        "set_alarm": 0.0153,
+        "turn_off_lights": 0.0105,
+        "weather": 0.9471
+      },
+      "latency_ms": 149.2
+    },
+    {
+      "id": "easy-intent-09",
+      "tier": "easy",
+      "predicted": "send_message",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.0273,
+        "send_message": 0.9037,
+        "set_alarm": 0.0241,
+        "turn_off_lights": 0.0176,
+        "weather": 0.0273
+      },
+      "latency_ms": 149.6
+    },
+    {
+      "id": "easy-intent-10",
+      "tier": "easy",
+      "predicted": "turn_off_lights",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.0227,
+        "send_message": 0.0214,
+        "set_alarm": 0.0188,
+        "turn_off_lights": 0.9079,
+        "weather": 0.0292
+      },
+      "latency_ms": 148.7
+    },
+    {
+      "id": "easy-intent-11",
+      "tier": "easy",
+      "predicted": "set_alarm",
+      "correct": true,
+      "probabilities": {
+        "play_music": 0.0192,
+        "send_message": 0.0159,
+        "set_alarm": 0.9248,
+        "turn_off_lights": 0.0169,
+        "weather": 0.0232
+      },
+      "latency_ms": 148.7
+    },
+    {
+      "id": "easy-fact-00",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9149,
+        "no": 0.0851
+      },
+      "latency_ms": 161.5
+    },
+    {
+      "id": "easy-fact-01",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 163.8
+    },
+    {
+      "id": "easy-fact-02",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9099,
+        "no": 0.0901
+      },
+      "latency_ms": 161.3
+    },
+    {
+      "id": "easy-fact-03",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0851,
+        "no": 0.9149
+      },
+      "latency_ms": 152.3
+    },
+    {
+      "id": "easy-fact-04",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9284,
+        "no": 0.0716
+      },
+      "latency_ms": 149.5
+    },
+    {
+      "id": "easy-fact-05",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1009,
+        "no": 0.8991
+      },
+      "latency_ms": 149.4
+    },
+    {
+      "id": "easy-fact-06",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9149,
+        "no": 0.0851
+      },
+      "latency_ms": 159.5
+    },
+    {
+      "id": "easy-fact-07",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 149.0
+    },
+    {
+      "id": "easy-fact-08",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9149,
+        "no": 0.0851
+      },
+      "latency_ms": 113.5
+    },
+    {
+      "id": "easy-fact-09",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 115.1
+    },
+    {
+      "id": "easy-fact-10",
+      "tier": "easy",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8991,
+        "no": 0.1009
+      },
+      "latency_ms": 159.6
+    },
+    {
+      "id": "easy-fact-11",
+      "tier": "easy",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0851,
+        "no": 0.9149
+      },
+      "latency_ms": 148.3
+    },
+    {
+      "id": "easy-extraction-00",
+      "tier": "easy",
+      "predicted": "paypal",
+      "correct": true,
+      "probabilities": {
+        "bank_transfer": 0.0313,
+        "cash": 0.0276,
+        "credit_card": 0.0276,
+        "paypal": 0.9136
+      },
+      "latency_ms": 106.2
+    },
+    {
+      "id": "easy-extraction-01",
+      "tier": "easy",
+      "predicted": "cash",
+      "correct": true,
+      "probabilities": {
+        "bank_transfer": 0.0277,
+        "cash": 0.916,
+        "credit_card": 0.0334,
+        "paypal": 0.0229
+      },
+      "latency_ms": 108.0
+    },
+    {
+      "id": "easy-extraction-02",
+      "tier": "easy",
+      "predicted": "bank_transfer",
+      "correct": true,
+      "probabilities": {
+        "bank_transfer": 0.9245,
+        "cash": 0.0246,
+        "credit_card": 0.0262,
+        "paypal": 0.0246
+      },
+      "latency_ms": 108.6
+    },
+    {
+      "id": "easy-extraction-03",
+      "tier": "easy",
+      "predicted": "high",
+      "correct": true,
+      "probabilities": {
+        "high": 0.8259,
+        "low": 0.0411,
+        "medium": 0.0768,
+        "urgent": 0.0562
+      },
+      "latency_ms": 107.9
+    },
+    {
+      "id": "easy-extraction-04",
+      "tier": "easy",
+      "predicted": "low",
+      "correct": true,
+      "probabilities": {
+        "high": 0.0271,
+        "low": 0.899,
+        "medium": 0.054,
+        "urgent": 0.0199
+      },
+      "latency_ms": 107.8
+    },
+    {
+      "id": "easy-extraction-05",
+      "tier": "easy",
+      "predicted": "urgent",
+      "correct": true,
+      "probabilities": {
+        "high": 0.0786,
+        "low": 0.0349,
+        "medium": 0.042,
+        "urgent": 0.8445
+      },
+      "latency_ms": 108.4
+    },
+    {
+      "id": "easy-extraction-06",
+      "tier": "easy",
+      "predicted": "M",
+      "correct": true,
+      "probabilities": {
+        "L": 0.0352,
+        "M": 0.907,
+        "S": 0.0352,
+        "XL": 0.0227
+      },
+      "latency_ms": 107.1
+    },
+    {
+      "id": "easy-extraction-07",
+      "tier": "easy",
+      "predicted": "XL",
+      "correct": true,
+      "probabilities": {
+        "L": 0.0848,
+        "M": 0.0312,
+        "S": 0.0275,
+        "XL": 0.8565
+      },
+      "latency_ms": 105.8
+    },
+    {
+      "id": "easy-extraction-08",
+      "tier": "easy",
+      "predicted": "thursday",
+      "correct": true,
+      "probabilities": {
+        "friday": 0.0254,
+        "monday": 0.0211,
+        "thursday": 0.8955,
+        "tuesday": 0.0211,
+        "wednesday": 0.037
+      },
+      "latency_ms": 107.1
+    },
+    {
+      "id": "easy-extraction-09",
+      "tier": "easy",
+      "predicted": "monday",
+      "correct": true,
+      "probabilities": {
+        "friday": 0.0269,
+        "monday": 0.8903,
+        "thursday": 0.0286,
+        "tuesday": 0.0237,
+        "wednesday": 0.0305
+      },
+      "latency_ms": 108.3
+    },
+    {
+      "id": "easy-extraction-10",
+      "tier": "easy",
+      "predicted": "friday",
+      "correct": true,
+      "probabilities": {
+        "friday": 0.8841,
+        "monday": 0.0284,
+        "thursday": 0.0365,
+        "tuesday": 0.0208,
+        "wednesday": 0.0303
+      },
+      "latency_ms": 107.6
+    },
+    {
+      "id": "easy-extraction-11",
+      "tier": "easy",
+      "predicted": "credit_card",
+      "correct": true,
+      "probabilities": {
+        "bank_transfer": 0.0294,
+        "cash": 0.0259,
+        "credit_card": 0.9135,
+        "paypal": 0.0313
+      },
+      "latency_ms": 118.6
+    },
+    {
+      "id": "easy-tool_selection-00",
+      "tier": "easy",
+      "predicted": "get_weather",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.0204,
+        "create_calendar_event": 0.0169,
+        "get_weather": 0.925,
+        "send_email": 0.0159,
+        "translate_text": 0.0218
+      },
+      "latency_ms": 152.5
+    },
+    {
+      "id": "easy-tool_selection-01",
+      "tier": "easy",
+      "predicted": "send_email",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.0227,
+        "create_calendar_event": 0.0214,
+        "get_weather": 0.0166,
+        "send_email": 0.9082,
+        "translate_text": 0.0311
+      },
+      "latency_ms": 150.3
+    },
+    {
+      "id": "easy-tool_selection-02",
+      "tier": "easy",
+      "predicted": "create_calendar_event",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.0258,
+        "create_calendar_event": 0.9112,
+        "get_weather": 0.0214,
+        "send_email": 0.0157,
+        "translate_text": 0.0258
+      },
+      "latency_ms": 154.1
+    },
+    {
+      "id": "easy-tool_selection-03",
+      "tier": "easy",
+      "predicted": "convert_currency",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.925,
+        "create_calendar_event": 0.0218,
+        "get_weather": 0.0169,
+        "send_email": 0.0132,
+        "translate_text": 0.0232
+      },
+      "latency_ms": 152.0
+    },
+    {
+      "id": "easy-tool_selection-04",
+      "tier": "easy",
+      "predicted": "translate_text",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.0144,
+        "create_calendar_event": 0.012,
+        "get_weather": 0.0135,
+        "send_email": 0.0105,
+        "translate_text": 0.9495
+      },
+      "latency_ms": 152.5
+    },
+    {
+      "id": "easy-tool_selection-05",
+      "tier": "easy",
+      "predicted": "create_calendar_event",
+      "correct": true,
+      "probabilities": {
+        "convert_currency": 0.0259,
+        "create_calendar_event": 0.9129,
+        "get_weather": 0.0202,
+        "send_email": 0.0167,
+        "translate_text": 0.0243
+      },
+      "latency_ms": 153.5
+    },
+    {
+      "id": "easy-tool_selection-06",
+      "tier": "easy",
+      "predicted": "search_flights",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.0241,
+        "call_taxi": 0.0187,
+        "get_stock_price": 0.0212,
+        "search_flights": 0.9031,
+        "set_reminder": 0.0329
+      },
+      "latency_ms": 155.6
+    },
+    {
+      "id": "easy-tool_selection-07",
+      "tier": "easy",
+      "predicted": "book_restaurant",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.9255,
+        "call_taxi": 0.0218,
+        "get_stock_price": 0.017,
+        "search_flights": 0.0141,
+        "set_reminder": 0.0218
+      },
+      "latency_ms": 153.7
+    },
+    {
+      "id": "easy-tool_selection-08",
+      "tier": "easy",
+      "predicted": "set_reminder",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.0113,
+        "call_taxi": 0.01,
+        "get_stock_price": 0.0121,
+        "search_flights": 0.0088,
+        "set_reminder": 0.9578
+      },
+      "latency_ms": 153.1
+    },
+    {
+      "id": "easy-tool_selection-09",
+      "tier": "easy",
+      "predicted": "get_stock_price",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.0171,
+        "call_taxi": 0.0141,
+        "get_stock_price": 0.9313,
+        "search_flights": 0.0141,
+        "set_reminder": 0.0233
+      },
+      "latency_ms": 152.3
+    },
+    {
+      "id": "easy-tool_selection-10",
+      "tier": "easy",
+      "predicted": "call_taxi",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.023,
+        "call_taxi": 0.9188,
+        "get_stock_price": 0.0179,
+        "search_flights": 0.0158,
+        "set_reminder": 0.0245
+      },
+      "latency_ms": 159.2
+    },
+    {
+      "id": "easy-tool_selection-11",
+      "tier": "easy",
+      "predicted": "set_reminder",
+      "correct": true,
+      "probabilities": {
+        "book_restaurant": 0.0121,
+        "call_taxi": 0.01,
+        "get_stock_price": 0.0121,
+        "search_flights": 0.0083,
+        "set_reminder": 0.9576
+      },
+      "latency_ms": 150.8
+    },
+    {
+      "id": "hard-opus-a-long_policy-01",
+      "tier": "hard",
+      "predicted": "pay_subject_to_15000_sublimit",
+      "correct": true,
+      "probabilities": {
+        "deny_repeated_seepage": 0.0267,
+        "deny_vacancy_exclusion": 0.0322,
+        "pay_full_estimate_less_deductible": 0.0322,
+        "pay_subject_to_10000_sublimit": 0.0236,
+        "pay_subject_to_15000_sublimit": 0.8852
+      },
+      "latency_ms": 3277.6
+    },
+    {
+      "id": "hard-opus-a-long_policy-04",
+      "tier": "hard",
+      "predicted": "vp_and_finance_director",
+      "correct": false,
+      "probabilities": {
+        "budget_holder": 0.0157,
+        "cfo": 0.2039,
+        "department_head": 0.0905,
+        "executive_committee": 0.0215,
+        "vp_and_finance_director": 0.6685
+      },
+      "latency_ms": 2123.6
+    },
+    {
+      "id": "hard-opus-a-long_policy-08",
+      "tier": "hard",
+      "predicted": "parts_covered_labour_charged",
+      "correct": true,
+      "probabilities": {
+        "full_repair_no_charge": 0.2526,
+        "not_covered": 0.0387,
+        "parts_covered_labour_charged": 0.6866,
+        "pro_rata_replacement_credit": 0.0221
+      },
+      "latency_ms": 1928.4
+    },
+    {
+      "id": "hard-opus-a-long_policy-09",
+      "tier": "hard",
+      "predicted": "license_required",
+      "correct": true,
+      "probabilities": {
+        "license_exception_lvs": 0.0912,
+        "license_required": 0.8125,
+        "no_license_required": 0.0667,
+        "shipment_prohibited": 0.0296
+      },
+      "latency_ms": 2040.4
+    },
+    {
+      "id": "hard-opus-a-long_policy-11",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7549,
+        "no": 0.2451
+      },
+      "latency_ms": 1939.9
+    },
+    {
+      "id": "hard-opus-a-long_policy-13",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7432,
+        "no": 0.2568
+      },
+      "latency_ms": 1991.4
+    },
+    {
+      "id": "hard-opus-a-long_policy-17",
+      "tier": "hard",
+      "predicted": "database_oncall",
+      "correct": true,
+      "probabilities": {
+        "database_oncall": 0.9038,
+        "no_page_ticket_only": 0.0479,
+        "platform_oncall": 0.02,
+        "security_incident_response": 0.0137,
+        "vendor_support": 0.0146
+      },
+      "latency_ms": 1935.4
+    },
+    {
+      "id": "hard-opus-a-long_policy-19",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.6225,
+        "no": 0.3775
+      },
+      "latency_ms": 1944.6
+    },
+    {
+      "id": "hard-opus-a-probability-03",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7663,
+        "no": 0.2337
+      },
+      "latency_ms": 401.2
+    },
+    {
+      "id": "hard-opus-a-probability-04",
+      "tier": "hard",
+      "predicted": "late",
+      "correct": false,
+      "probabilities": {
+        "early": 0.1722,
+        "late": 0.4397,
+        "on_time": 0.3881
+      },
+      "latency_ms": 888.8
+    },
+    {
+      "id": "hard-opus-a-probability-07",
+      "tier": "hard",
+      "predicted": "escalated",
+      "correct": true,
+      "probabilities": {
+        "escalated": 0.6943,
+        "reopened": 0.094,
+        "resolved_first_contact": 0.2117
+      },
+      "latency_ms": 996.1
+    },
+    {
+      "id": "hard-opus-a-probability-08",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.4073,
+        "no": 0.5927
+      },
+      "latency_ms": 360.8
+    },
+    {
+      "id": "hard-opus-a-temporal_numeric-03",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7186,
+        "no": 0.2814
+      },
+      "latency_ms": 451.8
+    },
+    {
+      "id": "hard-opus-a-temporal_numeric-06",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.2227,
+        "no": 0.7773
+      },
+      "latency_ms": 458.8
+    },
+    {
+      "id": "hard-opus-a-temporal_numeric-07",
+      "tier": "hard",
+      "predicted": "sep_28",
+      "correct": false,
+      "probabilities": {
+        "sep_24": 0.2159,
+        "sep_25": 0.2447,
+        "sep_26": 0.0958,
+        "sep_27": 0.1484,
+        "sep_28": 0.2951
+      },
+      "latency_ms": 1048.3
+    },
+    {
+      "id": "hard-opus-a-temporal_numeric-09",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.4844,
+        "no": 0.5156
+      },
+      "latency_ms": 459.3
+    },
+    {
+      "id": "hard-opus-a-temporal_numeric-12",
+      "tier": "hard",
+      "predicted": "2",
+      "correct": false,
+      "probabilities": {
+        "0": 0.2004,
+        "1": 0.2916,
+        "2": 0.3518,
+        "3": 0.1561
+      },
+      "latency_ms": 507.5
+    },
+    {
+      "id": "hard-opus-b-ambiguous-02",
+      "tier": "hard",
+      "predicted": "real_incident",
+      "correct": true,
+      "probabilities": {
+        "cannot_determine": 0.0447,
+        "false_positive": 0.0574,
+        "real_incident": 0.8979
+      },
+      "latency_ms": 457.3
+    },
+    {
+      "id": "hard-opus-b-ambiguous-03",
+      "tier": "hard",
+      "predicted": "within_limitation",
+      "correct": false,
+      "probabilities": {
+        "insufficient_information": 0.1225,
+        "time_barred": 0.2151,
+        "within_limitation": 0.6624
+      },
+      "latency_ms": 440.3
+    },
+    {
+      "id": "hard-opus-b-ambiguous-07",
+      "tier": "hard",
+      "predicted": "within_policy",
+      "correct": true,
+      "probabilities": {
+        "insufficient_information": 0.0577,
+        "over_limit": 0.0951,
+        "within_policy": 0.8473
+      },
+      "latency_ms": 440.8
+    },
+    {
+      "id": "hard-opus-b-ambiguous-09",
+      "tier": "hard",
+      "predicted": "legitimate",
+      "correct": true,
+      "probabilities": {
+        "compromised": 0.075,
+        "inconclusive": 0.0662,
+        "legitimate": 0.8587
+      },
+      "latency_ms": 547.5
+    },
+    {
+      "id": "hard-opus-b-ambiguous-10",
+      "tier": "hard",
+      "predicted": "ask_user_which_alex",
+      "correct": true,
+      "probabilities": {
+        "ask_user_which_alex": 0.7435,
+        "send_to_alex_moreno": 0.1559,
+        "send_to_alexandra_lind": 0.1006
+      },
+      "latency_ms": 395.1
+    },
+    {
+      "id": "hard-opus-b-ambiguous-11",
+      "tier": "hard",
+      "predicted": "cannot_determine",
+      "correct": true,
+      "probabilities": {
+        "cannot_determine": 0.9413,
+        "grade_correct": 0.0303,
+        "grade_should_be_higher": 0.0284
+      },
+      "latency_ms": 399.7
+    },
+    {
+      "id": "hard-opus-b-ambiguous-13",
+      "tier": "hard",
+      "predicted": "cannot_determine",
+      "correct": true,
+      "probabilities": {
+        "cannot_determine": 0.9487,
+        "charge_data_team": 0.0197,
+        "charge_platform_team": 0.0163,
+        "split_50_50": 0.0153
+      },
+      "latency_ms": 508.5
+    },
+    {
+      "id": "hard-opus-b-multi_hop-03",
+      "tier": "hard",
+      "predicted": "tier3_cfo",
+      "correct": true,
+      "probabilities": {
+        "tier1_team_lead": 0.1477,
+        "tier2_department_head": 0.1572,
+        "tier3_cfo": 0.4014,
+        "tier4_board": 0.2937
+      },
+      "latency_ms": 2424.0
+    },
+    {
+      "id": "hard-opus-b-multi_hop-04",
+      "tier": "hard",
+      "predicted": "bjorn",
+      "correct": true,
+      "probabilities": {
+        "ana": 0.0338,
+        "bjorn": 0.5292,
+        "chen": 0.0434,
+        "dmitri": 0.011,
+        "esra": 0.0408,
+        "no_page_ticket_only": 0.3417
+      },
+      "latency_ms": 1929.2
+    },
+    {
+      "id": "hard-opus-b-multi_hop-05",
+      "tier": "hard",
+      "predicted": "3",
+      "correct": false,
+      "probabilities": {
+        "0": 0.0306,
+        "1": 0.0571,
+        "2": 0.3497,
+        "3": 0.4491,
+        "4": 0.1135
+      },
+      "latency_ms": 2160.1
+    },
+    {
+      "id": "hard-opus-b-multi_hop-07",
+      "tier": "hard",
+      "predicted": "credit_25_percent",
+      "correct": false,
+      "probabilities": {
+        "credit_10_percent": 0.0673,
+        "credit_20_percent": 0.2208,
+        "credit_25_percent": 0.2663,
+        "credit_50_percent": 0.2502,
+        "credit_full_month": 0.1615,
+        "no_credit": 0.0339
+      },
+      "latency_ms": 2159.7
+    },
+    {
+      "id": "hard-opus-b-multi_hop-08",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.2121,
+        "no": 0.7879
+      },
+      "latency_ms": 1888.0
+    },
+    {
+      "id": "hard-opus-b-probability-01",
+      "tier": "hard",
+      "predicted": "merchant_wins",
+      "correct": true,
+      "probabilities": {
+        "customer_wins": 0.2254,
+        "customer_withdraws": 0.1989,
+        "merchant_wins": 0.5756
+      },
+      "latency_ms": 1551.7
+    },
+    {
+      "id": "hard-opus-b-probability-02",
+      "tier": "hard",
+      "predicted": "bad_push",
+      "correct": false,
+      "probabilities": {
+        "bad_push": 0.6786,
+        "database_hardware": 0.0557,
+        "upstream_provider": 0.2657
+      },
+      "latency_ms": 439.7
+    },
+    {
+      "id": "hard-opus-b-probability-03",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.6654,
+        "no": 0.3346
+      },
+      "latency_ms": 977.9
+    },
+    {
+      "id": "hard-opus-b-probability-04",
+      "tier": "hard",
+      "predicted": "attended",
+      "correct": true,
+      "probabilities": {
+        "attended": 0.6501,
+        "late_cancellation": 0.175,
+        "no_show": 0.175
+      },
+      "latency_ms": 502.1
+    },
+    {
+      "id": "hard-opus-b-probability-06",
+      "tier": "hard",
+      "predicted": "upheld",
+      "correct": true,
+      "probabilities": {
+        "modified": 0.0849,
+        "overturned": 0.2038,
+        "upheld": 0.7113
+      },
+      "latency_ms": 825.9
+    },
+    {
+      "id": "hard-opus-b-tradeoff-01",
+      "tier": "hard",
+      "predicted": "escalate_to_security",
+      "correct": false,
+      "probabilities": {
+        "escalate_to_engineering": 0.0705,
+        "escalate_to_security": 0.859,
+        "page_oncall": 0.0202,
+        "process_refund": 0.0244,
+        "send_kb_article": 0.0259
+      },
+      "latency_ms": 702.3
+    },
+    {
+      "id": "hard-opus-b-tradeoff-03",
+      "tier": "hard",
+      "predicted": "order_b",
+      "correct": true,
+      "probabilities": {
+        "order_a": 0.2269,
+        "order_b": 0.699,
+        "order_c": 0.037,
+        "order_d": 0.037
+      },
+      "latency_ms": 632.4
+    },
+    {
+      "id": "hard-opus-b-tradeoff-06",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8597,
+        "no": 0.1403
+      },
+      "latency_ms": 686.7
+    },
+    {
+      "id": "hard-opus-b-tradeoff-07",
+      "tier": "hard",
+      "predicted": "p0_fix_24h",
+      "correct": true,
+      "probabilities": {
+        "out_of_scope": 0.0197,
+        "p0_fix_24h": 0.6953,
+        "p1_fix_7d": 0.1651,
+        "p2_fix_30d": 0.1002,
+        "p3_backlog": 0.0197
+      },
+      "latency_ms": 594.6
+    },
+    {
+      "id": "hard-opus-b-tradeoff-08",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.5622,
+        "no": 0.4378
+      },
+      "latency_ms": 539.7
+    },
+    {
+      "id": "hard-opus-b-tradeoff-12",
+      "tier": "hard",
+      "predicted": "refund_now",
+      "correct": true,
+      "probabilities": {
+        "deny_refund": 0.0165,
+        "escalate_to_fraud_team": 0.0155,
+        "offer_store_credit": 0.024,
+        "refund_now": 0.8993,
+        "wait_for_inspection": 0.0448
+      },
+      "latency_ms": 495.9
+    },
+    {
+      "id": "hard-opus-c-long_policy-02",
+      "tier": "hard",
+      "predicted": "erase_but_retain_transaction_records",
+      "correct": true,
+      "probabilities": {
+        "erase_all": 0.4075,
+        "erase_but_retain_transaction_records": 0.5233,
+        "erase_marketing_only": 0.0245,
+        "reject_unverified_request": 0.0203,
+        "restrict_all_pending_legal_hold": 0.0245
+      },
+      "latency_ms": 2978.8
+    },
+    {
+      "id": "hard-opus-c-long_policy-03",
+      "tier": "hard",
+      "predicted": "eur_200",
+      "correct": false,
+      "probabilities": {
+        "eur_0": 0.0613,
+        "eur_150": 0.2277,
+        "eur_200": 0.4528,
+        "eur_300": 0.1297,
+        "eur_400": 0.0838,
+        "eur_600": 0.0448
+      },
+      "latency_ms": 2947.7
+    },
+    {
+      "id": "hard-opus-c-long_policy-04",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7058,
+        "no": 0.2942
+      },
+      "latency_ms": 2750.3
+    },
+    {
+      "id": "hard-opus-c-long_policy-05",
+      "tier": "hard",
+      "predicted": "2",
+      "correct": false,
+      "probabilities": {
+        "0": 0.1631,
+        "1": 0.2688,
+        "2": 0.3452,
+        "3": 0.2229
+      },
+      "latency_ms": 2712.6
+    },
+    {
+      "id": "hard-opus-c-long_policy-08",
+      "tier": "hard",
+      "predicted": "1",
+      "correct": true,
+      "probabilities": {
+        "0": 0.2872,
+        "1": 0.4179,
+        "2": 0.2698,
+        "3": 0.0251
+      },
+      "latency_ms": 2761.4
+    },
+    {
+      "id": "hard-opus-c-long_policy-10",
+      "tier": "hard",
+      "predicted": "credit_minus_restocking_fee",
+      "correct": true,
+      "probabilities": {
+        "credit_minus_restocking_fee": 0.7157,
+        "full_credit": 0.043,
+        "reject_return": 0.1926,
+        "repair_or_replace_only": 0.0487
+      },
+      "latency_ms": 3103.0
+    },
+    {
+      "id": "hard-opus-c-long_policy-11",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.4225,
+        "no": 0.5775
+      },
+      "latency_ms": 2811.7
+    },
+    {
+      "id": "hard-opus-c-probability-03",
+      "tier": "hard",
+      "predicted": "kuznets_technik",
+      "correct": true,
+      "probabilities": {
+        "halvorsen_polymer": 0.0893,
+        "kuznets_technik": 0.796,
+        "ortega_seal_works": 0.1147
+      },
+      "latency_ms": 453.9
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-02",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.5775,
+        "no": 0.4225
+      },
+      "latency_ms": 783.6
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-03",
+      "tier": "hard",
+      "predicted": "eur_692_00",
+      "correct": true,
+      "probabilities": {
+        "eur_617_00": 0.0768,
+        "eur_688_00": 0.173,
+        "eur_692_00": 0.4151,
+        "eur_693_90": 0.2365,
+        "eur_812_00": 0.0986
+      },
+      "latency_ms": 699.4
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-04",
+      "tier": "hard",
+      "predicted": "usd_2303_33",
+      "correct": false,
+      "probabilities": {
+        "usd_2222_50": 0.0757,
+        "usd_2303_01": 0.2812,
+        "usd_2303_33": 0.2993,
+        "usd_2335_00": 0.1248,
+        "usd_2340_00": 0.219
+      },
+      "latency_ms": 636.9
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-06",
+      "tier": "hard",
+      "predicted": "sep_16_taxi",
+      "correct": false,
+      "probabilities": {
+        "none_declined": 0.1809,
+        "sep_15_office_chair": 0.1926,
+        "sep_16_taxi": 0.2982,
+        "sep_17_parking": 0.0379,
+        "sep_18_book_set": 0.0854,
+        "sep_21_client_dinner": 0.205
+      },
+      "latency_ms": 790.4
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-08",
+      "tier": "hard",
+      "predicted": "eur_498_81",
+      "correct": true,
+      "probabilities": {
+        "eur_497_40": 0.2317,
+        "eur_498_81": 0.2976,
+        "eur_506_06": 0.1805,
+        "eur_513_69": 0.1496,
+        "eur_532_01": 0.1406
+      },
+      "latency_ms": 790.6
+    },
+    {
+      "id": "hard-opus-c-temporal_numeric-12",
+      "tier": "hard",
+      "predicted": "expired_30_month_cap",
+      "correct": true,
+      "probabilities": {
+        "covered": 0.3045,
+        "expired_24_month_term": 0.3045,
+        "expired_30_month_cap": 0.391
+      },
+      "latency_ms": 679.9
+    },
+    {
+      "id": "hard-sol-a-adversarial-01",
+      "tier": "hard",
+      "predicted": "deny_missing_approval",
+      "correct": true,
+      "probabilities": {
+        "deny_inactive_user": 0.0181,
+        "deny_missing_approval": 0.9259,
+        "grant_access": 0.0263,
+        "grant_owner_exception": 0.0298
+      },
+      "latency_ms": 253.9
+    },
+    {
+      "id": "hard-sol-a-adversarial-06",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1067,
+        "no": 0.8933
+      },
+      "latency_ms": 248.9
+    },
+    {
+      "id": "hard-sol-a-adversarial-07",
+      "tier": "hard",
+      "predicted": "retain_until_2031",
+      "correct": true,
+      "probabilities": {
+        "delete_now": 0.0473,
+        "needs_signature_review": 0.0197,
+        "retain_indefinitely": 0.0941,
+        "retain_until_2031": 0.8388
+      },
+      "latency_ms": 252.5
+    },
+    {
+      "id": "hard-sol-a-adversarial-08",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.9196,
+        "no": 0.0804
+      },
+      "latency_ms": 239.7
+    },
+    {
+      "id": "hard-sol-a-adversarial-09",
+      "tier": "hard",
+      "predicted": "2",
+      "correct": true,
+      "probabilities": {
+        "0": 0.0257,
+        "1": 0.0896,
+        "2": 0.8497,
+        "3": 0.0351
+      },
+      "latency_ms": 239.6
+    },
+    {
+      "id": "hard-sol-a-adversarial-11",
+      "tier": "hard",
+      "predicted": "standard_research",
+      "correct": true,
+      "probabilities": {
+        "ethics_review": 0.0507,
+        "major_grants": 0.0289,
+        "manual_hold": 0.0225,
+        "standard_research": 0.898
+      },
+      "latency_ms": 290.2
+    },
+    {
+      "id": "hard-sol-a-multi_hop-01",
+      "tier": "hard",
+      "predicted": "accept_s2_dusk",
+      "correct": true,
+      "probabilities": {
+        "accept_s2_dusk": 0.8826,
+        "reject_cutoff": 0.0342,
+        "reject_tier": 0.0468,
+        "reroute_s3": 0.0364
+      },
+      "latency_ms": 1846.3
+    },
+    {
+      "id": "hard-sol-a-multi_hop-02",
+      "tier": "hard",
+      "predicted": "security_primary",
+      "correct": true,
+      "probabilities": {
+        "executive_bridge": 0.0724,
+        "heron_q2": 0.0564,
+        "insufficient_information": 0.093,
+        "security_primary": 0.7783
+      },
+      "latency_ms": 1860.4
+    },
+    {
+      "id": "hard-sol-a-multi_hop-05",
+      "tier": "hard",
+      "predicted": "require_director",
+      "correct": true,
+      "probabilities": {
+        "pay_manager_approved": 0.1717,
+        "reject_category": 0.0338,
+        "require_director": 0.7697,
+        "require_finance_board": 0.0247
+      },
+      "latency_ms": 1768.4
+    },
+    {
+      "id": "hard-sol-a-multi_hop-07",
+      "tier": "hard",
+      "predicted": "admit",
+      "correct": true,
+      "probabilities": {
+        "admit": 0.7302,
+        "deny_prerequisite": 0.1965,
+        "deny_score": 0.0412,
+        "manual_equivalency": 0.0321
+      },
+      "latency_ms": 1769.0
+    },
+    {
+      "id": "hard-sol-a-multi_hop-08",
+      "tier": "hard",
+      "predicted": "local_maintenance",
+      "correct": false,
+      "probabilities": {
+        "central_engineering": 0.0729,
+        "insufficient_log": 0.0222,
+        "local_maintenance": 0.8885,
+        "safety_shutdown": 0.0163
+      },
+      "latency_ms": 1737.5
+    },
+    {
+      "id": "hard-sol-a-multi_hop-09",
+      "tier": "hard",
+      "predicted": "require_steward",
+      "correct": true,
+      "probabilities": {
+        "confirm_l3": 0.1266,
+        "reject_capacity": 0.1961,
+        "require_steward": 0.6431,
+        "switch_l4": 0.0341
+      },
+      "latency_ms": 1716.8
+    },
+    {
+      "id": "hard-sol-a-multi_hop-10",
+      "tier": "hard",
+      "predicted": "approve_45_days",
+      "correct": true,
+      "probabilities": {
+        "approve_45_days": 0.424,
+        "deny_sensitive": 0.1072,
+        "needs_field_review": 0.0946,
+        "reduce_to_30_days": 0.3742
+      },
+      "latency_ms": 1674.4
+    },
+    {
+      "id": "hard-sol-a-multi_hop-12",
+      "tier": "hard",
+      "predicted": "needs_authentication",
+      "correct": true,
+      "probabilities": {
+        "covered_recurrence": 0.0529,
+        "expired": 0.0439,
+        "needs_authentication": 0.8812,
+        "wrong_issue_class": 0.0221
+      },
+      "latency_ms": 1629.9
+    },
+    {
+      "id": "hard-sol-a-trap-02",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0716,
+        "no": 0.9284
+      },
+      "latency_ms": 274.3
+    },
+    {
+      "id": "hard-sol-a-trap-04",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0901,
+        "no": 0.9099
+      },
+      "latency_ms": 193.8
+    },
+    {
+      "id": "hard-sol-a-trap-05",
+      "tier": "hard",
+      "predicted": "0",
+      "correct": true,
+      "probabilities": {
+        "0": 0.8343,
+        "1": 0.0643,
+        "2": 0.0879,
+        "3": 0.0135
+      },
+      "latency_ms": 282.5
+    },
+    {
+      "id": "hard-sol-a-trap-06",
+      "tier": "hard",
+      "predicted": "keep_open_unresolved",
+      "correct": true,
+      "probabilities": {
+        "await_internal_metrics": 0.0335,
+        "close_agent_verified": 0.0245,
+        "close_confirmed": 0.0216,
+        "keep_open_unresolved": 0.9203
+      },
+      "latency_ms": 281.6
+    },
+    {
+      "id": "hard-sol-a-trap-08",
+      "tier": "hard",
+      "predicted": "late",
+      "correct": true,
+      "probabilities": {
+        "canceled": 0.0206,
+        "indeterminate": 0.0194,
+        "late": 0.9335,
+        "on_time": 0.0265
+      },
+      "latency_ms": 233.3
+    },
+    {
+      "id": "hard-sol-a-trap-10",
+      "tier": "hard",
+      "predicted": "blocked_second_review",
+      "correct": true,
+      "probabilities": {
+        "blocked_failed_test": 0.0215,
+        "blocked_second_review": 0.9153,
+        "ready_one_review": 0.0402,
+        "ready_two_reviews": 0.0229
+      },
+      "latency_ms": 197.2
+    },
+    {
+      "id": "hard-sol-a-trap-13",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0804,
+        "no": 0.9196
+      },
+      "latency_ms": 200.9
+    },
+    {
+      "id": "hard-sol-a-trap-15",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.0953,
+        "no": 0.9047
+      },
+      "latency_ms": 272.8
+    },
+    {
+      "id": "hard-sol-b-judge_hard-01",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8176,
+        "no": 0.1824
+      },
+      "latency_ms": 270.1
+    },
+    {
+      "id": "hard-sol-b-judge_hard-02",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.7058,
+        "no": 0.2942
+      },
+      "latency_ms": 196.7
+    },
+    {
+      "id": "hard-sol-b-judge_hard-05",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7982,
+        "no": 0.2018
+      },
+      "latency_ms": 226.1
+    },
+    {
+      "id": "hard-sol-b-judge_hard-08",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.7549,
+        "no": 0.2451
+      },
+      "latency_ms": 196.7
+    },
+    {
+      "id": "hard-sol-b-judge_hard-10",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.4688,
+        "no": 0.5312
+      },
+      "latency_ms": 228.2
+    },
+    {
+      "id": "hard-sol-b-judge_hard-14",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1645,
+        "no": 0.8355
+      },
+      "latency_ms": 227.6
+    },
+    {
+      "id": "hard-sol-b-judge_hard-15",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8808,
+        "no": 0.1192
+      },
+      "latency_ms": 193.4
+    },
+    {
+      "id": "hard-sol-b-judge_hard-18",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.8597,
+        "no": 0.1403
+      },
+      "latency_ms": 186.1
+    },
+    {
+      "id": "hard-sol-b-long_policy-01",
+      "tier": "hard",
+      "predicted": "reject_entire_claim",
+      "correct": true,
+      "probabilities": {
+        "approve_all": 0.0826,
+        "approve_lodging_only": 0.2245,
+        "approve_meals_only": 0.1543,
+        "reject_entire_claim": 0.5386
+      },
+      "latency_ms": 2025.4
+    },
+    {
+      "id": "hard-sol-b-long_policy-02",
+      "tier": "hard",
+      "predicted": "deny_current_export",
+      "correct": true,
+      "probabilities": {
+        "analytics_owner_only": 0.0162,
+        "deny_current_export": 0.8818,
+        "privacy_and_security": 0.077,
+        "privacy_only": 0.025
+      },
+      "latency_ms": 1891.4
+    },
+    {
+      "id": "hard-sol-b-long_policy-05",
+      "tier": "hard",
+      "predicted": "delete_only_profile",
+      "correct": false,
+      "probabilities": {
+        "delete_everything": 0.0443,
+        "delete_nothing": 0.0368,
+        "delete_only_profile": 0.6937,
+        "delete_profile_omar_april_and_table": 0.2252
+      },
+      "latency_ms": 1881.9
+    },
+    {
+      "id": "hard-sol-b-long_policy-06",
+      "tier": "hard",
+      "predicted": "east_ward",
+      "correct": true,
+      "probabilities": {
+        "east_ward": 0.5714,
+        "harbor_neighbors": 0.0441,
+        "no_award": 0.2102,
+        "river_arts": 0.1743
+      },
+      "latency_ms": 1936.6
+    },
+    {
+      "id": "hard-sol-b-routing_hard-01",
+      "tier": "hard",
+      "predicted": "office_file_repair",
+      "correct": true,
+      "probabilities": {
+        "data_pipeline": 0.0187,
+        "desktop_support": 0.0165,
+        "finance_review": 0.0175,
+        "office_file_repair": 0.8996,
+        "spreadsheet_formula": 0.0477
+      },
+      "latency_ms": 270.9
+    },
+    {
+      "id": "hard-sol-b-routing_hard-02",
+      "tier": "hard",
+      "predicted": "ledger_reconciliation",
+      "correct": true,
+      "probabilities": {
+        "customer_support": 0.0193,
+        "fraud_review": 0.0132,
+        "ledger_reconciliation": 0.9278,
+        "mobile_app": 0.015,
+        "payment_disputes": 0.0247
+      },
+      "latency_ms": 234.5
+    },
+    {
+      "id": "hard-sol-b-routing_hard-03",
+      "tier": "hard",
+      "predicted": "network_dns",
+      "correct": true,
+      "probabilities": {
+        "api_platform": 0.019,
+        "authoritative_dns": 0.0202,
+        "endpoint_devices": 0.0294,
+        "network_dns": 0.9137,
+        "tls_certificates": 0.0178
+      },
+      "latency_ms": 234.1
+    },
+    {
+      "id": "hard-sol-b-routing_hard-07",
+      "tier": "hard",
+      "predicted": "release_notarization",
+      "correct": true,
+      "probabilities": {
+        "ci_infrastructure": 0.0133,
+        "code_signing": 0.0281,
+        "endpoint_security": 0.016,
+        "macos_runtime": 0.0125,
+        "release_notarization": 0.9302
+      },
+      "latency_ms": 228.6
+    },
+    {
+      "id": "hard-sol-b-routing_hard-09",
+      "tier": "hard",
+      "predicted": "source_access",
+      "correct": true,
+      "probabilities": {
+        "git_client": 0.0192,
+        "identity_login": 0.017,
+        "repository_admin": 0.015,
+        "source_access": 0.9257,
+        "vpn_network": 0.0232
+      },
+      "latency_ms": 230.4
+    },
+    {
+      "id": "hard-sol-b-temporal_numeric-01",
+      "tier": "hard",
+      "predicted": "within_window",
+      "correct": false,
+      "probabilities": {
+        "before_open": 0.1599,
+        "late_by_2h_or_more": 0.1929,
+        "late_by_under_2h": 0.2636,
+        "within_window": 0.3836
+      },
+      "latency_ms": 232.4
+    },
+    {
+      "id": "hard-sol-b-temporal_numeric-02",
+      "tier": "hard",
+      "predicted": "exactly_equal",
+      "correct": false,
+      "probabilities": {
+        "at_least_100gb_below": 0.183,
+        "exactly_equal": 0.2834,
+        "over_limit": 0.2501,
+        "under_100gb_below": 0.2834
+      },
+      "latency_ms": 232.3
+    },
+    {
+      "id": "hard-sol-b-temporal_numeric-03",
+      "tier": "hard",
+      "predicted": "6_credits",
+      "correct": false,
+      "probabilities": {
+        "12_credits": 0.2901,
+        "15_credits": 0.1287,
+        "6_credits": 0.3088,
+        "9_credits": 0.2725
+      },
+      "latency_ms": 221.5
+    },
+    {
+      "id": "hard-sol-b-temporal_numeric-04",
+      "tier": "hard",
+      "predicted": "narrow_fail",
+      "correct": false,
+      "probabilities": {
+        "clear_fail": 0.3274,
+        "narrow_fail": 0.4475,
+        "pass": 0.225
+      },
+      "latency_ms": 224.7
+    },
+    {
+      "id": "hard-sol-c-judge_hard-03",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.6792,
+        "no": 0.3208
+      },
+      "latency_ms": 320.7
+    },
+    {
+      "id": "hard-sol-c-judge_hard-05",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7058,
+        "no": 0.2942
+      },
+      "latency_ms": 312.5
+    },
+    {
+      "id": "hard-sol-c-judge_hard-07",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.8355,
+        "no": 0.1645
+      },
+      "latency_ms": 275.2
+    },
+    {
+      "id": "hard-sol-c-judge_hard-08",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.5312,
+        "no": 0.4688
+      },
+      "latency_ms": 275.4
+    },
+    {
+      "id": "hard-sol-c-judge_hard-09",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.7982,
+        "no": 0.2018
+      },
+      "latency_ms": 309.7
+    },
+    {
+      "id": "hard-sol-c-judge_hard-10",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8267,
+        "no": 0.1733
+      },
+      "latency_ms": 319.3
+    },
+    {
+      "id": "hard-sol-c-judge_hard-11",
+      "tier": "hard",
+      "predicted": "no",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.1067,
+        "no": 0.8933
+      },
+      "latency_ms": 283.2
+    },
+    {
+      "id": "hard-sol-c-judge_hard-13",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": false,
+      "probabilities": {
+        "yes": 0.5156,
+        "no": 0.4844
+      },
+      "latency_ms": 280.1
+    },
+    {
+      "id": "hard-sol-c-judge_hard-15",
+      "tier": "hard",
+      "predicted": "yes",
+      "correct": true,
+      "probabilities": {
+        "yes": 0.8267,
+        "no": 0.1733
+      },
+      "latency_ms": 267.6
+    },
+    {
+      "id": "hard-sol-c-multi_hop-07",
+      "tier": "hard",
+      "predicted": "programme_review",
+      "correct": true,
+      "probabilities": {
+        "partial_release": 0.0265,
+        "programme_review": 0.8253,
+        "reject_draw": 0.0986,
+        "release_draw": 0.0496
+      },
+      "latency_ms": 1835.0
+    },
+    {
+      "id": "hard-sol-c-multi_hop-09",
+      "tier": "hard",
+      "predicted": "bus_substitution",
+      "correct": true,
+      "probabilities": {
+        "bus_substitution": 0.9188,
+        "call_fen_cross": 0.0179,
+        "pass_fen_cross": 0.0203,
+        "terminate_oakmere": 0.043
+      },
+      "latency_ms": 1878.3
+    },
+    {
+      "id": "hard-sol-c-multi_hop-11",
+      "tier": "hard",
+      "predicted": "coverage_excluded",
+      "correct": true,
+      "probabilities": {
+        "adjuster_referral": 0.0314,
+        "coverage_confirmed": 0.091,
+        "coverage_excluded": 0.811,
+        "documentation_needed": 0.0666
+      },
+      "latency_ms": 1925.5
+    },
+    {
+      "id": "hard-sol-c-multi_hop-12",
+      "tier": "hard",
+      "predicted": "conservation_hold",
+      "correct": true,
+      "probabilities": {
+        "conservation_hold": 0.9445,
+        "deny_request": 0.0173,
+        "digital_copy_only": 0.0173,
+        "supervised_delivery": 0.0209
+      },
+      "latency_ms": 411.7
+    },
+    {
+      "id": "hard-sol-c-multi_hop-13",
+      "tier": "hard",
+      "predicted": "normal_release",
+      "correct": true,
+      "probabilities": {
+        "engineering_review": 0.03,
+        "normal_release": 0.9324,
+        "rework": 0.0206,
+        "scrap_lot": 0.0171
+      },
+      "latency_ms": 1882.2
+    }
+  ]
+}

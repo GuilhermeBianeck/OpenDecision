@@ -31,6 +31,9 @@ def common_prefix_length(rows: list[list[int]]) -> int:
 
 
 class MLXDecoderBackend(DecoderBackend):
+    # Text before each option letter at the answer position.
+    label_prefix = ""
+
     def __init__(self, *, device: str = "auto", precision: str | None = None, **kwargs: Any):
         if device not in {"auto", "mps"}:
             raise BackendError("MLX checkpoints require Apple silicon: device='auto' or 'mps'.")
@@ -65,6 +68,8 @@ class MLXDecoderBackend(DecoderBackend):
                 from mlx_lm import load
                 from mlx_lm.models.cache import make_prompt_cache
 
+                from opendecision.registry import DOWNLOAD_PATTERNS
+
                 if not mx.metal.is_available():
                     raise BackendError("MLX scoring requires an available Apple Metal GPU.")
                 check_memory(MODEL_SPECS[self.name])
@@ -72,7 +77,11 @@ class MLXDecoderBackend(DecoderBackend):
                 mx.set_cache_limit(MLX_CACHE_LIMIT_BYTES)
                 # Resolve locally first and pass a path: mlx-lm cannot implicitly fetch.
                 path = snapshot_download(
-                    self.model_id, revision=self.revision, local_files_only=True
+                    self.model_id,
+                    revision=self.revision,
+                    local_files_only=True,
+                    # Only what pull fetches; repositories may also ship code we never run.
+                    allow_patterns=DOWNLOAD_PATTERNS,
                 )
                 model, tokenizer, config = load(
                     path, tokenizer_config={"trust_remote_code": False}, return_config=True
@@ -80,7 +89,10 @@ class MLXDecoderBackend(DecoderBackend):
                 quant = config.get("quantization", {})
                 if quant.get("bits") != 4 or quant.get("group_size") != 64:
                     raise BackendError("Checkpoint does not match the pinned Q4/group64 format.")
-                ids = [tokenizer.encode(c, add_special_tokens=False) for c in LETTERS]
+                ids = [
+                    tokenizer.encode(self.label_prefix + c, add_special_tokens=False)
+                    for c in LETTERS
+                ]
                 if any(len(row) != 1 for row in ids) or len({row[0] for row in ids}) != 26:
                     raise BackendError("Option letters must be distinct single tokens.")
                 model.eval()

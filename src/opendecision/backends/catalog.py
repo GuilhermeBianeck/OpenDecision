@@ -101,6 +101,22 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "context_limit": 8192,
         "description": "LFM2.5 2.6B, MLX affine Q4; larger quality candidate.",
     },
+    "lightning": {
+        "name": "lightning",
+        "model_id": "netprojects/h2o-lightning-4b-mlx-q4",
+        "revision": "2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4",
+        "family": "decision-mlx",
+        "license": "Apache-2.0",
+        "parameters": 4_000_000_000,
+        "weights_bytes": 3_034_299_183,
+        # Peak measured on the longest public benchmark states at an 8,192-token context.
+        "memory_bytes": 4_460_000_000,
+        "context_limit": 32768,
+        "description": (
+            "H2O-Lightning 4B, a decision-trained Qwen3.5 4B, MLX affine Q4; "
+            "scored with its training prompt."
+        ),
+    },
     "multilingual": {
         "name": "multilingual",
         "model_id": "BAAI/bge-reranker-v2-m3",

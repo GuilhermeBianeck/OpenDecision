@@ -57,6 +57,7 @@ def _resolve_name(name: str, device: str = "auto") -> str:
         "qwen": "decoder",
         "qwen3.5": "qwen35",
         "lfm": "lfm25",
+        "h2o": "lightning",
     }
     if name == "auto":
         return default_model(device)
@@ -64,6 +65,7 @@ def _resolve_name(name: str, device: str = "auto") -> str:
     if resolved not in {*MODEL_SPECS, "demo", "onnx"}:
         raise BackendError(
             f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, qwen35, lfm25, "
+            "lightning, "
             "demo, or onnx."
         )
     return resolved
@@ -121,6 +123,10 @@ def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> D
         from opendecision.backends.decoder import DecoderBackend
 
         return DecoderBackend(**backend_options("decoder"), device=device, **kwargs)
+    if resolved == "lightning":
+        from opendecision.backends.decision_mlx import DecisionMLXBackend
+
+        return DecisionMLXBackend(**backend_options(resolved), device=device, **kwargs)
     if resolved in {"qwen35", "lfm25", "qwen35_4b", "lfm25_26b"}:
         from opendecision.backends.mlx_decoder import MLXDecoderBackend
 
