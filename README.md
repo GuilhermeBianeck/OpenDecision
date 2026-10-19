@@ -246,6 +246,10 @@ Fit on the calibration split, select thresholds on validation, then evaluate
 the untouched test split. A profile checks checkpoint, template, precision,
 and sequence limit; it does not establish reliability on a new task distribution.
 See [calibration](docs/calibration.md) and [benchmark methodology](docs/benchmarks.md).
+Results on a public 231-item decision benchmark, run through its own harness
+against `/v1/systemone`, are in [public benchmark](docs/public-benchmark.md);
+negation consistency and option-order invariance are in
+[consistency](docs/consistency.md).
 
 ## Local HTTP and TypeScript
 
