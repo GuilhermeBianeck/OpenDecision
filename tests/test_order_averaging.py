@@ -34,3 +34,20 @@ def test_cli_flag_reaches_the_backend():
     assert cli._load_model(args).backend.permutations == 2
     args = build_parser().parse_args(["consistency", "--model", "base"])
     assert args.order_averaging == 1
+
+
+def test_averaging_never_repeats_a_rotation(monkeypatch):
+    from opendecision.schemas import DecisionRequest
+
+    backend = create_backend("decoder", device="cpu", permutations=3)
+    seen = []
+    monkeypatch.setattr(backend, "load", lambda: None)
+
+    def run_group(state_text, suffixes):
+        seen.extend(suffixes)
+        return [[0.0] * 26 for _ in suffixes]
+
+    monkeypatch.setattr(backend, "_run_group", run_group)
+    backend.score_batch([DecisionRequest(state="s", question="q", choices=["yes", "no"])])
+    assert len(seen) == 2  # both orders once, not one of them twice
+    assert len(set(seen)) == 2

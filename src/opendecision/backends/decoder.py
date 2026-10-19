@@ -337,10 +337,14 @@ class DecoderBackend:
                 for index in indexes:
                     texts = self._candidates(requests[index])
                     count = len(texts)
-                    rotation = [
-                        round(step * count / self.permutations) % count
-                        for step in range(self.permutations)
-                    ]
+                    # Distinct, evenly spread rotations: a repeated rotation would
+                    # weight one option order twice (K=3 over two options).
+                    rotation = sorted(
+                        {
+                            round(step * count / self.permutations) % count
+                            for step in range(self.permutations)
+                        }
+                    )
                     shifts.append(rotation)
                     for shift in rotation:
                         rotated = texts[shift:] + texts[:shift]
