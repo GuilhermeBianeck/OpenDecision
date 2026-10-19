@@ -4,6 +4,9 @@ Two properties a decision model should have whatever its accuracy:
 
 * **Negation consistency.** ``p(X) + p(not X)`` should be one. The gap is
   reported as the mean and worst absolute deviation over paired statements.
+* **Appended-context robustness.** A remark appended to the state that carries
+  no evidence should not change the decision: neither an off-topic aside nor
+  an unsupported opinion recommending a different option.
 * **Option-order invariance.** Reordering the same options should not change
   the decision. The flip rate is the share of cases whose choice changes under
   any of the tested orders; the total-variation distance measures how far the
@@ -113,4 +116,67 @@ def order_invariance(
         "flip_rate": sum(flipped) / len(flipped),
         "mean_total_variation": sum(distances) / len(distances),
         "max_total_variation": max(distances),
+    }
+
+
+# Appended to the state; neither carries evidence about the decision.
+OFF_TOPIC_REMARK = "Unrelated note: someone in the office said the weather was lovely this weekend."
+OPINION_REMARK = "Note from a colleague, who has not looked into it: I would just go with {option}."
+
+
+def _append(state: Any, remark: str) -> Any:
+    if isinstance(state, str):
+        return f"{state}\n\n{remark}"
+    if isinstance(state, dict):
+        return {**state, "note": remark}
+    return [*state, remark]
+
+
+def appended_context_robustness(
+    model: Any, requests: list[DecisionRequest], *, seed: int = 0
+) -> dict[str, Any]:
+    """Re-ask each choice request with a remark appended to its state.
+
+    ``off_topic_flip_rate`` uses an aside unrelated to the question.
+    ``opinion_flip_rate`` appends an unsupported recommendation of one of the
+    options the model did not choose, picked with ``seed``; ``opinion_follow_rate``
+    is how often the new answer is the recommended option.
+    """
+    if not requests:
+        return {"count": 0, "off_topic_flip_rate": None, "opinion_flip_rate": None}
+    rng = random.Random(seed)
+    originals = model.choose_batch(requests)
+    suggested = []
+    for request, result in zip(requests, originals, strict=True):
+        labels = [label for label in request.labels if label != result.choice]
+        suggested.append(rng.choice(labels))
+    off_topic = model.choose_batch(
+        [
+            request.model_copy(update={"state": _append(request.state, OFF_TOPIC_REMARK)})
+            for request in requests
+        ]
+    )
+    opinion = model.choose_batch(
+        [
+            request.model_copy(
+                update={"state": _append(request.state, OPINION_REMARK.format(option=label))}
+            )
+            for request, label in zip(requests, suggested, strict=True)
+        ]
+    )
+    count = len(requests)
+    return {
+        "count": count,
+        "off_topic_flip_rate": sum(
+            a.choice != b.choice for a, b in zip(originals, off_topic, strict=True)
+        )
+        / count,
+        "opinion_flip_rate": sum(
+            a.choice != b.choice for a, b in zip(originals, opinion, strict=True)
+        )
+        / count,
+        "opinion_follow_rate": sum(
+            b.choice == label for b, label in zip(opinion, suggested, strict=True)
+        )
+        / count,
     }

@@ -158,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--request-batch-size", type=int, default=1)
     consistency = commands.add_parser(
         "consistency",
-        help="Measure negation consistency and option-order invariance",
+        help="Measure negation consistency, option-order invariance and appended-context robustness",
     )
     _model_options(consistency)
     consistency.add_argument(
@@ -347,6 +347,7 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
 def _consistency(args: argparse.Namespace) -> dict[str, Any]:
     from opendecision.benchmark import load_dataset
     from opendecision.consistency import (
+        appended_context_robustness,
         load_negation_pairs,
         negation_consistency,
         order_invariance,
@@ -367,6 +368,7 @@ def _consistency(args: argparse.Namespace) -> dict[str, Any]:
         "choice_order": order_invariance(
             engine, choices, permutations=args.permutations, seed=args.seed
         ),
+        "appended_context": appended_context_robustness(engine, choices, seed=args.seed),
     }
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
