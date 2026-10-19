@@ -53,9 +53,9 @@ TASKS: dict[str, TaskProfile] = {
         task="verification",
         backend="qwen35",
         summary="Deciding whether a statement is supported by the state.",
-        evidence="Verification family: qwen35 0.989, qwen35_4b 0.983, base 0.963, tiny 0.932, "
-        "smart 0.812, decoder 0.696, lfm25 0.594, multilingual 0.446.",
-        runners_up=("qwen35_4b", "base"),
+        evidence="Verification family: qwen35 0.989, qwen35_4b 0.983, lightning 0.972, "
+        "base 0.963, tiny 0.932, smart 0.812, decoder 0.696, lfm25 0.594, multilingual 0.446.",
+        runners_up=("qwen35_4b", "lightning", "base"),
         portable="base",
     ),
     "relevance": TaskProfile(
@@ -72,30 +72,30 @@ TASKS: dict[str, TaskProfile] = {
         task="ranking",
         backend="multilingual",
         summary="Ordering every candidate, not just choosing one.",
-        evidence="Ranking family NDCG: qwen35 0.984, multilingual 0.983, decoder 0.982, "
-        "lfm25 0.952, qwen35_4b 0.942, tiny 0.940, smart 0.926, base 0.867. The top three "
-        "are inside the noise of 52 rows; multilingual is the smallest of them.",
-        runners_up=("qwen35", "decoder"),
+        evidence="Ranking family NDCG: lightning 1.000, qwen35 0.984, multilingual 0.983, "
+        "decoder 0.982, lfm25 0.952, qwen35_4b 0.942, tiny 0.940, smart 0.926, base 0.867. "
+        "The top four are inside the noise of 52 rows; multilingual is the smallest of them.",
+        runners_up=("lightning", "qwen35", "decoder"),
     ),
     "rubric": TaskProfile(
         task="rubric",
-        backend="qwen35_4b",
+        backend="lightning",
         summary="Rating the state on ordered levels.",
-        evidence="Ordinal family exact level: qwen35_4b 0.769, smart 0.611, decoder 0.509, "
-        "lfm25 0.509, qwen35 0.481, base 0.421, multilingual 0.370, tiny 0.361.",
-        runners_up=("smart",),
+        evidence="Ordinal family exact level: lightning 0.852, qwen35_4b 0.769, smart 0.611, "
+        "decoder 0.509, lfm25 0.509, qwen35 0.481, base 0.421, multilingual 0.370, tiny 0.361.",
+        runners_up=("qwen35_4b", "smart"),
         portable="smart",
     ),
     "policy": TaskProfile(
         task="policy",
-        backend="qwen35",
+        backend="lightning",
         summary="Applying a rule stated in the state to the facts also stated there.",
-        evidence="Agent-control family: qwen35 0.814, qwen35_4b 0.801, base 0.750, "
+        evidence="Agent-control family: lightning 0.968, qwen35 0.814, qwen35_4b 0.801, base 0.750, "
         "multilingual 0.679, tiny 0.635, smart 0.628, decoder 0.487; lfm25 scores 0.840 "
         "here but 0.596 overall with the worst calibration of any backend. On negated "
         "facts qwen35_4b answers every unperturbed scenario correctly against 0.500 for "
         "base, so decomposition (docs/patterns.md) matters less than it did.",
-        runners_up=("qwen35_4b", "base"),
+        runners_up=("qwen35", "qwen35_4b", "base"),
         portable="base",
     ),
     "stated_facts": TaskProfile(
@@ -110,13 +110,15 @@ TASKS: dict[str, TaskProfile] = {
     ),
     "wide_choice": TaskProfile(
         task="wide_choice",
-        backend="decoder",
+        backend="lightning",
         summary="Many candidates for one question, where a cross-encoder would pay a "
         "forward pass each.",
-        evidence="Twelve-option routing on unperturbed states: decoder 0.917, qwen35 0.917, "
-        "qwen35_4b 0.833, multilingual 0.750, base 0.583, lfm25 0.417, tiny 0.333. Both "
-        "decoders cap at 26 options; use DecisionModel.choose_wide beyond that.",
-        runners_up=("qwen35",),
+        evidence="Twelve-option routing on unperturbed states: lightning 1.000, decoder 0.917, "
+        "qwen35 0.917, qwen35_4b 0.833, multilingual 0.750, base 0.583, lfm25 0.417, tiny "
+        "0.333, over 12 rows, so the top three differ by one answer. The decoders cap at 26 "
+        "options; use DecisionModel.choose_wide beyond that.",
+        runners_up=("decoder", "qwen35"),
+        portable="decoder",
     ),
     "many_questions": TaskProfile(
         task="many_questions",
@@ -129,12 +131,13 @@ TASKS: dict[str, TaskProfile] = {
     ),
     "classification": TaskProfile(
         task="classification",
-        backend="qwen35",
+        backend="lightning",
         summary="General labelling of a state into categories.",
-        evidence="Objective family: qwen35_4b 0.854, qwen35 0.813, decoder 0.618, "
-        "multilingual 0.582, base 0.569, smart 0.538, lfm25 0.462, tiny 0.346. Pooled over "
-        "every objective family the order holds: qwen35_4b 0.853, qwen35 0.799, base 0.675.",
-        runners_up=("qwen35_4b", "base"),
+        evidence="Objective family: lightning 0.956, qwen35_4b 0.854, qwen35 0.813, decoder "
+        "0.618, multilingual 0.582, base 0.569, smart 0.538, lfm25 0.462, tiny 0.346. Pooled "
+        "over every objective family the order holds: lightning 0.940, qwen35_4b 0.853, "
+        "qwen35 0.799, base 0.675.",
+        runners_up=("qwen35_4b", "qwen35", "base"),
         portable="base",
     ),
 }

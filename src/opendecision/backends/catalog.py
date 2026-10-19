@@ -59,6 +59,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "Apache-2.0",
         "parameters": 2_000_000_000,
         "weights_bytes": 1_722_271_785,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 2_570_000_000,
         "context_limit": 8192,
         "description": "Qwen3.5 2B, MLX affine Q4; general local decision candidate.",
     },
@@ -70,6 +72,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "LFM-1.0",
         "parameters": 1_200_000_000,
         "weights_bytes": 658_540_250,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 1_450_000_000,
         "context_limit": 8192,
         "description": "LFM2.5 1.2B instruct, MLX affine Q4; fast local decision candidate.",
     },
@@ -81,6 +85,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "license": "Apache-2.0",
         "parameters": 4_000_000_000,
         "weights_bytes": 3_034_300_695,
+        # Peak measured on the longest public benchmark states at full context.
+        "memory_bytes": 4_470_000_000,
         "context_limit": 8192,
         "description": "Qwen3.5 4B, MLX affine Q4; quality-focused local decision candidate.",
     },
@@ -94,6 +100,22 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "weights_bytes": 1_583_152_892,
         "context_limit": 8192,
         "description": "LFM2.5 2.6B, MLX affine Q4; larger quality candidate.",
+    },
+    "lightning": {
+        "name": "lightning",
+        "model_id": "netprojects/h2o-lightning-4b-mlx-q4",
+        "revision": "2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4",
+        "family": "decision-mlx",
+        "license": "Apache-2.0",
+        "parameters": 4_000_000_000,
+        "weights_bytes": 3_034_299_183,
+        # Peak measured on the longest public benchmark states at an 8,192-token context.
+        "memory_bytes": 4_460_000_000,
+        "context_limit": 32768,
+        "description": (
+            "H2O-Lightning 4B, a decision-trained Qwen3.5 4B, MLX affine Q4; "
+            "scored with its training prompt."
+        ),
     },
     "multilingual": {
         "name": "multilingual",

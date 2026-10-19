@@ -9,6 +9,7 @@ from typing import Any
 from opendecision.backends.base import DecisionBackend
 from opendecision.backends.catalog import MODEL_SPECS, VERIFIED_DATE, backend_options
 from opendecision.errors import BackendError
+from opendecision.memory import check_memory
 
 # Do not fetch pickle weights, Python modules, unrelated ONNX variants, or assets.
 DOWNLOAD_PATTERNS = [
@@ -40,12 +41,20 @@ DOWNLOAD_PATTERNS = [
 def default_model(device: str = "auto") -> str:
     """The model ``auto`` resolves to on this machine.
 
-    Apple silicon gets the MLX decoder, which measured 0.799 objective accuracy
-    against 0.675 for the portable baseline on the committed test split. Every
-    other platform keeps that baseline, which needs no MLX runtime.
+    Apple silicon gets ``lightning``, the decision-trained 4B model: 204 of the
+    231 public benchmark items against 139 for ``qwen35``, and 0.940 objective
+    accuracy on the committed test split against 0.799. When free memory cannot
+    hold it, ``auto`` falls back to ``qwen35`` rather than refusing to start.
+    Every other platform keeps the portable baseline, which needs no MLX runtime.
     """
     apple = platform.system() == "Darwin" and platform.machine() == "arm64"
-    return "qwen35" if apple and device in {"auto", "mps"} else "base"
+    if not (apple and device in {"auto", "mps"}):
+        return "base"
+    try:
+        check_memory(MODEL_SPECS["lightning"])
+    except BackendError:
+        return "qwen35"
+    return "lightning"
 
 
 def _resolve_name(name: str, device: str = "auto") -> str:
@@ -57,6 +66,7 @@ def _resolve_name(name: str, device: str = "auto") -> str:
         "qwen": "decoder",
         "qwen3.5": "qwen35",
         "lfm": "lfm25",
+        "h2o": "lightning",
     }
     if name == "auto":
         return default_model(device)
@@ -64,6 +74,7 @@ def _resolve_name(name: str, device: str = "auto") -> str:
     if resolved not in {*MODEL_SPECS, "demo", "onnx"}:
         raise BackendError(
             f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, qwen35, lfm25, "
+            "lightning, "
             "demo, or onnx."
         )
     return resolved
@@ -102,9 +113,7 @@ def list_models() -> list[dict[str, Any]]:
 def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> DecisionBackend:
     """Construct a lazy backend; auto prefers Qwen3.5 on Apple silicon."""
     if name == "auto":
-        resolved = (
-            "qwen35" if platform.system() == "Darwin" and device in {"auto", "mps"} else "base"
-        )
+        resolved = default_model(device)
     else:
         resolved = _resolve_name(name)
     if resolved == "onnx":
@@ -121,6 +130,10 @@ def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> D
         from opendecision.backends.decoder import DecoderBackend
 
         return DecoderBackend(**backend_options("decoder"), device=device, **kwargs)
+    if resolved == "lightning":
+        from opendecision.backends.decision_mlx import DecisionMLXBackend
+
+        return DecisionMLXBackend(**backend_options(resolved), device=device, **kwargs)
     if resolved in {"qwen35", "lfm25", "qwen35_4b", "lfm25_26b"}:
         from opendecision.backends.mlx_decoder import MLXDecoderBackend
 

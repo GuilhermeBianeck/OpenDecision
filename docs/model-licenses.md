@@ -12,6 +12,7 @@ Verified against the upstream Hugging Face model cards, configs, and Hub file me
 | `qwen35` | [mlx-community/Qwen3.5-2B-4bit](https://huggingface.co/mlx-community/Qwen3.5-2B-4bit/tree/674aaa7240b91e8012fcad5d791b7dfe5ba90207) | Apache-2.0 | 1,722,271,785 bytes | 2B |
 | `lfm25` | [LiquidAI/LFM2.5-1.2B-Instruct-MLX-4bit](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-MLX-4bit/tree/7ccafdb04c36936f4f1c4685198c6c9a40275932) | LFM-1.0 | 658,540,250 bytes | 1.2B |
 | `qwen35_4b` | [mlx-community/Qwen3.5-4B-4bit](https://huggingface.co/mlx-community/Qwen3.5-4B-4bit/tree/0e7ffd5c629ef7719d4cbc04069232580bfa9d9c) | Apache-2.0 | 3,034,300,695 bytes | 4B |
+| `lightning` | [netprojects/h2o-lightning-4b-mlx-q4](https://huggingface.co/netprojects/h2o-lightning-4b-mlx-q4/tree/2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4) | Apache-2.0 | 3,034,299,183 bytes | 4B |
 | `lfm25_26b` | [LiquidAI/LFM2.5-2.6B-MLX-4bit](https://huggingface.co/LiquidAI/LFM2.5-2.6B-MLX-4bit/tree/04efa23776ce61ec34ec95ec34c859854c89542b) | LFM-1.0 | 1,583,152,892 bytes | 2.6B |
 
 Sizes above count `model.safetensors` only; tokenizers and metadata add disk space. Values are from each model's official Hub API `?blobs=true` response. DeBERTa also has a 512-element integer buffer, excluded from the parameter count. These are actual upstream artifact sizes, not the smaller quantization targets in the project proposal. The multilingual model is substantially larger than the default base model.
@@ -32,11 +33,19 @@ qwen35        674aaa7240b91e8012fcad5d791b7dfe5ba90207
 lfm25         7ccafdb04c36936f4f1c4685198c6c9a40275932
 qwen35_4b     0e7ffd5c629ef7719d4cbc04069232580bfa9d9c
 lfm25_26b     04efa23776ce61ec34ec95ec34c859854c89542b
+lightning     2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4
 ```
+
+`lightning` is a 4-bit MLX conversion, published by NetProjects, of
+[h2oai/h2o-lightning-4b](https://huggingface.co/h2oai/h2o-lightning-4b)
+(Apache-2.0), itself a decision fine-tune of Qwen3.5 4B (Apache-2.0). The
+conversion is not affiliated with H2O.ai. Its repository also ships a Python
+serving script; `pull` and offline loading use the same file allow-list, so that
+script is never downloaded or run.
 
 `opendecision pull <alias>` explicitly downloads the pinned safetensors weights, tokenizer files, configuration, and available license/model-card files into the standard Hugging Face cache. It then loads the checkpoint and runs a public smoke input. The report includes the revision, declared license, unique snapshot file bytes, scores, device, and runtime precision. A successful smoke test verifies inference plumbing; it makes no decision-quality claim.
 
-Normal inference uses `local_files_only=True`, `trust_remote_code=False`, and `use_safetensors=True`. It never silently downloads a model or loads upstream Python modules or pickle weights. `auto` selects Qwen3.5 on Apple silicon when the device is `auto` or `mps`, and the portable base model elsewhere; it never downloads a fallback. Missing cached weights produce an explicit pull instruction.
+Normal inference uses `local_files_only=True`, `trust_remote_code=False`, and `use_safetensors=True`. It never silently downloads a model or loads upstream Python modules or pickle weights. `auto` selects `lightning` on Apple silicon when the device is `auto` or `mps` and free memory holds it, `qwen35` there otherwise, and the portable base model elsewhere; it never downloads a fallback. Missing cached weights produce an explicit pull instruction.
 
 ## Scoring and serialization
 
@@ -52,7 +61,9 @@ Measured on the reference machine (MPS, float32, warm, one `choose` per cell): t
 
 All adapters flatten candidates across requests into real tensor batches and return raw scores. Neither these scores nor a softmax of them are calibrated correctness probabilities. NLI entailment, learned preference, and retrieval relevance are different objectives; adapting them to arbitrary decisions requires evaluation.
 
-The MLX candidates are opt-in Apple-silicon backends. They use the upstream
+- **lightning:** reproduce the prompt the checkpoint was fine-tuned on. A fixed system turn ("You are a decision engine. …"), then one user turn of `record: {state}`, `question: {question}` and `options:` with one `A) name: description` line per option (a bare option repeats its name), the assistant turn with an empty think block, and `Answer:` already written. The raw score of an option is the log-probability of ` A`, ` B`, … (with the leading space) as the next token. A boolean is the question `{statement}` with options `true: the statement holds` and `false: it does not`; it has no unknown slot, so `unsupported` is zero. The default context is 8,192 tokens. Prefix caching and truncation are the MLX backend's.
+
+The other MLX candidates are opt-in Apple-silicon backends. They use the upstream
 tokenizer chat template, 4-bit affine weights, and a native MLX cache. They are
 not yet routing defaults: their quality and end-to-end latency must be measured
 on the OpenDecision decision suite first. The LFM checkpoints retain the LFM-1.0

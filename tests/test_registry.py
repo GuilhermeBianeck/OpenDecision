@@ -45,9 +45,24 @@ def test_creating_backend_does_not_import_heavy_dependencies():
     subprocess.run([sys.executable, "-c", script], check=True)
 
 
-def test_auto_alias_has_stable_identity():
+@pytest.mark.parametrize(
+    ("system", "machine", "available", "expected"),
+    [
+        ("Darwin", "arm64", 64e9, "lightning"),
+        ("Darwin", "arm64", 3e9, "qwen35"),
+        ("Linux", "x86_64", 64e9, "base"),
+    ],
+)
+def test_auto_follows_the_evidence_and_free_memory(
+    monkeypatch, system, machine, available, expected
+):
+    from opendecision import memory, registry
+
+    monkeypatch.setattr(registry.platform, "system", lambda: system)
+    monkeypatch.setattr(registry.platform, "machine", lambda: machine)
+    monkeypatch.setattr(memory, "available_bytes", lambda: int(available))
+    monkeypatch.delenv("OPENDECISION_SKIP_MEMORY_CHECK", raising=False)
     backend = create_backend("auto")
-    expected = "qwen35" if sys.platform == "darwin" else "base"
     assert backend.name == expected
     assert backend.model_id == MODEL_SPECS[expected]["model_id"]
     assert isinstance(backend, DecisionBackend)

@@ -1,0 +1,19 @@
+{
+  "model": "netprojects/h2o-lightning-4b-mlx-q4",
+  "split": "test",
+  "negation": {
+    "count": 26,
+    "mean_abs_gap": 0.005135084690501894,
+    "median_abs_gap": 0.00239062475016949,
+    "max_abs_gap": 0.025427164385711798,
+    "mean_sum": 1.0046021837950239,
+    "both_sides_accuracy": 1.0
+  },
+  "choice_order": {
+    "count": 94,
+    "orders_per_case": 3,
+    "flip_rate": 0.11702127659574468,
+    "mean_total_variation": 0.03740861196111112,
+    "max_total_variation": 0.4080855132636829
+  }
+}

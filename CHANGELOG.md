@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `lightning`, H2O-Lightning 4B, a decision-trained Qwen3.5 4B served
+  from a pinned MLX 4-bit build with the exact prompt it was trained on. It
+  scores 204 / 231 on the public benchmark (qwen35: 139) and 0.940 objective
+  accuracy on the committed test split (0.799), with a negation gap of 0.007,
+  and it is now `auto` on Apple silicon with a shipped calibration profile
+  (test ECE 0.008) that loads by default. The routing table recommends it for
+  classification, policy, rubric scoring and wide choices.
+- Backends refuse to load, naming the models that fit, when free memory is
+  below their measured requirement, and `auto` falls back to `qwen35` when
+  `lightning` does not fit. The MLX backend bounds its reuse cache of freed
+  GPU buffers, which previously grew by about 1.3 GB per long request.
 - Ran the 231 public items of an MIT-licensed decision benchmark through its
   own harness against `/v1/systemone`: `qwen35` scores 139 / 231 (60.2 %),
   near ceiling on the easy tier and barely above chance on the hard one, with

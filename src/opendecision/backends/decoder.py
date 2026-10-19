@@ -22,6 +22,7 @@ from opendecision.backends.transformers import (
     select_device,
 )
 from opendecision.errors import BackendError
+from opendecision.memory import check_memory
 
 if TYPE_CHECKING:
     from opendecision.schemas import DecisionRequest, StatementRequest
@@ -137,6 +138,8 @@ class DecoderBackend:
             if self._model is not None:
                 return
             started = time.perf_counter()
+            if self.name in MODEL_SPECS:
+                check_memory(MODEL_SPECS[self.name])
             try:
                 import torch
                 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -304,6 +307,10 @@ class DecoderBackend:
             )
 
     # ------------------------------------------------------------------- public
+    def _candidates(self, request: DecisionRequest) -> list[str]:
+        """Option lines as the checkpoint reads them; subclasses match their training format."""
+        return request.candidate_texts
+
     def score_choices(self, *, state: str, question: str, choices: list[str]) -> list[float]:
         from opendecision.schemas import DecisionRequest
 
@@ -328,7 +335,7 @@ class DecoderBackend:
                 suffixes: list[str] = []
                 shifts: list[list[int]] = []
                 for index in indexes:
-                    texts = requests[index].candidate_texts
+                    texts = self._candidates(requests[index])
                     count = len(texts)
                     rotation = [
                         round(step * count / self.permutations) % count

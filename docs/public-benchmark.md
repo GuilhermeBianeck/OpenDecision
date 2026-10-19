@@ -23,8 +23,8 @@ results on those 231 items. Reports with every prediction are in
 
 ## Results
 
-`qwen35`, the default backend on Apple silicon, with its default 2,048-token
-context:
+`qwen35`, the general 2B backend and the Apple-silicon fallback, with its
+default 2,048-token context:
 
 | Tier | Correct | Accuracy | Chance | Chance-corrected | ECE | p50 | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -37,20 +37,37 @@ The same backend with `--max-length 8192`, so that no hard-tier state is
 truncated, scores 137 / 231 (59.3 %): hard drops to 39 / 111 and its p50 rises
 to 799 ms. Truncation is not what limits the hard tier.
 
+`lightning`, the decision-trained 4B backend and the Apple-silicon default, at
+its default 8,192-token context and without a calibration profile:
+
+| Tier | Correct | Accuracy | Chance-corrected | ECE | p50 | p95 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| original | 72 / 72 | 100 % | 100 % | 0.135 | 154 ms | 167 ms |
+| easy | 48 / 48 | 100 % | 100 % | 0.087 | 150 ms | 161 ms |
+| hard | 84 / 111 | 75.7 % | 63.4 % | 0.107 | 508 ms | 2,756 ms |
+| **all** | **204 / 231** | **88.3 %** | 82.9 % | 0.105 | 166 ms | 2,082 ms |
+
+At 2,048 tokens it scores 197 / 231 (hard 77 / 111): unlike `qwen35`, it uses
+the rest of a long state, which is why its default context is 8,192 tokens.
+Peak memory was 4.46 GB and free memory on the 16 GB machine never fell below
+46 % during the run.
+
 ## Reading the result
 
-- On short decisions the default backend is fast and well calibrated: the easy
+- On short decisions `qwen35` is fast and well calibrated: the easy
   tier is near ceiling with ECE 0.043.
 - On the hard tier it is barely above chance (5 % chance-corrected) and
   confidently wrong (ECE 0.311). Multi-hop, temporal-numeric and probability
   items score 22 %, 20 % and 10 %. A 2B general model read off one forward
   pass does not do this arithmetic and rule-chaining.
 - Giving it the whole state does not help, so the remedy is a stronger
-  decision-trained checkpoint, not a longer context. That is milestone M3 in
-  [the ecosystem requirements](ecosystem-requirements.md), whose bar is 85 %
-  on these 231 items.
+  decision-trained checkpoint, not a longer context.
+- `lightning` is that checkpoint. It clears milestone M3's bar of 85 % on these
+  231 items with 88.3 %, answers 63 % of the hard tier above chance where
+  `qwen35` answers 5 %, and keeps a warm median under 250 ms.
 
 A partial run of `qwen35_4b` (56 / 72, 48 / 48 and 38 of the first 87 hard
-items) was stopped when its memory use on long hard-tier prompts grew past
-what a 16 GB machine can spare alongside a desktop session; it is not
-reported as a result. Capping backend memory is MODEL-3.
+items) was stopped when the MLX buffer cache grew past what a 16 GB machine
+can spare alongside a desktop session; it is not reported as a result. The MLX
+backend now bounds that cache, and backends refuse to load when free memory is
+below their measured peak.

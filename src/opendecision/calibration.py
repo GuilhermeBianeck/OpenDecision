@@ -194,3 +194,34 @@ def fit_temperature(
         nll_after=_nll(score_rows, labels, effective),
         created_at=datetime.now(timezone.utc).isoformat(),
     )
+
+
+BUNDLED_PROFILES = Path(__file__).parent / "profiles"
+
+
+def bundled_profile(
+    backend: object, *, template: str, max_length: int
+) -> CalibrationProfile | None:
+    """The profile shipped for ``backend``, if there is one and it matches.
+
+    A profile ships only where it measurably improves held-out calibration. It
+    applies when its identity matches the backend as configured; with another
+    template, context length or precision the backend runs uncalibrated, exactly
+    as without a shipped profile.
+    """
+    path = BUNDLED_PROFILES / f"{getattr(backend, 'name', '')}.json"
+    precision = getattr(backend, "precision", None)
+    if not path.is_file() or precision is None:
+        return None
+    profile = CalibrationProfile.load(path)
+    expected = {
+        "backend": getattr(backend, "name", None),
+        "model": getattr(backend, "model_id", None),
+        "revision": getattr(backend, "revision", None),
+        "template": template,
+        "max_length": max_length,
+        "precision": precision,
+    }
+    if any(getattr(profile, key) != value for key, value in expected.items()):
+        return None
+    return profile

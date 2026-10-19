@@ -27,7 +27,7 @@ cd OpenDecision
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[inference,server]'
-opendecision pull qwen35 --device mps
+opendecision pull lightning --device mps
 ```
 
 The explicit `pull` command downloads the pinned checkpoint. All later inference
@@ -35,12 +35,13 @@ uses the local cache and refuses to download missing files automatically.
 
 On Apple silicon, install the optional MLX runtime before pulling the quantized
 candidates: `python -m pip install -e '.[mlx]'`, then use
-`opendecision pull qwen35 --device mps` or `opendecision pull lfm25 --device mps`.
+`opendecision pull lightning --device mps` (3.1 GB) or the smaller
+`opendecision pull qwen35 --device mps` (1.7 GB).
 
 ```python
 from opendecision import DecisionModel
 
-model = DecisionModel(device="mps")  # auto selects qwen35 on Apple silicon
+model = DecisionModel(device="mps")  # auto selects lightning on Apple silicon
 result = model.choose(
     state="The customer says their card was charged twice.",
     question="Which team should handle this?",
@@ -67,7 +68,7 @@ fixture, not an AI quality baseline.**
 | Independent labels | `multi_label` (one binary distribution per label) |
 | Typed questions over one state | `ask` (mixed choice / boolean / score, keyed by your ids) |
 | Batches | `choose_batch`, `statement_batch`, `score_batch`, `decide_many` |
-| Open-weight model adapters | `tiny`, `base`, `smart`, `multilingual`, `decoder`, `qwen35`, `lfm25`, `qwen35_4b`, `lfm25_26b` |
+| Open-weight model adapters | `tiny`, `base`, `smart`, `multilingual`, `decoder`, `lightning`, `qwen35`, `lfm25`, `qwen35_4b`, `lfm25_26b` |
 | Measured backend routing | `DecisionModel(task=...)`, `opendecision tasks` |
 | Candidate sets beyond one round | `choose_wide` |
 | Local resident model server | FastAPI on `127.0.0.1:8042` |
@@ -86,11 +87,12 @@ primitives together, and [progress and measured evidence](PROGRESS.md),
 | Alias | Scorer | Intended experiment |
 |---|---|---|
 | `tiny` | DeBERTa v3 xsmall NLI | Small encoder baseline |
-| `base` / `auto` | ModernBERT base NLI | General semantic classification baseline |
+| `base` | ModernBERT base NLI | General semantic classification baseline; `auto` off Apple silicon |
 | `smart` | Skywork Reward V2 Qwen3 0.6B | Candidate response / action preference |
 | `multilingual` | BGE reranker v2 m3 | Multilingual relevance ranking |
 | `decoder` | Qwen3 0.6B (causal LM, no generation) | Many options, rich descriptions, many questions per state |
-| `qwen35` | Qwen3.5 2B, MLX 4-bit | General local decision candidate on Apple silicon |
+| `lightning` | H2O-Lightning 4B, decision-trained, MLX 4-bit | `auto` on Apple silicon; strongest measured backend |
+| `qwen35` | Qwen3.5 2B, MLX 4-bit | Smaller Apple-silicon fallback when `lightning` does not fit |
 | `lfm25` | LFM2.5 1.2B Instruct, MLX 4-bit | Fast local decision candidate on Apple silicon |
 | `qwen35_4b` | Qwen3.5 4B, MLX 4-bit | Quality-focused local candidate |
 | `lfm25_26b` | LFM2.5 2.6B, MLX 4-bit | Larger quality candidate |
@@ -114,16 +116,22 @@ for a question shape, and see [composition patterns](docs/patterns.md#choose-the
 model = DecisionModel(task="relevance")  # resolves to multilingual
 ```
 
-These aliases name model families, not quality guarantees. `auto` currently
-selects `base`. `device="auto"` selects CUDA, then MPS, then CPU, and picks
+These aliases name model families, not quality guarantees. On Apple silicon
+`auto` selects `lightning`, which scores 204 of the 231 public benchmark items
+(qwen35: 139) and 0.940 objective accuracy on the committed test split (0.799),
+and ships a calibration profile that loads by default. When free memory cannot
+hold its measured 4.5 GB peak, `auto` falls back to `qwen35`; elsewhere it
+selects `base`. Every backend refuses to load, with the alternatives that fit,
+when free memory is below its measured requirement. `device="auto"` selects CUDA, then MPS, then CPU, and picks
 bfloat16 on a GPU or float32 on CPU — measured quality-neutral and 2.1–3.0×
 faster on the reference machine. Override with `precision=`; on the
 reference 16 GB Apple Silicon machine MPS measured 1.2–3.5× faster than CPU for
 every model (see [device policy](docs/model-licenses.md#device-and-precision-policy)).
 Pass `device="cpu"` to opt out. The default sequence limit is the model's
-context capped at 2,048 tokens (`tiny` is limited to 512 by its checkpoint);
+context capped at 2,048 tokens (`tiny` is limited to 512 by its checkpoint;
+`lightning` defaults to 8,192, where it measured better on long states);
 set `max_length` explicitly to change it. Published latency and memory targets
-remain research goals. Downloads are about 0.28–2.27 GB of weights;
+remain research goals. Downloads are about 0.28–3.03 GB of weights;
 runtime memory is additional. Review [pinned models and licenses](docs/model-licenses.md).
 
 ## Probabilities and uncertainty

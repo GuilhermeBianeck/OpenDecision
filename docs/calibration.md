@@ -44,9 +44,18 @@ held-out validation split:
 
 | Backend | Uncalibrated ECE | After a fitted profile | Shipped? |
 | --- | ---: | ---: | --- |
+| `lightning` | 0.109 | 0.022 | yes, loaded by default |
 | `qwen35_4b` | 0.195 | 0.073 | yes |
 | `lfm25` | 0.210 | 0.163 | yes |
 | `qwen35` | **0.061** | 0.115 | **no** |
+
+`lightning`'s profile ships inside the package (`src/opendecision/profiles/`)
+and applies automatically whenever its identity matches the backend as
+configured: the default template, the default 8,192-token context and the q4
+weights. Its fitted temperatures are below one (0.35, 0.74 and 0.54 for 2, 4 and
+12 candidates): the raw model is under-confident. On the test split it takes
+ECE from 0.107 to 0.008 at unchanged accuracy. Pass `calibration=False`, or
+`--calibration none` on the command line, to read raw scores.
 
 `qwen35` arrives better calibrated than any other backend and a fitted profile
 makes it worse on ECE, NLL and Brier at once, so none is committed for it. Fit
