@@ -297,6 +297,23 @@ class DecoderBackend:
                 "Try device='cpu', fewer permutations, or a shorter max_length."
             ) from exc
 
+    def _fit_prompts(self, state: str, questions: list[str]) -> list[list[int]]:
+        """Full prompt ids per question, trimming only the state to fit max_length."""
+        state_ids = self._encode(state)
+        keep = len(state_ids)
+        minimum = min(MIN_STATE_TOKENS, keep)
+        while True:
+            text = state if keep == len(state_ids) else self._tokenizer.decode(state_ids[:keep])
+            rows = [self._prompt_ids(text, q) for q in questions]
+            overflow = max(map(len, rows)) - self.max_length
+            if overflow <= 0:
+                if keep < len(state_ids):
+                    self._truncated_states += 1
+                return rows
+            keep -= max(1, overflow)
+            if keep < minimum:
+                raise BackendError("Question and options too long while preserving state.")
+
     def _warn_truncation(self, preserved: str) -> None:
         if self._truncated_states:
             warnings.warn(

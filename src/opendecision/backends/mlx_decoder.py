@@ -13,7 +13,6 @@ from typing import Any
 from opendecision.backends.catalog import MODEL_SPECS
 from opendecision.backends.decoder import (
     LETTERS,
-    MIN_STATE_TOKENS,
     SYSTEM_PROMPT,
     DecoderBackend,
 )
@@ -129,22 +128,6 @@ class MLXDecoderBackend(DecoderBackend):
                 messages, tokenize=True, add_generation_prompt=True, enable_thinking=False
             )
         )
-
-    def _fit_prompts(self, state: str, questions: list[str]) -> list[list[int]]:
-        state_ids = self._encode(state)
-        keep = len(state_ids)
-        minimum = min(MIN_STATE_TOKENS, keep)
-        while True:
-            text = state if keep == len(state_ids) else self._tokenizer.decode(state_ids[:keep])
-            rows = [self._prompt_ids(text, q) for q in questions]
-            overflow = max(map(len, rows)) - self.max_length
-            if overflow <= 0:
-                if keep < len(state_ids):
-                    self._truncated_states += 1
-                return rows
-            keep -= max(1, overflow)
-            if keep < minimum:
-                raise BackendError("Question and options too long while preserving state.")
 
     def _prefill(self, ids: list[int], cache: Any) -> None:
         """Advance ``cache`` over ``ids`` in chunks, bounding activation memory.

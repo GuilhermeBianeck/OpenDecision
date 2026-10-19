@@ -10,7 +10,7 @@ machine alongside a desktop session; the checkpoints themselves support
 | Backend | Context limit | Measured peak |
 | --- | ---: | ---: |
 | `qwen35`, `qwen35_4b` | 32,768 | 2.41 GB (`qwen35` at 32k) |
-| `lightning` | 16,384 | 4.03 GB at 16k |
+| `lightning` | 16,384 | 4.09 GB at 16k |
 
 Pass `max_length` (or `--max-length`) to use more than the default context.
 
@@ -35,17 +35,25 @@ comes last, after the filler. Latency grows roughly linearly with the state.
 Each position holds only eight cases, so read the position columns as a
 direction, not a measurement.
 
-`lightning` answered 16 of 24 at 2k in two runs and 15 of 24 at 8k (p50 2.0 s
-and 8.9 s), and 3 of 3 probes at 16k (30 s each). Both full runs were stopped
-by the memory watchdog, which halts any job that leaves less than 35 % of
-memory free, because the reference machine was also running other
-applications; the complete curve needs a machine with more free memory.
-Rerunning the script saves each finished length.
+`lightning`:
+
+| State tokens | Accuracy | State at start | Middle | End | p50 latency |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 2k | 0.667 | 0.88 | 0.62 | 0.50 | 1.4 s |
+| 8k | 0.625 | 0.88 | 0.50 | 0.50 | 6.0 s |
+| 16k | 0.625 | 0.88 | 0.50 | 0.50 | 13.0 s |
+
+`lightning` loses one answer between 2k and 8k and none after. Its record at
+the start is found at every length, and it is no better than `qwen35` here,
+unlike on the public benchmark: the two differ by one answer at 2k, within
+the noise of 24 cases. Its earlier runs on a busier machine were slower (30 s
+at 16k) because of memory pressure; this curve was measured with other
+applications closed.
 
 ## What this means in practice
 
 - Long states work, but they are slow: a 32k-token state takes about 16 s on
-  `qwen35` and a 16k-token state about 30 s on `lightning` on the reference
+  `qwen35` and a 16k-token state about 13 s on `lightning` on the reference
   machine.
 - Put the record the question is about first, or extract it, rather than
   appending it after long background material.

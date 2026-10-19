@@ -38,22 +38,20 @@ NO_UNKNOWN = -1e4
 DEFAULT_MAX_LENGTH = 8192
 
 
-class DecisionMLXBackend(MLXDecoderBackend):
+class DecisionPrompt:
+    """The prompt contract the checkpoint was trained on, shared by every runtime.
+
+    Mixed in ahead of a decoder backend, which supplies loading, tokenisation
+    and ``_run_group``; this class supplies what the model reads and how its
+    answer is read back.
+    """
+
     label_prefix = " "
-
-    def __init__(self, *, max_length: int | None = None, **kwargs: Any):
-        super().__init__(
-            max_length=DEFAULT_MAX_LENGTH if max_length is None else max_length, **kwargs
-        )
-
-    @property
-    def metadata(self) -> dict[str, Any]:
-        return {
-            **super().metadata,
-            "prompt_format": "record-question-options-v1",
-            "scoring": "next-token log-probability of the option label after 'Answer:'",
-            "statement_options": list(STATEMENT_OPTIONS),
-        }
+    PROMPT_METADATA = {
+        "prompt_format": "record-question-options-v1",
+        "scoring": "next-token log-probability of the option label after 'Answer:'",
+        "statement_options": list(STATEMENT_OPTIONS),
+    }
 
     @staticmethod
     def _question_text(question: str, options: list[str]) -> str:
@@ -104,3 +102,14 @@ class DecisionMLXBackend(MLXDecoderBackend):
             ):
                 raise BackendError("Backend returned missing or non-finite statement scores.")
             return rows
+
+
+class DecisionMLXBackend(DecisionPrompt, MLXDecoderBackend):
+    def __init__(self, *, max_length: int | None = None, **kwargs: Any):
+        super().__init__(
+            max_length=DEFAULT_MAX_LENGTH if max_length is None else max_length, **kwargs
+        )
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        return {**super().metadata, **self.PROMPT_METADATA}

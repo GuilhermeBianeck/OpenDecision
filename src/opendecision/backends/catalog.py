@@ -113,7 +113,7 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "weights_bytes": 3_034_299_183,
         # Peak measured on the longest public benchmark states at an 8,192-token context.
         "memory_bytes": 4_460_000_000,
-        # The checkpoint supports 262,144 tokens. 16,384 peaks at 4.03 GB; 32,768
+        # The checkpoint supports 262,144 tokens. 16,384 peaks at 4.09 GB; 32,768
         # left less free memory than a 16 GB desktop session should give up.
         "context_limit": 16384,
         "description": (

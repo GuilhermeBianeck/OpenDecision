@@ -1,11 +1,11 @@
 {
   "model": "lightning_vision",
-  "scenes": 6,
+  "scenes": 24,
   "found": 1.0,
-  "mean_iou": 0.9203316416238213,
+  "mean_iou": 0.8886968438716966,
   "hit_rate_iou_0_5": 1.0,
   "latency_ms": {
-    "p50": 1407.6501249983266
+    "p50": 1173.1748749989492
   },
   "rows": [
     {
@@ -115,7 +115,331 @@
       "iou": 0.9337335877005948,
       "output_tokens": 34,
       "latency_ms": 5568.514375001541
+    },
+    {
+      "target": "the blue circle",
+      "truth": [
+        302,
+        125,
+        390,
+        213
+      ],
+      "pixels": [
+        291,
+        122,
+        394,
+        218
+      ],
+      "iou": 0.7831715210355987,
+      "output_tokens": 34,
+      "latency_ms": 5013.96391599701
+    },
+    {
+      "target": "the green square",
+      "truth": [
+        443,
+        291,
+        581,
+        429
+      ],
+      "pixels": [
+        442,
+        288,
+        582,
+        432
+      ],
+      "iou": 0.9446428571428571,
+      "output_tokens": 34,
+      "latency_ms": 1171.82666699955
+    },
+    {
+      "target": "the red square",
+      "truth": [
+        22,
+        308,
+        102,
+        388
+      ],
+      "pixels": [
+        15,
+        305,
+        97,
+        389
+      ],
+      "iou": 0.823271130625686,
+      "output_tokens": 33,
+      "latency_ms": 1151.482458000828
+    },
+    {
+      "target": "the blue triangle",
+      "truth": [
+        69,
+        304,
+        182,
+        417
+      ],
+      "pixels": [
+        48,
+        300,
+        185,
+        420
+      ],
+      "iou": 0.7767031630170317,
+      "output_tokens": 33,
+      "latency_ms": 1151.0940419975668
+    },
+    {
+      "target": "the red circle",
+      "truth": [
+        493,
+        40,
+        622,
+        169
+      ],
+      "pixels": [
+        490,
+        41,
+        620,
+        170
+      ],
+      "iou": 0.9475954532206354,
+      "output_tokens": 33,
+      "latency_ms": 1146.191292005824
+    },
+    {
+      "target": "the blue triangle",
+      "truth": [
+        533,
+        136,
+        626,
+        229
+      ],
+      "pixels": [
+        528,
+        132,
+        624,
+        235
+      ],
+      "iou": 0.8400833829660512,
+      "output_tokens": 28,
+      "latency_ms": 1037.7302080014488
+    },
+    {
+      "target": "the blue triangle",
+      "truth": [
+        432,
+        52,
+        550,
+        170
+      ],
+      "pixels": [
+        428,
+        48,
+        552,
+        173
+      ],
+      "iou": 0.8983225806451612,
+      "output_tokens": 33,
+      "latency_ms": 1147.6034579973202
+    },
+    {
+      "target": "the blue square",
+      "truth": [
+        542,
+        302,
+        630,
+        390
+      ],
+      "pixels": [
+        540,
+        297,
+        628,
+        391
+      ],
+      "iou": 0.8958333333333334,
+      "output_tokens": 34,
+      "latency_ms": 1172.1860830002697
+    },
+    {
+      "target": "the blue circle",
+      "truth": [
+        515,
+        360,
+        594,
+        439
+      ],
+      "pixels": [
+        509,
+        358,
+        595,
+        439
+      ],
+      "iou": 0.8959230548377836,
+      "output_tokens": 34,
+      "latency_ms": 1173.062249996292
+    },
+    {
+      "target": "the red square",
+      "truth": [
+        433,
+        259,
+        533,
+        359
+      ],
+      "pixels": [
+        430,
+        255,
+        534,
+        364
+      ],
+      "iou": 0.8821453775582216,
+      "output_tokens": 34,
+      "latency_ms": 1174.1760409931885
+    },
+    {
+      "target": "the green square",
+      "truth": [
+        218,
+        57,
+        345,
+        184
+      ],
+      "pixels": [
+        214,
+        52,
+        349,
+        187
+      ],
+      "iou": 0.8849931412894376,
+      "output_tokens": 34,
+      "latency_ms": 1174.5103339999332
+    },
+    {
+      "target": "the green triangle",
+      "truth": [
+        316,
+        143,
+        408,
+        235
+      ],
+      "pixels": [
+        314,
+        139,
+        411,
+        238
+      ],
+      "iou": 0.8813912319066958,
+      "output_tokens": 34,
+      "latency_ms": 1171.4645829997608
+    },
+    {
+      "target": "the green circle",
+      "truth": [
+        280,
+        371,
+        375,
+        466
+      ],
+      "pixels": [
+        275,
+        367,
+        378,
+        463
+      ],
+      "iou": 0.8591369310921065,
+      "output_tokens": 34,
+      "latency_ms": 1173.9208340004552
+    },
+    {
+      "target": "the red circle",
+      "truth": [
+        42,
+        319,
+        179,
+        456
+      ],
+      "pixels": [
+        35,
+        314,
+        180,
+        458
+      ],
+      "iou": 0.8988984674329502,
+      "output_tokens": 33,
+      "latency_ms": 1151.536749996012
+    },
+    {
+      "target": "the green circle",
+      "truth": [
+        488,
+        266,
+        631,
+        409
+      ],
+      "pixels": [
+        483,
+        262,
+        630,
+        410
+      ],
+      "iou": 0.9272569523722545,
+      "output_tokens": 34,
+      "latency_ms": 1170.439500005159
+    },
+    {
+      "target": "the green circle",
+      "truth": [
+        319,
+        366,
+        416,
+        463
+      ],
+      "pixels": [
+        313,
+        362,
+        419,
+        463
+      ],
+      "iou": 0.8788529796375864,
+      "output_tokens": 34,
+      "latency_ms": 1175.4996249946998
+    },
+    {
+      "target": "the green circle",
+      "truth": [
+        525,
+        93,
+        610,
+        178
+      ],
+      "pixels": [
+        522,
+        89,
+        608,
+        177
+      ],
+      "iou": 0.89144610663598,
+      "output_tokens": 34,
+      "latency_ms": 1173.2875000016065
+    },
+    {
+      "target": "the blue square",
+      "truth": [
+        498,
+        50,
+        616,
+        168
+      ],
+      "pixels": [
+        494,
+        48,
+        611,
+        170
+      ],
+      "iou": 0.8970667384284177,
+      "output_tokens": 33,
+      "latency_ms": 1150.8792500026175
     }
   ],
-  "peak_memory_bytes": 3795408392
+  "peak_memory_bytes": 4020346481
 }
