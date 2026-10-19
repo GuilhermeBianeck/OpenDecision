@@ -1,0 +1,629 @@
+{
+  "model": "qwen35",
+  "cases": 24,
+  "seed": 0,
+  "lengths": {
+    "2048": {
+      "accuracy": 0.7083333333333334,
+      "by_position": {
+        "start": 0.875,
+        "middle": 0.75,
+        "end": 0.5
+      },
+      "mean_state_tokens": 1799,
+      "latency_ms": {
+        "p50": 919.6197715027665,
+        "max": 1520.5805830046302
+      },
+      "rows": [
+        {
+          "id": "document.finance-01",
+          "position": "start",
+          "state_tokens": 1798,
+          "correct": true,
+          "top_probability": 0.7279616160067545,
+          "latency_ms": 578.3217920034076
+        },
+        {
+          "id": "document.people-01",
+          "position": "middle",
+          "state_tokens": 1797,
+          "correct": true,
+          "top_probability": 0.6594549160216713,
+          "latency_ms": 545.3952079988085
+        },
+        {
+          "id": "agent.tool_calculator-00",
+          "position": "end",
+          "state_tokens": 1805,
+          "correct": true,
+          "top_probability": 0.5820226869915265,
+          "latency_ms": 551.0115420038346
+        },
+        {
+          "id": "agent.approval_exempt-01",
+          "position": "start",
+          "state_tokens": 1801,
+          "correct": true,
+          "top_probability": 0.8807970779778823,
+          "latency_ms": 544.6418330029701
+        },
+        {
+          "id": "wide.department.security_operations-02",
+          "position": "middle",
+          "state_tokens": 1798,
+          "correct": true,
+          "top_probability": 0.36551749764239777,
+          "latency_ms": 561.759666998114
+        },
+        {
+          "id": "wide.department.security_operations-01",
+          "position": "end",
+          "state_tokens": 1798,
+          "correct": false,
+          "top_probability": 0.31064810284521405,
+          "latency_ms": 559.1068749999977
+        },
+        {
+          "id": "wide.department.product_design-02",
+          "position": "start",
+          "state_tokens": 1799,
+          "correct": false,
+          "top_probability": 0.36514432061420976,
+          "latency_ms": 566.9049580028513
+        },
+        {
+          "id": "support.phishing-01",
+          "position": "middle",
+          "state_tokens": 1799,
+          "correct": false,
+          "top_probability": 0.7003099862294936,
+          "latency_ms": 831.5023750037653
+        },
+        {
+          "id": "agent.destructive-03",
+          "position": "end",
+          "state_tokens": 1801,
+          "correct": true,
+          "top_probability": 0.6513548646660542,
+          "latency_ms": 842.7690410026116
+        },
+        {
+          "id": "agent.tool_calculator-03",
+          "position": "start",
+          "state_tokens": 1802,
+          "correct": true,
+          "top_probability": 0.9949616784220278,
+          "latency_ms": 858.8611250015674
+        },
+        {
+          "id": "wide.department.procurement-00",
+          "position": "middle",
+          "state_tokens": 1798,
+          "correct": true,
+          "top_probability": 0.8907879227377563,
+          "latency_ms": 875.7322079982259
+        },
+        {
+          "id": "agent.approval_exempt-02",
+          "position": "end",
+          "state_tokens": 1803,
+          "correct": true,
+          "top_probability": 0.6224593312018546,
+          "latency_ms": 920.5647090057028
+        },
+        {
+          "id": "support.phishing-00",
+          "position": "start",
+          "state_tokens": 1799,
+          "correct": true,
+          "top_probability": 0.5085732723474835,
+          "latency_ms": 975.2812920050928
+        },
+        {
+          "id": "support.takeover-00",
+          "position": "middle",
+          "state_tokens": 1799,
+          "correct": false,
+          "top_probability": 0.7198350180515976,
+          "latency_ms": 918.6748339998303
+        },
+        {
+          "id": "wide.department.platform_infrastructure-00",
+          "position": "end",
+          "state_tokens": 1799,
+          "correct": false,
+          "top_probability": 0.2663179799958493,
+          "latency_ms": 965.5048339991481
+        },
+        {
+          "id": "document.finance-02",
+          "position": "start",
+          "state_tokens": 1797,
+          "correct": true,
+          "top_probability": 0.6384502928147062,
+          "latency_ms": 965.902209005435
+        },
+        {
+          "id": "wide.department.procurement-01",
+          "position": "middle",
+          "state_tokens": 1799,
+          "correct": true,
+          "top_probability": 0.7215988245273585,
+          "latency_ms": 1058.1637499999488
+        },
+        {
+          "id": "wide.department.security_operations-00",
+          "position": "end",
+          "state_tokens": 1800,
+          "correct": true,
+          "top_probability": 0.5418300265153856,
+          "latency_ms": 1520.5805830046302
+        },
+        {
+          "id": "wide.department.platform_infrastructure-02",
+          "position": "start",
+          "state_tokens": 1798,
+          "correct": true,
+          "top_probability": 0.446065246886745,
+          "latency_ms": 1038.4692919978988
+        },
+        {
+          "id": "wide.department.procurement-02",
+          "position": "middle",
+          "state_tokens": 1797,
+          "correct": true,
+          "top_probability": 0.9272724526753984,
+          "latency_ms": 972.5833749980666
+        },
+        {
+          "id": "wide.department.product_design-00",
+          "position": "end",
+          "state_tokens": 1797,
+          "correct": false,
+          "top_probability": 0.2945408642874071,
+          "latency_ms": 1031.2118340007146
+        },
+        {
+          "id": "document.people-00",
+          "position": "start",
+          "state_tokens": 1796,
+          "correct": true,
+          "top_probability": 0.6978847903767966,
+          "latency_ms": 1323.5157919989433
+        },
+        {
+          "id": "agent.destructive-00",
+          "position": "middle",
+          "state_tokens": 1799,
+          "correct": true,
+          "top_probability": 0.9046505351008906,
+          "latency_ms": 1156.6198329965118
+        },
+        {
+          "id": "wide.department.product_design-01",
+          "position": "end",
+          "state_tokens": 1797,
+          "correct": false,
+          "top_probability": 0.2640852888079732,
+          "latency_ms": 1236.9617079966702
+        }
+      ]
+    },
+    "8192": {
+      "accuracy": 0.6666666666666666,
+      "by_position": {
+        "start": 0.75,
+        "middle": 0.875,
+        "end": 0.375
+      },
+      "mean_state_tokens": 7950,
+      "latency_ms": {
+        "p50": 3159.270854001079,
+        "max": 4644.91299999645
+      },
+      "rows": [
+        {
+          "id": "document.finance-01",
+          "position": "start",
+          "state_tokens": 7949,
+          "correct": true,
+          "top_probability": 0.4339080564556254,
+          "latency_ms": 4644.91299999645
+        },
+        {
+          "id": "document.people-01",
+          "position": "middle",
+          "state_tokens": 7948,
+          "correct": true,
+          "top_probability": 0.5538808818641345,
+          "latency_ms": 4029.6922080015065
+        },
+        {
+          "id": "agent.tool_calculator-00",
+          "position": "end",
+          "state_tokens": 7956,
+          "correct": true,
+          "top_probability": 0.5486567472042243,
+          "latency_ms": 4116.954167002405
+        },
+        {
+          "id": "agent.approval_exempt-01",
+          "position": "start",
+          "state_tokens": 7952,
+          "correct": true,
+          "top_probability": 0.8519528019683106,
+          "latency_ms": 3741.8365409976104
+        },
+        {
+          "id": "wide.department.security_operations-02",
+          "position": "middle",
+          "state_tokens": 7949,
+          "correct": false,
+          "top_probability": 0.32250968721045603,
+          "latency_ms": 3201.9963749989984
+        },
+        {
+          "id": "wide.department.security_operations-01",
+          "position": "end",
+          "state_tokens": 7949,
+          "correct": false,
+          "top_probability": 0.2952630161972595,
+          "latency_ms": 3077.5686250053695
+        },
+        {
+          "id": "wide.department.product_design-02",
+          "position": "start",
+          "state_tokens": 7950,
+          "correct": false,
+          "top_probability": 0.27377629628170363,
+          "latency_ms": 3097.293791004631
+        },
+        {
+          "id": "support.phishing-01",
+          "position": "middle",
+          "state_tokens": 7950,
+          "correct": true,
+          "top_probability": 0.4313793676370409,
+          "latency_ms": 2997.2754160044133
+        },
+        {
+          "id": "agent.destructive-03",
+          "position": "end",
+          "state_tokens": 7952,
+          "correct": false,
+          "top_probability": 0.5312093733737563,
+          "latency_ms": 2995.3517079993617
+        },
+        {
+          "id": "agent.tool_calculator-03",
+          "position": "start",
+          "state_tokens": 7953,
+          "correct": true,
+          "top_probability": 0.9803396745684229,
+          "latency_ms": 2995.8607090011355
+        },
+        {
+          "id": "wide.department.procurement-00",
+          "position": "middle",
+          "state_tokens": 7949,
+          "correct": true,
+          "top_probability": 0.8760692241663077,
+          "latency_ms": 3212.869542003318
+        },
+        {
+          "id": "agent.approval_exempt-02",
+          "position": "end",
+          "state_tokens": 7954,
+          "correct": true,
+          "top_probability": 0.7057850278370112,
+          "latency_ms": 3112.7880420026486
+        },
+        {
+          "id": "support.phishing-00",
+          "position": "start",
+          "state_tokens": 7950,
+          "correct": true,
+          "top_probability": 0.5110391347635618,
+          "latency_ms": 3120.1602080036537
+        },
+        {
+          "id": "support.takeover-00",
+          "position": "middle",
+          "state_tokens": 7950,
+          "correct": true,
+          "top_probability": 0.38297195412290774,
+          "latency_ms": 3121.675624999625
+        },
+        {
+          "id": "wide.department.platform_infrastructure-00",
+          "position": "end",
+          "state_tokens": 7950,
+          "correct": false,
+          "top_probability": 0.3440665162592905,
+          "latency_ms": 3154.9404580000555
+        },
+        {
+          "id": "document.finance-02",
+          "position": "start",
+          "state_tokens": 7948,
+          "correct": true,
+          "top_probability": 0.5087828088988119,
+          "latency_ms": 3127.4517080018995
+        },
+        {
+          "id": "wide.department.procurement-01",
+          "position": "middle",
+          "state_tokens": 7950,
+          "correct": true,
+          "top_probability": 0.7631156330146397,
+          "latency_ms": 3152.404957996623
+        },
+        {
+          "id": "wide.department.security_operations-00",
+          "position": "end",
+          "state_tokens": 7951,
+          "correct": true,
+          "top_probability": 0.30232142225643377,
+          "latency_ms": 3159.880749997683
+        },
+        {
+          "id": "wide.department.platform_infrastructure-02",
+          "position": "start",
+          "state_tokens": 7949,
+          "correct": false,
+          "top_probability": 0.3699792064676234,
+          "latency_ms": 3158.660958004475
+        },
+        {
+          "id": "wide.department.procurement-02",
+          "position": "middle",
+          "state_tokens": 7948,
+          "correct": true,
+          "top_probability": 0.8546048238002476,
+          "latency_ms": 3160.6419999952777
+        },
+        {
+          "id": "wide.department.product_design-00",
+          "position": "end",
+          "state_tokens": 7948,
+          "correct": false,
+          "top_probability": 0.3366547120054571,
+          "latency_ms": 4166.730125005415
+        },
+        {
+          "id": "document.people-00",
+          "position": "start",
+          "state_tokens": 7947,
+          "correct": true,
+          "top_probability": 0.4226078827635601,
+          "latency_ms": 3200.1154170066
+        },
+        {
+          "id": "agent.destructive-00",
+          "position": "middle",
+          "state_tokens": 7950,
+          "correct": true,
+          "top_probability": 0.7057850278370112,
+          "latency_ms": 3260.6950420013163
+        },
+        {
+          "id": "wide.department.product_design-01",
+          "position": "end",
+          "state_tokens": 7948,
+          "correct": false,
+          "top_probability": 0.3523861086076291,
+          "latency_ms": 3279.4058750005206
+        }
+      ]
+    },
+    "32768": {
+      "accuracy": 0.5416666666666666,
+      "by_position": {
+        "start": 0.625,
+        "middle": 0.75,
+        "end": 0.25
+      },
+      "mean_state_tokens": 32521,
+      "latency_ms": {
+        "p50": 16272.266374497121,
+        "max": 17818.565583002055
+      },
+      "rows": [
+        {
+          "id": "document.finance-01",
+          "position": "start",
+          "state_tokens": 32520,
+          "correct": true,
+          "top_probability": 0.5210221049936841,
+          "latency_ms": 15709.24741699855
+        },
+        {
+          "id": "document.people-01",
+          "position": "middle",
+          "state_tokens": 32519,
+          "correct": true,
+          "top_probability": 0.47762954861561485,
+          "latency_ms": 15744.943249999778
+        },
+        {
+          "id": "agent.tool_calculator-00",
+          "position": "end",
+          "state_tokens": 32527,
+          "correct": true,
+          "top_probability": 0.5242370536432679,
+          "latency_ms": 15793.211125004746
+        },
+        {
+          "id": "agent.approval_exempt-01",
+          "position": "start",
+          "state_tokens": 32523,
+          "correct": true,
+          "top_probability": 0.8354835371034369,
+          "latency_ms": 15774.864000006346
+        },
+        {
+          "id": "wide.department.security_operations-02",
+          "position": "middle",
+          "state_tokens": 32520,
+          "correct": false,
+          "top_probability": 0.4759777641288748,
+          "latency_ms": 15844.785749999573
+        },
+        {
+          "id": "wide.department.security_operations-01",
+          "position": "end",
+          "state_tokens": 32520,
+          "correct": false,
+          "top_probability": 0.3998679076266396,
+          "latency_ms": 16064.056916999107
+        },
+        {
+          "id": "wide.department.product_design-02",
+          "position": "start",
+          "state_tokens": 32521,
+          "correct": false,
+          "top_probability": 0.46756378854395536,
+          "latency_ms": 15982.81541599863
+        },
+        {
+          "id": "support.phishing-01",
+          "position": "middle",
+          "state_tokens": 32521,
+          "correct": true,
+          "top_probability": 0.5482601385401136,
+          "latency_ms": 16054.335624998203
+        },
+        {
+          "id": "agent.destructive-03",
+          "position": "end",
+          "state_tokens": 32523,
+          "correct": false,
+          "top_probability": 0.5926665999540697,
+          "latency_ms": 17539.425041999493
+        },
+        {
+          "id": "agent.tool_calculator-03",
+          "position": "start",
+          "state_tokens": 32524,
+          "correct": true,
+          "top_probability": 0.9304467083307674,
+          "latency_ms": 17325.740916996438
+        },
+        {
+          "id": "wide.department.procurement-00",
+          "position": "middle",
+          "state_tokens": 32520,
+          "correct": true,
+          "top_probability": 0.3657279186557635,
+          "latency_ms": 16867.818249993434
+        },
+        {
+          "id": "agent.approval_exempt-02",
+          "position": "end",
+          "state_tokens": 32525,
+          "correct": true,
+          "top_probability": 0.7549149868676283,
+          "latency_ms": 16881.512959000247
+        },
+        {
+          "id": "support.phishing-00",
+          "position": "start",
+          "state_tokens": 32521,
+          "correct": true,
+          "top_probability": 0.5678408546488889,
+          "latency_ms": 16998.761708004167
+        },
+        {
+          "id": "support.takeover-00",
+          "position": "middle",
+          "state_tokens": 32521,
+          "correct": true,
+          "top_probability": 0.5183805351240324,
+          "latency_ms": 16401.045625003462
+        },
+        {
+          "id": "wide.department.platform_infrastructure-00",
+          "position": "end",
+          "state_tokens": 32521,
+          "correct": false,
+          "top_probability": 0.4429746005532126,
+          "latency_ms": 16633.53820800694
+        },
+        {
+          "id": "document.finance-02",
+          "position": "start",
+          "state_tokens": 32519,
+          "correct": true,
+          "top_probability": 0.6158146129344212,
+          "latency_ms": 16161.524250004732
+        },
+        {
+          "id": "wide.department.procurement-01",
+          "position": "middle",
+          "state_tokens": 32521,
+          "correct": false,
+          "top_probability": 0.3530487566253782,
+          "latency_ms": 16244.939290998445
+        },
+        {
+          "id": "wide.department.security_operations-00",
+          "position": "end",
+          "state_tokens": 32522,
+          "correct": false,
+          "top_probability": 0.3655744633558192,
+          "latency_ms": 16321.952917001909
+        },
+        {
+          "id": "wide.department.platform_infrastructure-02",
+          "position": "start",
+          "state_tokens": 32520,
+          "correct": false,
+          "top_probability": 0.4456307451318474,
+          "latency_ms": 16167.157666001003
+        },
+        {
+          "id": "wide.department.procurement-02",
+          "position": "middle",
+          "state_tokens": 32519,
+          "correct": true,
+          "top_probability": 0.9098881009155907,
+          "latency_ms": 16244.390792002378
+        },
+        {
+          "id": "wide.department.product_design-00",
+          "position": "end",
+          "state_tokens": 32519,
+          "correct": false,
+          "top_probability": 0.4493425066879489,
+          "latency_ms": 16399.585500003013
+        },
+        {
+          "id": "document.people-00",
+          "position": "start",
+          "state_tokens": 32518,
+          "correct": false,
+          "top_probability": 0.4272014614803146,
+          "latency_ms": 17121.73170800088
+        },
+        {
+          "id": "agent.destructive-00",
+          "position": "middle",
+          "state_tokens": 32521,
+          "correct": true,
+          "top_probability": 0.5312093733737563,
+          "latency_ms": 17818.565583002055
+        },
+        {
+          "id": "wide.department.product_design-01",
+          "position": "end",
+          "state_tokens": 32519,
+          "correct": false,
+          "top_probability": 0.4869603356314255,
+          "latency_ms": 16299.593457995798
+        }
+      ]
+    }
+  },
+  "peak_memory_bytes": 2585780474
+}
