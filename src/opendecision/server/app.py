@@ -98,6 +98,7 @@ def create_app(
     max_length: int | None = None,
     template: str = "default",
     precision: str | None = None,
+    order_averaging: int = 1,
 ) -> FastAPI:
     """Create an HTTP service; load its model once when the lifespan starts.
 
@@ -123,6 +124,7 @@ def create_app(
                 max_length=max_length,
                 template=template,
                 precision=precision,
+                **({"permutations": order_averaging} if order_averaging != 1 else {}),
             )
             await run_in_threadpool(app.state.engine.backend.ensure_loaded)
         yield
