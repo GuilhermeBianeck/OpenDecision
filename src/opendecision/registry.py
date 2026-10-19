@@ -110,12 +110,25 @@ def list_models() -> list[dict[str, Any]]:
     return models
 
 
+# Backends that read options as a lettered list and so can average over orders.
+DECODERS = frozenset(
+    name
+    for name, spec in MODEL_SPECS.items()
+    if spec["family"] in {"decoder", "decoder-mlx", "decision-mlx"}
+)
+
+
 def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> DecisionBackend:
     """Construct a lazy backend; auto prefers Qwen3.5 on Apple silicon."""
     if name == "auto":
         resolved = default_model(device)
     else:
         resolved = _resolve_name(name)
+    if kwargs.get("permutations", 1) != 1 and resolved not in DECODERS:
+        raise BackendError(
+            f"Order averaging applies to decoder backends ({', '.join(sorted(DECODERS))}); "
+            f"{resolved} scores each option on its own and is already order-invariant."
+        )
     if resolved == "onnx":
         from opendecision.backends.onnx import OnnxBackend
 

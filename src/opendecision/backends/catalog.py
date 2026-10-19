@@ -61,7 +61,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "weights_bytes": 1_722_271_785,
         # Peak measured on the longest public benchmark states at full context.
         "memory_bytes": 2_570_000_000,
-        "context_limit": 8192,
+        # The checkpoint supports 262,144 tokens; 32,768 is measured to fit 16 GB.
+        "context_limit": 32768,
         "description": "Qwen3.5 2B, MLX affine Q4; general local decision candidate.",
     },
     "lfm25": {
@@ -87,7 +88,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "weights_bytes": 3_034_300_695,
         # Peak measured on the longest public benchmark states at full context.
         "memory_bytes": 4_470_000_000,
-        "context_limit": 8192,
+        # The checkpoint supports 262,144 tokens; 32,768 is measured to fit 16 GB.
+        "context_limit": 32768,
         "description": "Qwen3.5 4B, MLX affine Q4; quality-focused local decision candidate.",
     },
     "lfm25_26b": {
@@ -111,7 +113,9 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "weights_bytes": 3_034_299_183,
         # Peak measured on the longest public benchmark states at an 8,192-token context.
         "memory_bytes": 4_460_000_000,
-        "context_limit": 32768,
+        # The checkpoint supports 262,144 tokens. 16,384 peaks at 4.03 GB; 32,768
+        # left less free memory than a 16 GB desktop session should give up.
+        "context_limit": 16384,
         "description": (
             "H2O-Lightning 4B, a decision-trained Qwen3.5 4B, MLX affine Q4; "
             "scored with its training prompt."

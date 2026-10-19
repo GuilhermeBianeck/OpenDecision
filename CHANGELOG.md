@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Long states: the MLX backend encodes long prompts in chunks, `qwen35` and
+  `qwen35_4b` accept 32,768 tokens and `lightning` 16,384, each measured to
+  fit a 16 GB machine; `scripts/long_context_curve.py` measures accuracy and
+  latency by length. `--order-averaging K` averages decoder scores over
+  rotated option orders (K=2 cuts `lightning`'s order flips from 5.7 % to
+  0.6 %), and `opendecision consistency` reports how often an appended remark
+  flips a decision: an unsupported opinion flips 78 % of `base`'s, 70 % of
+  `qwen35`'s and 2.6 % of `lightning`'s.
 - Added `lightning`, H2O-Lightning 4B, a decision-trained Qwen3.5 4B served
   from a pinned MLX 4-bit build with the exact prompt it was trained on. It
   scores 204 / 231 on the public benchmark (qwen35: 139) and 0.940 objective

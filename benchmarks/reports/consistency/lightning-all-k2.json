@@ -1,0 +1,25 @@
+{
+  "model": "netprojects/h2o-lightning-4b-mlx-q4",
+  "split": "all",
+  "negation": {
+    "count": 99,
+    "mean_abs_gap": 0.03918230422224431,
+    "median_abs_gap": 0.026273646252177985,
+    "max_abs_gap": 0.1686102011462507,
+    "mean_sum": 1.0318481904735113,
+    "both_sides_accuracy": 1.0
+  },
+  "choice_order": {
+    "count": 352,
+    "orders_per_case": 3,
+    "flip_rate": 0.005681818181818182,
+    "mean_total_variation": 0.020868537194244446,
+    "max_total_variation": 0.23451672754485872
+  },
+  "appended_context": {
+    "count": 352,
+    "off_topic_flip_rate": 0.022727272727272728,
+    "opinion_flip_rate": 0.022727272727272728,
+    "opinion_follow_rate": 0.014204545454545454
+  }
+}

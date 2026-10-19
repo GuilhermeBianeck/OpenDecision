@@ -162,3 +162,44 @@ def test_option_order_sensitivity_does_not_regress(name, monkeypatch):
     ]
     report = order_invariance(DecisionModel(name), requests, permutations=3, seed=0)
     assert report["flip_rate"] <= ORDER_FLIP_BOUNDS[name]
+
+
+class Suggestible(FixedBackend):
+    """Prefers whichever option the state's last line names, else the first."""
+
+    def score_batch(self, requests):
+        rows = []
+        for r in requests:
+            last = r.state_text.splitlines()[-1]
+            rows.append(
+                [
+                    5.0 if label in last else (1.0 if i == 0 else 0.0)
+                    for i, label in enumerate(r.labels)
+                ]
+            )
+        return rows
+
+
+def test_appended_context_flags_a_model_that_follows_opinions():
+    from opendecision.consistency import appended_context_robustness
+
+    report = appended_context_robustness(DecisionModel(backend=Suggestible()), REQUESTS)
+    assert report["off_topic_flip_rate"] == 0
+    assert report["opinion_flip_rate"] == 1
+    assert report["opinion_follow_rate"] == 1
+
+
+def test_appended_context_leaves_a_content_model_alone():
+    from opendecision.consistency import appended_context_robustness
+
+    report = appended_context_robustness(DecisionModel("demo"), REQUESTS)
+    assert report["count"] == len(REQUESTS)
+    assert report["off_topic_flip_rate"] == 0
+
+
+def test_remarks_are_appended_to_every_state_shape():
+    from opendecision.consistency import _append
+
+    assert _append("text", "note").endswith("\n\nnote")
+    assert _append({"a": 1}, "note") == {"a": 1, "note": "note"}
+    assert _append(["x"], "note") == ["x", "note"]

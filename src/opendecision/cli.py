@@ -30,7 +30,7 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--model",
         default=None,
-        help="Model tier or registered model (default: auto; Qwen3.5 on Apple silicon)",
+        help="Model tier or registered model (default: auto; lightning on Apple silicon)",
     )
     parser.add_argument(
         "--task",
@@ -50,6 +50,13 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
         help="Maximum tokenized input length (default: model context, capped at 2048)",
     )
     parser.add_argument("--template", default="default", choices=("default", "short"))
+    parser.add_argument(
+        "--order-averaging",
+        type=int,
+        default=1,
+        metavar="K",
+        help="Decoder backends: average scores over K rotated option orders (default 1)",
+    )
     parser.add_argument(
         "--precision",
         default=None,
@@ -151,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--request-batch-size", type=int, default=1)
     consistency = commands.add_parser(
         "consistency",
-        help="Measure negation consistency and option-order invariance",
+        help="Measure negation consistency, option-order invariance and appended-context robustness",
     )
     _model_options(consistency)
     consistency.add_argument(
@@ -207,12 +214,14 @@ def _load_model(args: argparse.Namespace, *, name: str | None = None):
     chosen = name or args.model
     if chosen is not None and getattr(args, "task", None):
         raise ValueError("Pass either --model or --task, not both")
+    extra = {"permutations": args.order_averaging} if args.order_averaging != 1 else {}
     return DecisionModel(
         chosen,
         task=None if chosen is not None else getattr(args, "task", None),
         device=args.device,
         calibration=profile,
         batch_size=args.batch_size,
+        **extra,
         max_length=args.max_length,
         template=args.template,
         precision=args.precision,
@@ -338,6 +347,7 @@ def _benchmark(args: argparse.Namespace) -> dict[str, Any]:
 def _consistency(args: argparse.Namespace) -> dict[str, Any]:
     from opendecision.benchmark import load_dataset
     from opendecision.consistency import (
+        appended_context_robustness,
         load_negation_pairs,
         negation_consistency,
         order_invariance,
@@ -358,6 +368,7 @@ def _consistency(args: argparse.Namespace) -> dict[str, Any]:
         "choice_order": order_invariance(
             engine, choices, permutations=args.permutations, seed=args.seed
         ),
+        "appended_context": appended_context_robustness(engine, choices, seed=args.seed),
     }
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -553,6 +564,7 @@ def run(args: argparse.Namespace) -> Any:
             max_length=args.max_length,
             template=args.template,
             precision=args.precision,
+            order_averaging=args.order_averaging,
         )
         uvicorn.run(app, host=args.host, port=args.port, access_log=False)
         return None

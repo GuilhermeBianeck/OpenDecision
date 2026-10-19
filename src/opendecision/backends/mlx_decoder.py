@@ -30,6 +30,10 @@ def common_prefix_length(rows: list[list[int]]) -> int:
     return max(0, limit)
 
 
+# Tokens per forward pass when encoding a long prompt.
+PREFILL_CHUNK = 2048
+
+
 class MLXDecoderBackend(DecoderBackend):
     # Text before each option letter at the answer position.
     label_prefix = ""
@@ -142,7 +146,22 @@ class MLXDecoderBackend(DecoderBackend):
             if keep < minimum:
                 raise BackendError("Question and options too long while preserving state.")
 
+    def _prefill(self, ids: list[int], cache: Any) -> None:
+        """Advance ``cache`` over ``ids`` in chunks, bounding activation memory.
+
+        One pass over a 32k-token state would hold every layer's activations for
+        all of it at once; chunks keep that to PREFILL_CHUNK tokens.
+        """
+        mx = self._mx
+        for start in range(0, len(ids), PREFILL_CHUNK):
+            hidden = self._lm.model(mx.array([ids[start : start + PREFILL_CHUNK]]), cache=cache)
+            mx.eval(hidden, *[c.state for c in cache])
+
     def _last_logits(self, ids: list[int], cache: Any) -> Any:
+        if len(ids) > PREFILL_CHUNK:
+            head = len(ids) - ((len(ids) - 1) % PREFILL_CHUNK + 1)
+            self._prefill(ids[:head], cache)
+            ids = ids[head:]
         # Avoid projecting every input position to the complete vocabulary.
         hidden = self._lm.model(self._mx.array([ids]), cache=cache)[:, -1:, :]
         if hasattr(self._lm, "lm_head"):
@@ -156,8 +175,7 @@ class MLXDecoderBackend(DecoderBackend):
         shared = common_prefix_length(prompts) if len(prompts) > 1 else 0
         cache = self._make_cache(self._lm)
         if shared:
-            hidden = self._lm.model(mx.array([prompts[0][:shared]]), cache=cache)
-            mx.eval(hidden, *[c.state for c in cache])
+            self._prefill(prompts[0][:shared], cache)
         rows = []
         for prompt in prompts:
             fork = copy.deepcopy(cache) if shared else self._make_cache(self._lm)

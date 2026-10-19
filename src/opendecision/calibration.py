@@ -211,7 +211,9 @@ def bundled_profile(
     """
     path = BUNDLED_PROFILES / f"{getattr(backend, 'name', '')}.json"
     precision = getattr(backend, "precision", None)
-    if not path.is_file() or precision is None:
+    # Shipped profiles are fitted on single-order scores; averaging over option
+    # orders flattens the distribution, so the fitted temperatures no longer apply.
+    if not path.is_file() or precision is None or getattr(backend, "permutations", 1) != 1:
         return None
     profile = CalibrationProfile.load(path)
     expected = {

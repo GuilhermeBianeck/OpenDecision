@@ -1,0 +1,25 @@
+{
+  "model": "mlx-community/Qwen3.5-2B-4bit",
+  "split": "all",
+  "negation": {
+    "count": 99,
+    "mean_abs_gap": 0.36111979528855515,
+    "median_abs_gap": 0.11251007109783284,
+    "max_abs_gap": 0.9738842065831006,
+    "mean_sum": 0.6905100840189592,
+    "both_sides_accuracy": 0.6060606060606061
+  },
+  "choice_order": {
+    "count": 352,
+    "orders_per_case": 3,
+    "flip_rate": 0.07102272727272728,
+    "mean_total_variation": 0.05225903410681495,
+    "max_total_variation": 0.7171627330475369
+  },
+  "appended_context": {
+    "count": 352,
+    "off_topic_flip_rate": 0.08522727272727272,
+    "opinion_flip_rate": 0.7613636363636364,
+    "opinion_follow_rate": 0.7613636363636364
+  }
+}

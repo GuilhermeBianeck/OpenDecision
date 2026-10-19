@@ -15,5 +15,11 @@
     "flip_rate": 0.0,
     "mean_total_variation": 0.0003627775595978783,
     "max_total_variation": 0.010261137629118955
+  },
+  "appended_context": {
+    "count": 352,
+    "off_topic_flip_rate": 0.17329545454545456,
+    "opinion_flip_rate": 0.7840909090909091,
+    "opinion_follow_rate": 0.7727272727272727
   }
 }

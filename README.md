@@ -256,8 +256,9 @@ and sequence limit; it does not establish reliability on a new task distribution
 See [calibration](docs/calibration.md) and [benchmark methodology](docs/benchmarks.md).
 Results on a public 231-item decision benchmark, run through its own harness
 against `/v1/systemone`, are in [public benchmark](docs/public-benchmark.md);
-negation consistency and option-order invariance are in
-[consistency](docs/consistency.md).
+negation consistency, option-order invariance and appended-context robustness
+are in [consistency](docs/consistency.md), and accuracy by state length in
+[long states](docs/long-context.md).
 
 ## Local HTTP and TypeScript
 
