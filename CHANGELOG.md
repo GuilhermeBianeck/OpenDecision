@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Serve the shared decision format, `POST /v1/systemone`, next to the native
+  API: `choice`, `score` and `noul` questions about one state, with structured
+  JSON instructions and criteria, the format's limits and status codes, gzip
+  and zstd request bodies up to 32 MiB, and token usage on every response.
+  Python gains `DecisionModel.systemone()` and a dependency-free HTTP client,
+  `opendecision.client.Client`; the TypeScript client gains `systemone()`.
 - Fitted calibration profiles for the MLX backends. `qwen35_4b` (ECE 0.195 to
   0.073) and `lfm25` (0.210 to 0.163) are committed; `qwen35` is deliberately
   left uncalibrated because its uncalibrated ECE of 0.061 is already the best

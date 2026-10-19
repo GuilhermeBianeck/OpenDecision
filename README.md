@@ -258,6 +258,11 @@ curl http://127.0.0.1:8042/v1/decide \
 ```
 
 Interactive API documentation is at `http://127.0.0.1:8042/docs`.
+The server also answers the shared decision format other runtimes and SDKs send,
+`POST /v1/systemone`, with gzip or zstd bodies up to 32 MiB; see
+[the shared decision format](docs/systemone.md). From Python,
+`DecisionModel.systemone()` answers it in process and `opendecision.client.Client`
+calls a running server.
 See the [TypeScript client](packages/typescript/README.md) and runnable [examples](examples/).
 The server has no authentication and defaults to loopback. Only expose it behind
 an authenticated gateway you control. It never logs request bodies by default.
