@@ -83,12 +83,30 @@ def save(report: dict, output: Path) -> None:
     output.write_text(json.dumps(report, indent=2) + "\n")
 
 
+def summarize(rows: list[dict]) -> dict:
+    latencies = [row["latency_ms"] for row in rows]
+    return {
+        "accuracy": sum(row["correct"] for row in rows) / len(rows),
+        "by_position": {
+            position: statistics.mean(r["correct"] for r in rows if r["position"] == position)
+            for position in ("start", "middle", "end")
+            if any(r["position"] == position for r in rows)
+        },
+        "mean_state_tokens": statistics.mean(row["state_tokens"] for row in rows),
+        "latency_ms": {"p50": statistics.median(latencies), "max": max(latencies)},
+        "rows": rows,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--model", required=True)
     parser.add_argument("--cases", type=int, default=36)
     parser.add_argument("--lengths", default=",".join(map(str, LENGTHS)))
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--resume", action="store_true", help="Keep the probes already in --output and continue"
+    )
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
@@ -107,12 +125,17 @@ def main() -> None:
     positions = [("start", "middle", "end")[i % 3] for i in range(len(cases))]
 
     report = {"model": args.model, "cases": len(cases), "seed": args.seed, "lengths": {}}
+    if args.resume and args.output.exists():
+        report = json.loads(args.output.read_text())
     # One load for every length: the state, not max_length, sets the prompt size.
     model = DecisionModel(args.model, max_length=max(lengths))
     count = model.backend.count_tokens
     for length in lengths:
-        rows = []
+        rows = report["lengths"].get(str(length), {}).get("rows", [])
+        done = {row["id"] for row in rows}
         for case, position in zip(cases, positions):
+            if case.id in done:
+                continue
             state = embed(case.state, length, count, position)
             started = time.perf_counter()
             result = model.choose(state=state, question=case.question, choices=case.choices)
@@ -126,29 +149,15 @@ def main() -> None:
                     "latency_ms": (time.perf_counter() - started) * 1000,
                 }
             )
-        latencies = [row["latency_ms"] for row in rows]
-        report["lengths"][str(length)] = {
-            "accuracy": sum(row["correct"] for row in rows) / len(rows),
-            "by_position": {
-                position: statistics.mean(r["correct"] for r in rows if r["position"] == position)
-                for position in ("start", "middle", "end")
-                if any(r["position"] == position for r in rows)
-            },
-            "mean_state_tokens": statistics.mean(row["state_tokens"] for row in rows),
-            "latency_ms": {
-                "p50": statistics.median(latencies),
-                "max": max(latencies),
-            },
-            "rows": rows,
-        }
+            report["lengths"][str(length)] = summarize(rows)
+            # Saved after every probe, so a run stopped for memory keeps what finished.
+            save(report, args.output)
         summary = report["lengths"][str(length)]
         print(
-            f"{args.model} {length}: accuracy {summary['accuracy']:.3f}, "
+            f"{args.model} {length}: accuracy {summary['accuracy']:.3f} over {len(rows)}, "
             f"p50 {summary['latency_ms']['p50']:.0f} ms",
             flush=True,
         )
-        # Saved after every length, so a run stopped for memory keeps what finished.
-        save(report, args.output)
 
 
 if __name__ == "__main__":
