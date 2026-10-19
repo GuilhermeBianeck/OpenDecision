@@ -1,0 +1,19 @@
+{
+  "model": "mlx-community/Qwen3.5-2B-4bit",
+  "split": "test",
+  "negation": {
+    "count": 26,
+    "mean_abs_gap": 0.39673986708667275,
+    "median_abs_gap": 0.08943839604286574,
+    "max_abs_gap": 0.9738842065831006,
+    "mean_sum": 0.6238746607476153,
+    "both_sides_accuracy": 0.5384615384615384
+  },
+  "choice_order": {
+    "count": 94,
+    "orders_per_case": 3,
+    "flip_rate": 0.2127659574468085,
+    "mean_total_variation": 0.14800047530120536,
+    "max_total_variation": 0.753823443473799
+  }
+}

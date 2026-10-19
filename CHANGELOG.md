@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Ran the 231 public items of an MIT-licensed decision benchmark through its
+  own harness against `/v1/systemone`: `qwen35` scores 139 / 231 (60.2 %),
+  near ceiling on the easy tier and barely above chance on the hard one, with
+  every prediction committed. Added `opendecision consistency`, which measures
+  negation consistency (`p(X) + p(not X)`, mean gap 0.104 for `base` and 0.361
+  for `qwen35`) and option-order invariance (`qwen35` flips 20 % of decisions
+  when options are reordered; `base` never does), with a regression test.
 - Serve the shared decision format, `POST /v1/systemone`, next to the native
   API: `choice`, `score` and `noul` questions about one state, with structured
   JSON instructions and criteria, the format's limits and status codes, gzip

@@ -1,0 +1,19 @@
+{
+  "model": "tasksource/ModernBERT-base-nli",
+  "split": "all",
+  "negation": {
+    "count": 99,
+    "mean_abs_gap": 0.10433480506583254,
+    "median_abs_gap": 0.00867015305918839,
+    "max_abs_gap": 0.8942663317257108,
+    "mean_sum": 0.9339216578388796,
+    "both_sides_accuracy": 0.8686868686868687
+  },
+  "choice_order": {
+    "count": 352,
+    "orders_per_case": 3,
+    "flip_rate": 0.0,
+    "mean_total_variation": 0.0003627775595978783,
+    "max_total_variation": 0.010261137629118955
+  }
+}
