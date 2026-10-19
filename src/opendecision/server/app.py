@@ -28,6 +28,7 @@ from opendecision.schemas import (
     StateValue,
     validate_state,
 )
+from opendecision.systemone import SystemOneRequest, SystemOneResponse, answer
 
 MAX_BODY_BYTES = 1_048_576
 MAX_BATCH_SIZE = 64
@@ -244,6 +245,12 @@ def create_app(
     def ask(request: QuestionsRequest) -> dict[str, Answer]:
         with inference_slot() as engine:
             return engine.ask(state=request.state, questions=request.questions)
+
+    @app.post("/v1/systemone", response_model=SystemOneResponse)
+    def systemone(request: SystemOneRequest) -> SystemOneResponse:
+        """The shared typed-decision request served across the decision-model ecosystem."""
+        with inference_slot() as engine:
+            return answer(engine, request)
 
     @app.post("/v1/score", response_model=ScoreResult)
     def score(request: ScoreRequest) -> ScoreResult:
