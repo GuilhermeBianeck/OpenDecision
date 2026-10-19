@@ -100,6 +100,12 @@ zero: answers are read off a single forward pass and no text is generated.
 
 `zstd` bodies need Python 3.14 or the `zstandard` package on the server.
 
+## Images
+
+With the `lightning_vision` backend, `state` may contain images and the
+request may carry a top-level `images` list; the experimental `box` question
+locates something in the request's one image. See [images](images.md).
+
 ## Clients
 
 ```python

@@ -68,13 +68,18 @@ class DecisionMLXBackend(MLXDecoderBackend):
             texts.append(text if text != label else f"{label}: {label}")
         return texts
 
-    def _prompt_ids(self, state: str, question: str) -> list[int]:
-        text = (
+    @staticmethod
+    def _prompt_text(state: str, question: str, images: int = 0) -> str:
+        # Images go first in the user turn, one vision slot each.
+        slots = "<|vision_start|><|image_pad|><|vision_end|>" * images
+        return (
             f"<|im_start|>system\n{SYSTEM}<|im_end|>\n"
-            f"<|im_start|>user\nrecord: {state}\n{question}<|im_end|>\n"
+            f"<|im_start|>user\n{slots}record: {state}\n{question}<|im_end|>\n"
             f"<|im_start|>assistant\n<think>\n\n</think>\n\n{PREFILL}"
         )
-        return self._encode(text)
+
+    def _prompt_ids(self, state: str, question: str) -> list[int]:
+        return self._encode(self._prompt_text(state, question))
 
     def score_statements(self, requests: list[Any]) -> list[list[float]]:
         """Return [true, unknown, false] log-probabilities; unknown is never chosen."""

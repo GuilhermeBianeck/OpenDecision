@@ -1,0 +1,121 @@
+{
+  "model": "lightning_vision",
+  "scenes": 6,
+  "found": 1.0,
+  "mean_iou": 0.9203316416238213,
+  "hit_rate_iou_0_5": 1.0,
+  "latency_ms": {
+    "p50": 1407.6501249983266
+  },
+  "rows": [
+    {
+      "target": "the red triangle",
+      "truth": [
+        256,
+        66,
+        377,
+        187
+      ],
+      "pixels": [
+        253,
+        65,
+        381,
+        187
+      ],
+      "iou": 0.9375640368852459,
+      "output_tokens": 34,
+      "latency_ms": 5933.620499999961
+    },
+    {
+      "target": "the green circle",
+      "truth": [
+        53,
+        105,
+        183,
+        235
+      ],
+      "pixels": [
+        45,
+        101,
+        182,
+        235
+      ],
+      "iou": 0.9070748593682388,
+      "output_tokens": 33,
+      "latency_ms": 1352.6927499988233
+    },
+    {
+      "target": "the red circle",
+      "truth": [
+        295,
+        59,
+        397,
+        161
+      ],
+      "pixels": [
+        288,
+        55,
+        400,
+        161
+      ],
+      "iou": 0.8763477088948787,
+      "output_tokens": 34,
+      "latency_ms": 1391.4402500013239
+    },
+    {
+      "target": "the red square",
+      "truth": [
+        431,
+        65,
+        578,
+        212
+      ],
+      "pixels": [
+        428,
+        62,
+        579,
+        214
+      ],
+      "iou": 0.9414865806901359,
+      "output_tokens": 34,
+      "latency_ms": 1405.9733749963925
+    },
+    {
+      "target": "the red square",
+      "truth": [
+        442,
+        262,
+        531,
+        351
+      ],
+      "pixels": [
+        439,
+        260,
+        531,
+        353
+      ],
+      "iou": 0.9257830762038336,
+      "output_tokens": 34,
+      "latency_ms": 1409.3268750002608
+    },
+    {
+      "target": "the blue square",
+      "truth": [
+        462,
+        328,
+        591,
+        457
+      ],
+      "pixels": [
+        458,
+        324,
+        592,
+        457
+      ],
+      "iou": 0.9337335877005948,
+      "output_tokens": 34,
+      "latency_ms": 5568.514375001541
+    }
+  ],
+  "peak_memory_bytes": 3795408392
+}

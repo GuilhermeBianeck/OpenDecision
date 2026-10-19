@@ -74,7 +74,7 @@ def _resolve_name(name: str, device: str = "auto") -> str:
     if resolved not in {*MODEL_SPECS, "demo", "onnx"}:
         raise BackendError(
             f"Unknown model {name!r}. Choose tiny, base, smart, multilingual, decoder, qwen35, lfm25, "
-            "lightning, "
+            "lightning, lightning_vision, "
             "demo, or onnx."
         )
     return resolved
@@ -143,6 +143,10 @@ def create_backend(name: str = "base", device: str = "auto", **kwargs: Any) -> D
         from opendecision.backends.decoder import DecoderBackend
 
         return DecoderBackend(**backend_options("decoder"), device=device, **kwargs)
+    if resolved == "lightning_vision":
+        from opendecision.backends.vision_mlx import VisionDecisionBackend
+
+        return VisionDecisionBackend(**backend_options(resolved), device=device, **kwargs)
     if resolved == "lightning":
         from opendecision.backends.decision_mlx import DecisionMLXBackend
 

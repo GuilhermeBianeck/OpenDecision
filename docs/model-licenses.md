@@ -41,7 +41,8 @@ lightning     2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4
 (Apache-2.0), itself a decision fine-tune of Qwen3.5 4B (Apache-2.0). The
 conversion is not affiliated with H2O.ai. Its repository also ships a Python
 serving script; `pull` and offline loading use the same file allow-list, so that
-script is never downloaded or run.
+script is never downloaded or run. `lightning_vision` is the same pinned
+snapshot, loaded through mlx-vlm with its vision tower.
 
 `opendecision pull <alias>` explicitly downloads the pinned safetensors weights, tokenizer files, configuration, and available license/model-card files into the standard Hugging Face cache. It then loads the checkpoint and runs a public smoke input. The report includes the revision, declared license, unique snapshot file bytes, scores, device, and runtime precision. A successful smoke test verifies inference plumbing; it makes no decision-quality claim.
 

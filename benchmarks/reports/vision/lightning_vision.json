@@ -1,0 +1,304 @@
+{
+  "model": "lightning_vision",
+  "images": 24,
+  "accuracy": {
+    "shape": 1.0,
+    "colour": 1.0,
+    "count": 0.9583333333333334,
+    "more": 0.9583333333333334
+  },
+  "latency_ms_per_image": {
+    "p50": 2089.052208499197
+  },
+  "rows": [
+    {
+      "shape": "circle",
+      "colour": "red",
+      "count": 1,
+      "latency_ms": 5160.48208400025,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "blue",
+      "count": 4,
+      "latency_ms": 2037.559374999546,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "red",
+      "count": 3,
+      "latency_ms": 1990.4715419979766,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": false,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "green",
+      "count": 2,
+      "latency_ms": 1998.229958997399,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "green",
+      "count": 3,
+      "latency_ms": 1996.4154589979444,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "blue",
+      "count": 2,
+      "latency_ms": 2009.4796669945936,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "green",
+      "count": 2,
+      "latency_ms": 2008.102042003884,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "blue",
+      "count": 3,
+      "latency_ms": 2042.8171250023297,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": false
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "blue",
+      "count": 4,
+      "latency_ms": 2039.1677079969668,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "blue",
+      "count": 2,
+      "latency_ms": 2085.4382079996867,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "green",
+      "count": 3,
+      "latency_ms": 2067.5789580054698,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "red",
+      "count": 2,
+      "latency_ms": 2088.643292001507,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "green",
+      "count": 4,
+      "latency_ms": 2084.7608749973006,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "red",
+      "count": 2,
+      "latency_ms": 2100.932000001194,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "blue",
+      "count": 1,
+      "latency_ms": 2092.6509170021745,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "green",
+      "count": 4,
+      "latency_ms": 2101.13254099997,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "green",
+      "count": 1,
+      "latency_ms": 2105.1926250001998,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "red",
+      "count": 4,
+      "latency_ms": 2106.845959002385,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "green",
+      "count": 1,
+      "latency_ms": 2103.5229999979492,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "red",
+      "count": 4,
+      "latency_ms": 2094.3785830022534,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "blue",
+      "count": 1,
+      "latency_ms": 2101.778000003833,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "triangle",
+      "colour": "green",
+      "count": 1,
+      "latency_ms": 2100.2382500009844,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "circle",
+      "colour": "blue",
+      "count": 3,
+      "latency_ms": 2101.5579999948386,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    },
+    {
+      "shape": "square",
+      "colour": "blue",
+      "count": 3,
+      "latency_ms": 2089.4611249968875,
+      "correct": {
+        "shape": true,
+        "colour": true,
+        "count": true,
+        "more": true
+      }
+    }
+  ],
+  "peak_memory_bytes": 4017194172
+}
