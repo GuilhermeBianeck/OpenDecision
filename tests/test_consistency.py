@@ -140,14 +140,14 @@ def test_cli_writes_a_report(tmp_path):
 # Measured on the test split's 94 base choice cases with 3 orders each
 # (see docs/consistency.md). The bounds sit just above the measurement so a
 # regression fails while noise from a re-run does not.
-ORDER_FLIP_BOUNDS = {"base": 0.0, "qwen35": 0.25}
+ORDER_FLIP_BOUNDS = {"base": 0.0, "lightning": 0.15, "qwen35": 0.25}
 
 
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.parametrize("name", sorted(ORDER_FLIP_BOUNDS))
 def test_option_order_sensitivity_does_not_regress(name, monkeypatch):
-    """Set OPENDECISION_TEST_MODELS=base,qwen35 after explicit model pulls."""
+    """Set OPENDECISION_TEST_MODELS=base,qwen35,lightning after explicit model pulls."""
     import os
 
     from opendecision.benchmark import load_dataset
