@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .calibration import CalibrationProfile
+from .calibration import CalibrationProfile, bundled_profile
 from .confidence import margin, softmax
 from .errors import BackendError, CalibrationError
 from .schemas import (
@@ -52,7 +52,7 @@ class DecisionModel:
         task: str | None = None,
         device: str = "auto",
         backend: DecisionBackend | None = None,
-        calibration: CalibrationProfile | str | Path | None = None,
+        calibration: CalibrationProfile | str | Path | bool | None = None,
         batch_size: int = 32,
         max_length: int | None = None,
         template: str = "default",
@@ -99,11 +99,17 @@ class DecisionModel:
             max_length if max_length is not None else getattr(self.backend, "max_length", 512)
         )
         self.batch_size = batch_size
-        self.calibration = (
-            CalibrationProfile.load(calibration)
-            if isinstance(calibration, (str, Path))
-            else calibration
-        )
+        if calibration is None:
+            # A backend may ship a measured default profile; False opts out.
+            self.calibration = bundled_profile(
+                self.backend, template=self.template, max_length=self.max_length
+            )
+        elif calibration is False:
+            self.calibration = None
+        elif isinstance(calibration, (str, Path)):
+            self.calibration = CalibrationProfile.load(calibration)
+        else:
+            self.calibration = calibration
         self._lock = threading.Lock()
         if self.calibration is not None:
             # A profile is bound to the precision actually used, which resolves with

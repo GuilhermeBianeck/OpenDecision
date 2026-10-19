@@ -38,7 +38,10 @@ def _model_options(parser: argparse.ArgumentParser) -> None:
         help="Select the backend measured best for this question shape; see 'opendecision tasks'",
     )
     parser.add_argument("--device", default="auto", choices=("auto", "cpu", "mps", "cuda"))
-    parser.add_argument("--calibration", type=Path, help="Matching calibration profile JSON")
+    parser.add_argument(
+        "--calibration",
+        help="Matching calibration profile JSON, or 'none' to skip a backend's shipped profile",
+    )
     parser.add_argument("--batch-size", type=int, default=32, help="Candidate microbatch size")
     parser.add_argument(
         "--max-length",
@@ -186,11 +189,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _load_model(args: argparse.Namespace, *, name: str | None = None):
-    from opendecision import DecisionModel
+def _profile(value: str | None) -> Any:
+    """None uses a backend's shipped profile, 'none' disables it, a path loads one."""
     from opendecision.calibration import CalibrationProfile
 
-    profile = CalibrationProfile.load(args.calibration) if args.calibration else None
+    if value is None:
+        return None
+    if value == "none":
+        return False
+    return CalibrationProfile.load(value)
+
+
+def _load_model(args: argparse.Namespace, *, name: str | None = None):
+    from opendecision import DecisionModel
+
+    profile = _profile(args.calibration)
     chosen = name or args.model
     if chosen is not None and getattr(args, "task", None):
         raise ValueError("Pass either --model or --task, not both")
@@ -411,10 +424,11 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
     from opendecision.benchmark import load_dataset
     from opendecision.calibration import fit_temperature
 
-    if args.calibration is not None:
+    if args.calibration not in (None, "none"):
         raise ValueError(
             "Fit a new profile without --calibration; existing calibration cannot be chained"
         )
+    args.calibration = "none"  # fit raw scores, never on top of a shipped profile
 
     # Calibration fits the candidate softmax; boolean statements and rubric levels
     # are scored through different paths and are excluded until profiled separately.
@@ -519,7 +533,6 @@ def run(args: argparse.Namespace) -> Any:
     if args.command == "serve":
         import uvicorn
 
-        from opendecision.calibration import CalibrationProfile
         from opendecision.server import create_app
 
         if not 1 <= args.port <= 65535:
@@ -530,7 +543,7 @@ def run(args: argparse.Namespace) -> Any:
                 "Use a trusted network or add authentication and TLS at a reverse proxy.",
                 file=sys.stderr,
             )
-        profile = CalibrationProfile.load(args.calibration) if args.calibration else None
+        profile = _profile(args.calibration)
         app = create_app(
             args.model,
             args.device,
