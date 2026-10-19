@@ -8,6 +8,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from .images import MAX_IMAGES, validate_images
+
 Probability = Annotated[float, Field(ge=0, le=1, allow_inf_nan=False)]
 
 MAX_STATE_CHARACTERS = 262_144
@@ -143,6 +145,10 @@ class DecisionRequest(PublicModel):
     abstain_threshold: Probability | None = None
     margin_threshold: Probability | None = None
     include_raw_scores: bool = False
+    # Base64 data URIs, read by vision backends; see opendecision.images.
+    images: list[str] = Field(default_factory=list, max_length=MAX_IMAGES)
+
+    _validate_images = field_validator("images")(classmethod(lambda cls, v: validate_images(v)))
 
     _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
@@ -189,6 +195,10 @@ class StatementRequest(PublicModel):
     abstain_threshold: Probability | None = None
     margin_threshold: Probability | None = None
     unsupported_threshold: Probability | None = None
+    # Base64 data URIs, read by vision backends; see opendecision.images.
+    images: list[str] = Field(default_factory=list, max_length=MAX_IMAGES)
+
+    _validate_images = field_validator("images")(classmethod(lambda cls, v: validate_images(v)))
 
     _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
@@ -440,6 +450,10 @@ class QuestionsRequest(PublicModel):
 
     state: StateValue
     questions: dict[str, Question] = Field(min_length=1, max_length=MAX_QUESTIONS_PER_STATE)
+    # Base64 data URIs, read by vision backends; see opendecision.images.
+    images: list[str] = Field(default_factory=list, max_length=MAX_IMAGES)
+
+    _validate_images = field_validator("images")(classmethod(lambda cls, v: validate_images(v)))
 
     _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 

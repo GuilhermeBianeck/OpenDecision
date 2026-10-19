@@ -18,8 +18,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
+from opendecision.images import extract_images
 from opendecision.schemas import (
     BooleanQuestion,
     BooleanResult,
@@ -138,6 +139,17 @@ class SystemOneRequest(PublicModel):
     state: StateValue
     model: str = Field(min_length=1)
     questions: dict[str, QuestionSpec] = Field(min_length=1)
+    # Data URIs, a top-level field in the shared format; images found inside
+    # ``state`` are moved here and replaced by ``[image N]``.
+    images: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def lift_images(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "state" in data:
+            state, images = extract_images(data["state"], data.get("images"))
+            data = {**data, "state": state, "images": images}
+        return data
 
     _validate_state = field_validator("state")(classmethod(lambda cls, v: validate_state(v)))
 
@@ -265,7 +277,7 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
     checkpoint that actually answered.
     """
     questions = {key: _to_question(spec) for key, spec in request.questions.items()}
-    results = engine.ask(state=request.state, questions=questions)
+    results = engine.ask(state=request.state, questions=questions, images=request.images)
     return SystemOneResponse(
         model=engine.backend.model_id,
         answers={key: _to_answer(results[key]) for key in request.questions},

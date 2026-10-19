@@ -145,6 +145,7 @@ class DecisionModel:
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
         include_raw_scores: bool = False,
+        images: list[str] | None = None,
     ) -> DecisionResult:
         """Score choices; abstain below either optional probability or margin threshold."""
         request = DecisionRequest(
@@ -154,6 +155,7 @@ class DecisionModel:
             abstain_threshold=abstain_threshold,
             margin_threshold=margin_threshold,
             include_raw_scores=include_raw_scores,
+            images=images or [],
         )
         return self.choose_batch([request])[0]
 
@@ -164,6 +166,7 @@ class DecisionModel:
             return []
         if len(validated) > 1024:
             raise ValueError("at most 1024 requests per batch")
+        self._check_images(validated)
         started = time.perf_counter()
         with self._lock:
             inference_start = time.perf_counter()
@@ -354,6 +357,7 @@ class DecisionModel:
             return []
         if len(validated) > 1024:
             raise ValueError("at most 1024 statements per batch")
+        self._check_images(validated)
         if not self.supports_statements:
             if any(r.unsupported_threshold is not None for r in validated):
                 raise ValueError(
@@ -383,6 +387,7 @@ class DecisionModel:
             choices=["yes", "no"],
             abstain_threshold=request.abstain_threshold,
             margin_threshold=request.margin_threshold,
+            images=request.images,
         )
 
     def _statement_result(
@@ -443,6 +448,7 @@ class DecisionModel:
         abstain_threshold: float | None = None,
         margin_threshold: float | None = None,
         include_raw_scores: bool = False,
+        images: list[str] | None = None,
     ) -> RankingResult:
         """Rank candidates. A full ordering is returned even if the winner is abstained."""
         result = self.choose(
@@ -452,6 +458,7 @@ class DecisionModel:
             abstain_threshold=abstain_threshold,
             margin_threshold=margin_threshold,
             include_raw_scores=include_raw_scores,
+            images=images,
         )
         ranking = [
             RankedChoice(
@@ -545,11 +552,19 @@ class DecisionModel:
         ]
         return dict(zip(labels, self.statement_batch(requests)))
 
+    def _check_images(self, requests: list[Any]) -> None:
+        if any(r.images for r in requests) and not getattr(self.backend, "supports_images", False):
+            raise ValueError(
+                f"backend {self.backend.name!r} cannot read images; "
+                "use a vision backend such as 'lightning_vision'"
+            )
+
     def ask(
         self,
         *,
         state: StateValue,
         questions: dict[str, Question | dict[str, Any]],
+        images: list[str] | None = None,
     ) -> dict[str, Answer]:
         """Answer independent typed questions about one state, keyed by your ids.
 
@@ -557,7 +572,7 @@ class DecisionModel:
         questions in one statement batch. Answers come back under the same ids,
         in request order, each with its own thresholds applied.
         """
-        request = QuestionsRequest(state=state, questions=questions)
+        request = QuestionsRequest(state=state, questions=questions, images=images or [])
         decisions: list[tuple[str, DecisionRequest]] = []
         statements: list[tuple[str, StatementRequest]] = []
         scores: dict[str, ScoreRequest] = {}
@@ -572,6 +587,7 @@ class DecisionModel:
                             abstain_threshold=spec.abstain_threshold,
                             margin_threshold=spec.margin_threshold,
                             unsupported_threshold=spec.unsupported_threshold,
+                            images=request.images,
                         ),
                     )
                 )
@@ -587,6 +603,7 @@ class DecisionModel:
                         abstain_threshold=spec.abstain_threshold,
                         margin_threshold=spec.margin_threshold,
                         include_raw_scores=spec.include_raw_scores,
+                        images=request.images,
                     ),
                 )
             )

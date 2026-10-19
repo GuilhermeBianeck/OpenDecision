@@ -78,3 +78,24 @@ def test_statements_are_true_or_false_questions(backend, monkeypatch):
     )[0]
     assert result.probability > 0.9
     assert result.unsupported == pytest.approx(0, abs=1e-6)
+
+
+def test_images_take_vision_slots_at_the_start_of_the_user_turn():
+    text = DecisionMLXBackend._prompt_text("[image 1]", "question: q", images=2)
+    slot = "<|vision_start|><|image_pad|><|vision_end|>"
+    assert f"<|im_start|>user\n{slot}{slot}record: [image 1]\nquestion: q" in text
+    assert DecisionMLXBackend._prompt_text("r", "q") == DecisionMLXBackend._prompt_text("r", "q", 0)
+
+
+def test_the_vision_backend_is_its_own_opt_in_alias():
+    from opendecision.backends.vision_mlx import VisionDecisionBackend
+    from opendecision.errors import BackendError
+
+    backend = create_backend("lightning_vision")
+    assert isinstance(backend, VisionDecisionBackend)
+    assert backend.supports_images and not getattr(
+        create_backend("lightning"), "supports_images", False
+    )
+    assert backend.model_id == create_backend("lightning").model_id
+    with pytest.raises(BackendError, match="Order averaging"):
+        create_backend("lightning_vision", permutations=2)

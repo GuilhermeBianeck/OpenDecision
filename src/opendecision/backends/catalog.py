@@ -121,6 +121,21 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
             "scored with its training prompt."
         ),
     },
+    "lightning_vision": {
+        "name": "lightning_vision",
+        "model_id": "netprojects/h2o-lightning-4b-mlx-q4",
+        "revision": "2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4",
+        "family": "decision-vlm",
+        "license": "Apache-2.0",
+        "parameters": 4_000_000_000,
+        "weights_bytes": 3_034_299_183,
+        # Peak measured scoring four questions per image on the image probe.
+        "memory_bytes": 4_020_000_000,
+        "context_limit": 16384,
+        "description": (
+            "lightning with its vision tower, through mlx-vlm: images in the state; experimental."
+        ),
+    },
     "multilingual": {
         "name": "multilingual",
         "model_id": "BAAI/bge-reranker-v2-m3",
