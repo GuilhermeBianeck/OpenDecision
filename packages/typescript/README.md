@@ -26,7 +26,9 @@ console.log(result.normalized_probabilities);
 console.log(result.calibrated_probabilities); // null unless the server loaded a profile
 ```
 
-Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `boolean(request)`, `score(request)`, `ask(request)`, `rank(request)`, and `multiLabel(request)`. The server accepts at most 64 batch requests, 128 labels or questions per state, and a total request body up to 1 MiB.
+Methods: `health()`, `models()`, `choose(request)`, `chooseBatch(requests)`, `boolean(request)`, `score(request)`, `ask(request)`, `rank(request)`, `multiLabel(request)`, and `systemone(request)`. The server accepts at most 64 batch requests, 128 labels or questions per state, and a total request body up to 1 MiB.
+
+`systemone(request)` sends the shared decision format (`choice`, `score` and `noul` questions under your own keys) that other runtimes and SDKs use; that route accepts bodies up to 32 MiB. See [the format reference](../../docs/systemone.md).
 
 `ask(request)` sends independent typed questions (`{type: "choice" | "boolean" | "score", ...}`) about one `state` under your own ids and returns a record of answers discriminated by `type`. A full inference queue returns HTTP 429 with `Retry-After: 1`.
 

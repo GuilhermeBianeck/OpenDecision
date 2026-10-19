@@ -193,6 +193,11 @@ class DecoderBackend:
     def ensure_loaded(self) -> None:
         self.load()
 
+    def count_tokens(self, text: str) -> int:
+        """Tokens ``text`` occupies for this checkpoint, for usage reporting."""
+        self.load()
+        return len(self._tokenizer.encode(text, add_special_tokens=False))
+
     # ------------------------------------------------------------------ prompts
     def _prefix_text(self, state_text: str) -> str:
         system = (

@@ -139,6 +139,72 @@ export interface MultiLabelRequest {
   unsupported_threshold?: number | null;
 }
 
+/** Any JSON value: instructions and criteria may be text, a record or a list. */
+export type JsonValue = string | number | boolean | null | JsonValue[] | {[key: string]: JsonValue};
+
+/** Shared format: pick one option. Keys are option names; values describe them. */
+export interface SystemOneChoice {
+  type: "choice";
+  instructions: JsonValue;
+  /** 2 to 255 options. */
+  criteria: Record<string, JsonValue>;
+}
+
+/** Shared format: rate on 2 to 10 ordered levels, lowest first. */
+export interface SystemOneScore {
+  type: "score";
+  instructions: JsonValue;
+  criteria: JsonValue[];
+}
+
+/** Shared format: a statement about the state, answered with p(true). */
+export interface SystemOneNoul {
+  type: "noul";
+  instructions: JsonValue;
+  /** Optional definitions of what counts as true and as false. */
+  criteria?: {true?: JsonValue; false?: JsonValue} | null;
+}
+
+export type SystemOneQuestion = SystemOneChoice | SystemOneScore | SystemOneNoul;
+
+/** The shared `/v1/systemone` request. `model` is accepted as given. */
+export interface SystemOneRequest {
+  state: StateValue;
+  model: string;
+  questions: Record<string, SystemOneQuestion>;
+}
+
+export interface SystemOneChoiceAnswer {
+  type: "choice";
+  choice: string;
+  probabilities: Record<string, number>;
+  confidence: number;
+}
+
+export interface SystemOneScoreAnswer {
+  type: "score";
+  score: number;
+  legend: Record<string, string>;
+  probabilities: Record<string, number>;
+  confidence: number;
+}
+
+export interface SystemOneNoulAnswer {
+  type: "noul";
+  /** Probability that the statement is true. */
+  noul: number;
+}
+
+export type SystemOneAnswer = SystemOneChoiceAnswer | SystemOneScoreAnswer | SystemOneNoulAnswer;
+
+export interface SystemOneResponse {
+  /** The checkpoint that answered, not the requested name. */
+  model: string;
+  answers: Record<string, SystemOneAnswer>;
+  /** output_tokens is always 0: nothing is generated. */
+  usage: {input_tokens: number; output_tokens: number};
+}
+
 export interface ModelInfo {
   name: string;
   model_id: string;
@@ -261,5 +327,9 @@ export class OpenDecision {
   }
   multiLabel(request: MultiLabelRequest): Promise<Record<string, BooleanResult>> {
     return this.request("/v1/multi-label", request);
+  }
+  /** The shared decision format, as other runtimes and SDKs send it. */
+  systemone(request: SystemOneRequest): Promise<SystemOneResponse> {
+    return this.request("/v1/systemone", request);
   }
 }
