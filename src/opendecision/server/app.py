@@ -10,7 +10,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from opendecision import DecisionModel
 from opendecision.errors import OpenDecisionError
@@ -28,59 +27,13 @@ from opendecision.schemas import (
     StateValue,
     validate_state,
 )
+from opendecision.server.body import RequestBody
 from opendecision.systemone import SystemOneRequest, SystemOneResponse, answer
 
-MAX_BODY_BYTES = 1_048_576
 MAX_BATCH_SIZE = 64
-
-
-class BodySizeLimit:
-    """Bound request bytes, including requests without a Content-Length header."""
-
-    def __init__(self, app: ASGIApp, max_bytes: int = MAX_BODY_BYTES) -> None:
-        self.app = app
-        self.max_bytes = max_bytes
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-        headers = dict(scope.get("headers", []))
-        try:
-            length = int(headers.get(b"content-length", b"0"))
-        except ValueError:
-            await JSONResponse({"detail": "Invalid Content-Length"}, status_code=400)(
-                scope, receive, send
-            )
-            return
-        if length < 0 or length > self.max_bytes:
-            await JSONResponse({"detail": "Request body exceeds 1 MiB"}, status_code=413)(
-                scope, receive, send
-            )
-            return
-        body = bytearray()
-        while True:
-            message = await receive()
-            if message["type"] == "http.disconnect":
-                return
-            body.extend(message.get("body", b""))
-            if len(body) > self.max_bytes:
-                await JSONResponse({"detail": "Request body exceeds 1 MiB"}, status_code=413)(
-                    scope, receive, send
-                )
-                return
-            if not message.get("more_body", False):
-                break
-        consumed = False
-
-        async def bounded_receive() -> dict[str, Any]:
-            nonlocal consumed
-            if consumed:
-                return await receive()
-            consumed = True
-            return {"type": "http.request", "body": bytes(body), "more_body": False}
-
-        await self.app(scope, bounded_receive, send)
+# The shared decision format allows long states and many options per request.
+SYSTEMONE_PATH = "/v1/systemone"
+SYSTEMONE_MAX_BODY_BYTES = 33_554_432
 
 
 class BatchRequest(BaseModel):
@@ -185,7 +138,11 @@ def create_app(
         version="0.1.0a1",
         lifespan=lifespan,
     )
-    app.add_middleware(BodySizeLimit)
+    app.add_middleware(
+        RequestBody,
+        path_limits={SYSTEMONE_PATH: SYSTEMONE_MAX_BODY_BYTES},
+        strict_paths=frozenset({SYSTEMONE_PATH}),
+    )
 
     @contextmanager
     def inference_slot() -> Iterator[Any]:
@@ -246,7 +203,7 @@ def create_app(
         with inference_slot() as engine:
             return engine.ask(state=request.state, questions=request.questions)
 
-    @app.post("/v1/systemone", response_model=SystemOneResponse)
+    @app.post(SYSTEMONE_PATH, response_model=SystemOneResponse)
     def systemone(request: SystemOneRequest) -> SystemOneResponse:
         """The shared typed-decision request served across the decision-model ecosystem."""
         with inference_slot() as engine:

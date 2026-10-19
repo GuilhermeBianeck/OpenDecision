@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from opendecision import DecisionModel
 from opendecision.server import create_app
-from opendecision.server.app import MAX_BODY_BYTES
+from opendecision.server.body import MAX_BODY_BYTES
 
 REQUEST = {
     "state": "Billing needs billing support.",

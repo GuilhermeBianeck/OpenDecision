@@ -37,6 +37,9 @@ if TYPE_CHECKING:
     from opendecision.api import DecisionModel
 
 
+MAX_OPTIONS = 255
+MAX_SCORE_LEVELS = 10
+
 # Instructions and criteria may be any JSON value: plain text, a record such as
 # {"what": ..., "not_for": ..., "examples": [...]}, or a list.
 JsonValue = Union[str, int, float, bool, None, dict[str, Any], list[Any]]
@@ -89,7 +92,7 @@ class ChoiceSpec(PublicModel):
 
     type: Literal["choice"]
     instructions: JsonValue
-    criteria: dict[str, JsonValue] = Field(min_length=2)
+    criteria: dict[str, JsonValue] = Field(min_length=2, max_length=MAX_OPTIONS)
 
     _instructions = field_validator("instructions")(
         classmethod(lambda cls, v: _text(v, "instructions") and v)
@@ -101,7 +104,7 @@ class ScoreSpec(PublicModel):
 
     type: Literal["score"]
     instructions: JsonValue
-    criteria: list[JsonValue] = Field(min_length=2, max_length=10)
+    criteria: list[JsonValue] = Field(min_length=2, max_length=MAX_SCORE_LEVELS)
 
     _instructions = field_validator("instructions")(
         classmethod(lambda cls, v: _text(v, "instructions") and v)
