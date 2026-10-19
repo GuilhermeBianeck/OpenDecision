@@ -221,6 +221,11 @@ class TransformersBackend:
         """Public warm-load hook for server startup and cold-load measurements."""
         self.load()
 
+    def count_tokens(self, text: str) -> int:
+        """Tokens ``text`` occupies for this checkpoint, for usage reporting."""
+        self.load()
+        return len(self._tokenizer.encode(text, add_special_tokens=False))
+
     def _serialize(self, state: str, question: str, choice: str) -> tuple[str, str | None]:
         if self.family == "nli":
             hypothesis = (

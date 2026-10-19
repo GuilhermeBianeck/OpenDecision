@@ -30,6 +30,7 @@ from opendecision.schemas import (
     ScoreQuestion,
     ScoreResult,
     StateValue,
+    render_state,
     validate_state,
 )
 
@@ -164,9 +165,18 @@ class NoulAnswer(PublicModel):
 AnswerSpec = Annotated[ChoiceAnswer | ScoreAnswer | NoulAnswer, Field(discriminator="type")]
 
 
+class Usage(PublicModel):
+    """Tokens read and written. Decisions are read off one forward pass, so
+    nothing is generated and ``output_tokens`` is always zero."""
+
+    input_tokens: int = Field(ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+
+
 class SystemOneResponse(PublicModel):
     model: str
     answers: dict[str, AnswerSpec]
+    usage: Usage
 
 
 def _statement(spec: NoulSpec) -> str:
@@ -223,6 +233,30 @@ def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:
     raise TypeError(f"unexpected answer type {type(result).__name__}")
 
 
+def _question_texts(question: Any) -> list[str]:
+    if isinstance(question, ChoiceQuestion):
+        options = [c.render() if isinstance(c, ChoiceOption) else c for c in question.choices]
+        return [question.question, *options]
+    if isinstance(question, ScoreQuestion):
+        return [question.question, *question.levels]
+    return [question.statement]
+
+
+def _usage(engine: DecisionModel, state: StateValue, questions: dict[str, Any]) -> Usage:
+    """Count the state once plus every question's own text.
+
+    Backends with a tokenizer count exactly; ones without (the dependency-free
+    demo backend) report whitespace-separated words. Prompt scaffolding the
+    backend adds around these texts is not counted, so the figure is the same
+    whichever template a checkpoint uses.
+    """
+    count = getattr(engine.backend, "count_tokens", None) or (lambda text: len(text.split()))
+    texts = [render_state(state)]
+    for question in questions.values():
+        texts.extend(_question_texts(question))
+    return Usage(input_tokens=sum(count(text) for text in texts))
+
+
 def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneResponse:
     """Answer every question about the shared state in one ``ask`` call.
 
@@ -235,4 +269,5 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
     return SystemOneResponse(
         model=engine.backend.model_id,
         answers={key: _to_answer(results[key]) for key in request.questions},
+        usage=_usage(engine, request.state, questions),
     )

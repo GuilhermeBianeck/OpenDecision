@@ -230,3 +230,42 @@ def test_blank_structured_instructions_are_rejected(client, instructions):
     request = copy.deepcopy(SPEC_REQUEST)
     request["questions"]["is_urgent"]["instructions"] = instructions
     assert client.post("/v1/systemone", json=request).status_code == 422
+
+
+def test_usage_counts_what_the_model_reads_and_generates_nothing(client):
+    usage = client.post("/v1/systemone", json=SPEC_REQUEST).json()["usage"]
+    assert usage["output_tokens"] == 0
+    # The demo backend has no tokenizer, so it counts words: the state, each
+    # instruction, each option as presented and each score level.
+    words = [
+        SPEC_REQUEST["state"],
+        "Which team should handle this?",
+        "billing: Charges, refunds and invoices",
+        "integrations: Connecting third-party accounts",
+        "sales",
+        "How frustrated does the customer appear?",
+        "calm irritated angry",
+        "The message conveys urgency or time-sensitivity.",
+    ]
+    assert usage["input_tokens"] == sum(len(text.split()) for text in words)
+
+
+def test_usage_uses_the_backend_tokenizer_when_there_is_one():
+    class Counting(StatementBackend):
+        def count_tokens(self, text):
+            return 1
+
+    engine = DecisionModel(backend=Counting())
+    with TestClient(create_app("demo", decision_model=engine)) as client:
+        body = client.post(
+            "/v1/systemone",
+            json={
+                "state": "s",
+                "model": "m",
+                "questions": {
+                    "q": {"type": "choice", "instructions": "i", "criteria": {"a": None, "b": None}}
+                },
+            },
+        ).json()
+    # One state, one instruction, two options.
+    assert body["usage"] == {"input_tokens": 4, "output_tokens": 0}
