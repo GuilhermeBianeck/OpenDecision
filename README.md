@@ -92,6 +92,7 @@ primitives together, and [progress and measured evidence](PROGRESS.md),
 | `multilingual` | BGE reranker v2 m3 | Multilingual relevance ranking |
 | `decoder` | Qwen3 0.6B (causal LM, no generation) | Many options, rich descriptions, many questions per state |
 | `lightning` | H2O-Lightning 4B, decision-trained, MLX 4-bit | `auto` on Apple silicon; strongest measured backend |
+| `lightning_vision` | `lightning` with its vision tower, via mlx-vlm | Images in the state; experimental |
 | `qwen35` | Qwen3.5 2B, MLX 4-bit | Smaller Apple-silicon fallback when `lightning` does not fit |
 | `lfm25` | LFM2.5 1.2B Instruct, MLX 4-bit | Fast local decision candidate on Apple silicon |
 | `qwen35_4b` | Qwen3.5 4B, MLX 4-bit | Quality-focused local candidate |
@@ -258,7 +259,8 @@ Results on a public 231-item decision benchmark, run through its own harness
 against `/v1/systemone`, are in [public benchmark](docs/public-benchmark.md);
 negation consistency, option-order invariance and appended-context robustness
 are in [consistency](docs/consistency.md), and accuracy by state length in
-[long states](docs/long-context.md).
+[long states](docs/long-context.md). Images in the state and the experimental
+`box` question are in [images](docs/images.md).
 
 ## Local HTTP and TypeScript
 
