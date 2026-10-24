@@ -8,13 +8,32 @@
 
 OpenDecision turns **state + question + finite choices** into a typed decision,
 a distribution over the choices, and an explicit uncertainty margin. It scores
-candidates with open-weight classifiers, reward models, and rerankers, without
-generating an answer token by token. Inference runs locally, without an API key.
+candidates with open-weight decision-trained and instruction models, classifiers,
+reward models, and rerankers, without generating an answer token by token.
+Inference runs locally, without an API key.
 
 This repository is named **OpenDecision**; the Python package is **opendecision**.
 The alpha establishes a measurable local runtime for decision workloads.
 It does **not** establish that these models outperform hosted decision services
 or frontier LLMs; every quality claim must come from a committed benchmark report.
+
+## Measured results
+
+The default Apple-silicon backend, `lightning`, on a 16 GB Apple M5:
+
+| Measure | `lightning` | `qwen35` | Report |
+| --- | ---: | ---: | --- |
+| Public 231-item decision benchmark | **204 / 231 (88.3 %)** | 139 / 231 | [public benchmark](docs/public-benchmark.md) |
+| Committed test split, objective accuracy | **0.940** | 0.799 | [`lightning-mps-test`](benchmarks/reports/lightning-mps-test-calibrated.md) |
+| Calibration error (ECE), test split | **0.008** | 0.084 | [calibration](docs/calibration.md) |
+| Warm median latency, test split | 107 ms | 69 ms | same |
+| `p(X) + p(not X)` gap | **0.007** | 0.361 | [consistency](docs/consistency.md) |
+| Decisions flipped by an unsupported appended opinion | **2.6 %** | 69.6 % | same |
+| Decisions flipped by reordering options | 5.7 % (0.6 % averaged) | 20.2 % | same |
+| Peak memory | 4.5 GB | 2.6 GB | [long states](docs/long-context.md) |
+
+Off Apple silicon `auto` selects `base`, which has not been measured on the
+public benchmark and follows an unsupported appended opinion 78 % of the time.
 
 ## Start locally
 
