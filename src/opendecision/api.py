@@ -127,6 +127,7 @@ class DecisionModel:
                 "template": self.template,
                 "max_length": self.max_length,
                 "precision": self.backend.precision,
+                "order_averaging": getattr(self.backend, "permutations", 1),
             }
             mismatched = [
                 k for k, value in expected.items() if getattr(self.calibration, k) != value
