@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "opendecision"
-version = "0.1.0a1"
+version = "0.2.0"
 description = "Local, typed decision scoring with open-weight models and explicit uncertainty"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,6 +43,11 @@ packages = ["src/opendecision"]
 testpaths = ["tests"]
 markers = ["integration: requires explicitly downloaded model weights", "slow: long-running measurement"]
 addopts = "-ra"
+# Deprecations inside Starlette's test client and anyio, not in this package.
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated",
+]
 
 [tool.ruff]
 line-length = 100

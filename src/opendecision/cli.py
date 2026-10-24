@@ -15,6 +15,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from opendecision import __version__
+
 
 def _json_default(value: Any) -> Any:
     if hasattr(value, "model_dump"):
@@ -111,7 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="opendecision",
         description="Local decision scoring. Downloads only happen with the explicit pull command.",
     )
-    parser.add_argument("--version", action="version", version="OpenDecision 0.1.0a1")
+    parser.add_argument("--version", action="version", version=f"OpenDecision {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("models", help="List pinned model identities and licenses")
     pull = commands.add_parser("pull", help="Download and smoke-test a model (requires network)")
