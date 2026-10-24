@@ -23,6 +23,7 @@ from pathlib import Path
 
 from opendecision import DecisionModel
 from opendecision.benchmark import load_dataset
+from opendecision.focus import focus
 
 ROOT = Path(__file__).resolve().parents[1]
 LENGTHS = (2_048, 8_192, 32_768)
@@ -94,6 +95,11 @@ def summarize(rows: list[dict]) -> dict:
         },
         "mean_state_tokens": statistics.mean(row["state_tokens"] for row in rows),
         "latency_ms": {"p50": statistics.median(latencies), "max": max(latencies)},
+        **(
+            {"record_kept": sum(r["record_kept"] for r in rows) / len(rows)}
+            if "record_kept" in rows[0]
+            else {}
+        ),
         "rows": rows,
     }
 
@@ -107,6 +113,13 @@ def main() -> None:
     parser.add_argument(
         "--resume", action="store_true", help="Keep the probes already in --output and continue"
     )
+    parser.add_argument(
+        "--focus",
+        action="store_true",
+        help="Focus each state on its most relevant passages before deciding",
+    )
+    parser.add_argument("--passage-tokens", type=int, default=1024)
+    parser.add_argument("--keep", type=int, default=2)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
@@ -124,7 +137,13 @@ def main() -> None:
     cases = rng.sample(cases, min(args.cases, len(cases)))
     positions = [("start", "middle", "end")[i % 3] for i in range(len(cases))]
 
-    report = {"model": args.model, "cases": len(cases), "seed": args.seed, "lengths": {}}
+    report = {
+        "model": args.model,
+        "cases": len(cases),
+        "seed": args.seed,
+        "focus": {"passage_tokens": args.passage_tokens, "keep": args.keep} if args.focus else None,
+        "lengths": {},
+    }
     if args.resume and args.output.exists():
         report = json.loads(args.output.read_text())
     # One load for every length: the state, not max_length, sets the prompt size.
@@ -138,9 +157,26 @@ def main() -> None:
                 continue
             state = embed(case.state, length, count, position)
             started = time.perf_counter()
-            result = model.choose(state=state, question=case.question, choices=case.choices)
+            extra = {}
+            decide_on = state
+            if args.focus:
+                focused = focus(
+                    model,
+                    state,
+                    case.question,
+                    passage_tokens=args.passage_tokens,
+                    keep=args.keep,
+                )
+                decide_on = focused.state
+                extra = {
+                    "record_kept": case.state in focused.state,
+                    "focused_tokens": count(focused.state),
+                    "passages": focused.passages,
+                }
+            result = model.choose(state=decide_on, question=case.question, choices=case.choices)
             rows.append(
                 {
+                    **extra,
                     "id": case.id,
                     "position": position,
                     "state_tokens": count(state),
