@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/GuilhermeBianeck/OpenDecision/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeBianeck/OpenDecision/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
-[![Status: alpha](https://img.shields.io/badge/status-0.1.0a1-orange.svg)](CHANGELOG.md)
+[![Status: alpha](https://img.shields.io/badge/status-0.2.0%20alpha-orange.svg)](CHANGELOG.md)
 
 OpenDecision turns **state + question + finite choices** into a typed decision,
 a distribution over the choices, and an explicit uncertainty margin. It scores

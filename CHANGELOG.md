@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.2.0 — 2026-10-24
+
+Highlights, as they stand at release (the entries below are in the order the
+work landed, so earlier ones describe intermediate defaults):
+
+- `auto` on Apple silicon is `lightning`, a decision-trained 4B model with a
+  shipped calibration profile: 204 / 231 on the public decision benchmark and
+  0.940 objective accuracy on the committed test split. It falls back to
+  `qwen35` when free memory is short; other platforms use `base`.
+- `POST /v1/systemone` serves the shared decision format, so programs written
+  for other decision runtimes work unchanged.
+- Backends refuse to load when they would not fit in free memory.
+- New measurements and settings for consistency, option order, appended
+  context, long states and, experimentally, images and boxes.
+
+Changes:
+
 - Images, experimental: `lightning_vision` reads up to four images in the
   state (data URIs, base64 or image parts, inside `state` or in a top-level
   `images` list; URLs are refused, never fetched) and answers every question

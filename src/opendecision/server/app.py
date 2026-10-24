@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from opendecision import DecisionModel
+from opendecision import DecisionModel, __version__
 from opendecision.errors import OpenDecisionError
 from opendecision.registry import list_models
 from opendecision.schemas import (
@@ -137,7 +137,7 @@ def create_app(
             "unless a matching calibration profile is loaded. Intended for localhost; "
             "network deployments require their own authentication and TLS."
         ),
-        version="0.1.0a1",
+        version=__version__,
         lifespan=lifespan,
     )
     app.add_middleware(
