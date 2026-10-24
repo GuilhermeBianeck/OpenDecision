@@ -33,6 +33,9 @@ class CalibrationProfile(PublicModel):
     task_family: str = "general"
     max_length: int = 512
     precision: str = "float32"
+    # Rotated option orders averaged before calibration; scores averaged over
+    # orders are flatter, so a profile applies only to the setting it was fitted on.
+    order_averaging: int = Field(default=1, ge=1)
     dataset_sha256: str | None = None
     split: Literal["calibration"] = "calibration"
     sample_count: int = Field(ge=1)
@@ -131,6 +134,7 @@ def fit_temperature(
     dataset_sha256: str | None = None,
     max_length: int = 512,
     precision: str = "float32",
+    order_averaging: int = 1,
     per_choice_count: bool = True,
     min_rows_per_count: int = 25,
 ) -> CalibrationProfile:
@@ -186,6 +190,7 @@ def fit_temperature(
         task_family=task_family,
         max_length=max_length,
         precision=precision,
+        order_averaging=order_averaging,
         dataset_sha256=dataset_sha256,
         sample_count=len(labels),
         choice_count_min=min(len(row) for row in score_rows),
@@ -209,11 +214,11 @@ def bundled_profile(
     template, context length or precision the backend runs uncalibrated, exactly
     as without a shipped profile.
     """
-    path = BUNDLED_PROFILES / f"{getattr(backend, 'name', '')}.json"
+    averaging = getattr(backend, "permutations", 1)
+    suffix = "" if averaging == 1 else f"-k{averaging}"
+    path = BUNDLED_PROFILES / f"{getattr(backend, 'name', '')}{suffix}.json"
     precision = getattr(backend, "precision", None)
-    # Shipped profiles are fitted on single-order scores; averaging over option
-    # orders flattens the distribution, so the fitted temperatures no longer apply.
-    if not path.is_file() or precision is None or getattr(backend, "permutations", 1) != 1:
+    if not path.is_file() or precision is None:
         return None
     profile = CalibrationProfile.load(path)
     expected = {
@@ -223,6 +228,7 @@ def bundled_profile(
         "template": template,
         "max_length": max_length,
         "precision": precision,
+        "order_averaging": averaging,
     }
     if any(getattr(profile, key) != value for key, value in expected.items()):
         return None

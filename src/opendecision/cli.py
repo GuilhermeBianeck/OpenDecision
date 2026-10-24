@@ -471,6 +471,7 @@ def _calibrate(args: argparse.Namespace) -> dict[str, Any]:
         template=args.template,
         max_length=engine.max_length,
         precision=backend.precision,  # resolved during the scoring above
+        order_averaging=getattr(backend, "permutations", 1),
         task_family="objective_agent_control",
         dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
         per_choice_count=not args.pooled,
