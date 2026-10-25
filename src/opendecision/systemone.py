@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 from pydantic import Field, field_validator, model_validator
 
 from opendecision.backends.truncation import refuse_truncation
-from opendecision.images import extract_images
+from opendecision.images import extract_images, resolve_assets
 from opendecision.schemas import (
     BooleanQuestion,
     BooleanResult,
@@ -165,11 +165,14 @@ class SystemOneRequest(PublicModel):
     # Data URIs, a top-level field in the shared format; images found inside
     # ``state`` are moved here and replaced by ``[image N]``.
     images: list[str] = Field(default_factory=list)
+    # Placeholder -> asset reference, so answers can repeat the caller's reference.
+    image_references: dict[str, str] = Field(default_factory=dict, exclude=True)
 
     @model_validator(mode="before")
     @classmethod
     def lift_images(cls, data: Any) -> Any:
         if isinstance(data, dict) and "state" in data:
+            data = resolve_assets(data)
             state, images = extract_images(data["state"], data.get("images"))
             data = {**data, "state": state, "images": images}
         return data
@@ -373,6 +376,14 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
             confidence=located.confidence,
         )
     usage = _usage(engine, request.state, questions)
+    if request.image_references:
+        # Answers repeat the caller's criteria, so they show references, not placeholders.
+        for value in results.values():
+            if isinstance(value, ScoreResult):
+                for level, text in list(value.legend.items()):
+                    for placeholder, reference in request.image_references.items():
+                        text = text.replace(placeholder, reference)
+                    value.legend[level] = text
     return SystemOneResponse(
         model=engine.backend.model_id,
         answers={

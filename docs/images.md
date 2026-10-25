@@ -36,6 +36,32 @@ model reads stays text:
 }
 ```
 
+The format's own way is the `assets` map. Each image is listed once, keyed by a
+reference string, and the reference is written wherever the image belongs: in
+`state`, or in a question's `instructions` or `criteria` values (never in object
+keys). A string that is exactly a reference becomes the image; inside longer
+strings references are replaced left to right, longest first. Every use adds a
+copy of the image, every asset must be referenced, and answers that repeat your
+criteria, such as a score's `legend`, show the reference:
+
+```json
+{
+  "state": {"photo": "a3f1-found"},
+  "assets": {
+    "a3f1-found": {"type": "image", "format": "jpg", "data_base64": "/9j/4AAQ..."},
+    "77b0-poster": {"type": "image", "format": "jpg", "data_base64": "/9j/4AAQ..."}
+  },
+  "questions": {
+    "same_dog": {"type": "noul", "instructions": "Is the dog in `photo` the one in 77b0-poster?"}
+  }
+}
+```
+
+To upload files instead of base64, send `multipart/form-data` with the JSON in a
+part named `request` and each image in its own part, named by the asset's
+`part` field. Reference problems (an unused asset, a missing part, a bad format)
+answer 400. Images need no special header here.
+
 In Python, pass data URIs: `model.ask(state=..., questions=..., images=[uri])`
 or `model.choose(..., images=[uri])`. Image URLs are refused rather than
 fetched, because inference makes no network requests; send the bytes. A text

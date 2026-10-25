@@ -180,6 +180,19 @@ export interface SystemOneRequest {
   questions: Record<string, SystemOneQuestion>;
   /** Up to four images as base64 data URIs or image parts; images may also sit inside `state`. */
   images?: JsonValue[];
+  /**
+   * Images keyed by a reference string written wherever the image belongs: in `state`,
+   * or in a question's `instructions` or `criteria` values. Every reference must be used.
+   */
+  assets?: Record<string, SystemOneAsset>;
+}
+
+/** An image for `assets`: base64 bytes with their format, or a multipart part name. */
+export interface SystemOneAsset {
+  type?: "image";
+  format?: "png" | "jpg" | "jpeg";
+  data_base64?: string;
+  part?: string;
 }
 
 export interface SystemOneChoiceAnswer {

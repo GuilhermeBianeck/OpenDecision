@@ -174,3 +174,126 @@ def validate_images(images: list[str]) -> list[str]:
     if len(images) > MAX_IMAGES:
         raise ValueError(f"at most {MAX_IMAGES} images per request; got {len(images)}")
     return [to_data_uri(decode_data_uri(uri)) for uri in images]
+
+
+# The shared format's `assets` map: images listed once, keyed by a reference
+# string that is written wherever the image belongs.
+MAX_REFERENCE_BYTES = 1024
+MAX_REFERENCES_BYTES = 65_536
+_ASSET_FORMATS = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
+
+
+def _asset_bytes(reference: str, asset: Any, parts: dict[str, bytes]) -> bytes:
+    if not isinstance(asset, dict):
+        raise ValueError(f"asset {reference!r} must be an object")
+    if asset.get("type", "image") != "image":
+        raise ValueError(
+            f"asset {reference!r} has type {asset.get('type')!r}; only 'image' is supported"
+        )
+    if asset.get("part") is not None:
+        part = asset["part"]
+        if part not in parts:
+            raise ValueError(
+                f"asset {reference!r} names part {part!r}, which the request does not contain"
+            )
+        return parts[part]
+    data = asset.get("data_base64")
+    if not isinstance(data, str) or not data:
+        raise ValueError(f"asset {reference!r} needs data_base64 or, in a multipart request, part")
+    if asset.get("format") not in _ASSET_FORMATS:
+        raise ValueError(
+            f"asset {reference!r} needs format 'png', 'jpg' or 'jpeg' with data_base64"
+        )
+    try:
+        return base64.b64decode(data, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise ValueError(f"asset {reference!r} is not valid standard base64") from error
+
+
+def resolve_assets(
+    request: dict[str, Any], parts: dict[str, bytes] | None = None
+) -> dict[str, Any]:
+    """Replace every asset reference with an ``[image N]`` placeholder.
+
+    References are matched in string values of ``state`` and of each question's
+    ``instructions`` and ``criteria``, never in object keys. A string that is
+    exactly a reference becomes the placeholder; in longer strings references
+    are replaced left to right without overlapping, longest first. Each use
+    appends the image again, after any images already in ``images``. Returns
+    the request without ``assets`` and with ``image_references`` mapping each
+    placeholder back to its reference, so answers can repeat the reference.
+    """
+    assets = request.get("assets")
+    if not assets:
+        return {key: value for key, value in request.items() if key != "assets"}
+    if not isinstance(assets, dict):
+        raise ValueError("assets must be an object keyed by reference")
+    total = 0
+    for reference in assets:
+        size = len(reference.encode("utf-8"))
+        if not reference.strip():
+            raise ValueError("an asset reference cannot be empty or only whitespace")
+        if size > MAX_REFERENCE_BYTES:
+            raise ValueError(
+                f"asset reference {reference[:40]!r}... is over {MAX_REFERENCE_BYTES} bytes"
+            )
+        total += size
+    if total > MAX_REFERENCES_BYTES:
+        raise ValueError(f"asset references total over {MAX_REFERENCES_BYTES} bytes")
+    uris = {
+        ref: to_data_uri(_asset_bytes(ref, asset, parts or {})) for ref, asset in assets.items()
+    }
+    by_length = sorted(uris, key=len, reverse=True)
+    images = list(request.get("images") or [])
+    mapping: dict[str, str] = {}
+    used: set[str] = set()
+
+    def place(reference: str) -> str:
+        images.append(uris[reference])
+        used.add(reference)
+        placeholder = f"[image {len(images)}]"
+        mapping[placeholder] = reference
+        return placeholder
+
+    def text(value: str) -> str:
+        if value in uris:
+            return place(value)
+        if not any(ref in value for ref in by_length):
+            return value
+        out, i = [], 0
+        while i < len(value):
+            match = next((ref for ref in by_length if value.startswith(ref, i)), None)
+            if match is None:
+                out.append(value[i])
+                i += 1
+            else:
+                out.append(place(match))
+                i += len(match)
+        return "".join(out)
+
+    def walk(value: Any) -> Any:
+        if isinstance(value, str):
+            return text(value)
+        if isinstance(value, dict):
+            return {key: walk(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [walk(item) for item in value]
+        return value
+
+    state = walk(request.get("state"))
+    questions = {}
+    for key, question in (request.get("questions") or {}).items():
+        if isinstance(question, dict):
+            question = dict(question)
+            for field in ("instructions", "criteria"):
+                if field in question:
+                    question[field] = walk(question[field])
+        questions[key] = question
+    unused = [ref for ref in uris if ref not in used]
+    if unused:
+        raise ValueError(
+            f"asset {unused[0]!r} is not referenced in state, instructions or criteria"
+        )
+    resolved = {key: value for key, value in request.items() if key != "assets"}
+    resolved.update(state=state, questions=questions, images=images, image_references=mapping)
+    return resolved
