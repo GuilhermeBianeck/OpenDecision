@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `/v1/systemone` now answers the way clients of the shared decision format
+  expect, so the format's own SDKs work against a local server: `confidence`
+  follows the format's definitions (distance from an even split for choice,
+  distance between levels for score); box answers are `{top, bottom, left,
+  right}` with a confidence; `instructions` is optional; `/v1/models` gives
+  every model a `release_date`; request-rule violations answer 400 and a busy
+  server 529; an over-long request answers 400 `max_tokens_exceeded` instead
+  of being trimmed; zstd windows are capped at 8 MiB; and images can be sent
+  as `assets` (base64 or multipart parts) referenced from state, instructions
+  or criteria. The native API is unchanged.
+
 ## 0.2.0 — 2026-10-24
 
 Highlights, as they stand at release (the entries below are in the order the
