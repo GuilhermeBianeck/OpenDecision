@@ -8,8 +8,9 @@ get the status codes the shared decision format documents:
 * 413 — the body, before or after decompression, is over the cap;
 * 415 — the body is not ``application/json``, or uses an unknown or stacked
   ``Content-Encoding``;
-* 422 — the JSON is well formed but nested too deeply or holds a number that
-  is not finite (validation errors also answer 422, from the route itself).
+* 400 also for JSON nested more than 64 levels or holding a number that is not
+  finite, and for zstd bodies that need a window over 8 MiB;
+* 422 — the JSON is well formed but fails validation, from the route itself.
 """
 
 from __future__ import annotations
@@ -25,6 +26,8 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 MAX_BODY_BYTES = 1_048_576
 MAX_JSON_DEPTH = 64
+# The largest zstd window a body may require, bounding decompression memory.
+MAX_ZSTD_WINDOW_LOG = 23  # 8 MiB
 
 
 class BodyError(Exception):
@@ -42,7 +45,9 @@ def _zstd_reader(body: bytes, max_bytes: int) -> bytes:
     try:  # Python 3.14+
         from compression import zstd
 
-        decompressor = zstd.ZstdDecompressor()
+        decompressor = zstd.ZstdDecompressor(
+            options={zstd.DecompressionParameter.window_log_max: MAX_ZSTD_WINDOW_LOG}
+        )
         out = decompressor.decompress(body, max_length=max_bytes + 1)
         if len(out) <= max_bytes and not decompressor.eof:
             raise BodyError(400, "Request body is a truncated zstd stream")
@@ -53,7 +58,9 @@ def _zstd_reader(body: bytes, max_bytes: int) -> bytes:
         import zstandard
     except ImportError:
         raise BodyError(415, "zstd request bodies need Python 3.14 or the zstandard package")
-    reader = zstandard.ZstdDecompressor().stream_reader(io.BytesIO(body))
+    reader = zstandard.ZstdDecompressor(max_window_size=1 << MAX_ZSTD_WINDOW_LOG).stream_reader(
+        io.BytesIO(body)
+    )
     return reader.read(max_bytes + 1)
 
 
@@ -101,10 +108,10 @@ def check_json(body: bytes, content_type: str) -> None:
     while stack:
         item, depth = stack.pop()
         if isinstance(item, float) and not math.isfinite(item):
-            raise BodyError(422, "Numbers must be finite")
+            raise BodyError(400, "Numbers must be finite")
         if isinstance(item, (dict, list)):
             if depth > MAX_JSON_DEPTH:
-                raise BodyError(422, f"JSON nesting exceeds {MAX_JSON_DEPTH} levels")
+                raise BodyError(400, f"JSON nesting exceeds {MAX_JSON_DEPTH} levels")
             children = item.values() if isinstance(item, dict) else item
             stack.extend((child, depth + 1) for child in children)
 

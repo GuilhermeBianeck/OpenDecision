@@ -147,10 +147,10 @@ def create_app(
     )
 
     @contextmanager
-    def inference_slot() -> Iterator[Any]:
+    def inference_slot(busy_status: int = 429) -> Iterator[Any]:
         if not slots.acquire(blocking=False):
             raise HTTPException(
-                status_code=429,
+                status_code=busy_status,
                 detail="Inference capacity is busy; retry shortly",
                 headers={"Retry-After": "1"},
             )
@@ -208,7 +208,9 @@ def create_app(
     @app.post(SYSTEMONE_PATH, response_model=SystemOneResponse)
     def systemone(request: SystemOneRequest) -> SystemOneResponse:
         """The shared typed-decision request served across the decision-model ecosystem."""
-        with inference_slot() as engine:
+        # The shared format answers 529 Overloaded when capacity is busy and keeps
+        # 429 for rate limits; the native routes keep their documented 429.
+        with inference_slot(busy_status=529) as engine:
             return answer(engine, request)
 
     @app.post("/v1/score", response_model=ScoreResult)

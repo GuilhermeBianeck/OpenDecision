@@ -104,15 +104,15 @@ zero: answers are read off a single forward pass and no text is generated.
 | JSON nesting | 64 levels |
 | Numbers | finite only |
 | Body | 32 MiB, before and after decompression |
-| `Content-Encoding` | one layer of `gzip`, `x-gzip` or `zstd` |
+| `Content-Encoding` | one layer of `gzip`, `x-gzip` or `zstd`; a zstd window of at most 8 MiB |
 
 | Status | Meaning |
 | --- | --- |
-| 400 | The body is not JSON, or its compression is corrupt or truncated. |
+| 400 | The body is not JSON; its compression is corrupt, truncated or needs a zstd window over 8 MiB; it nests JSON more than 64 levels; or it holds a number that is not finite. |
 | 413 | The body is over 32 MiB, before or after decompression. |
 | 415 | The body is not `application/json`, or uses an unknown or stacked encoding. |
-| 422 | Valid JSON that breaks a limit or the schema. |
-| 429 | Every inference slot is busy; retry after the `Retry-After` interval. |
+| 422 | The JSON is valid but fails validation, such as a missing field, a malformed question, or more options or levels than allowed. |
+| 529 | Every inference slot is busy; retry after the `Retry-After` interval. (The native routes answer 429 for the same condition.) |
 
 `zstd` bodies need Python 3.14 or the `zstandard` package on the server.
 
