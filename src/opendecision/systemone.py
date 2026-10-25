@@ -82,6 +82,17 @@ def render(value: Any, depth: int = 0) -> str:
     raise ValueError(f"cannot render a {type(value).__name__} as decision text")
 
 
+# The format makes instructions optional; these stand in when they are missing.
+DEFAULT_INSTRUCTIONS = "Answer the question below."
+DEFAULT_BOX_TARGET = "the main subject of the image"
+
+
+def _instructions_or(value: Any, default: str) -> Any:
+    if value is None or not render(value).strip():
+        return default
+    return value
+
+
 def _text(value: Any, what: str) -> str:
     text = render(value).strip()
     if not text:
@@ -93,11 +104,11 @@ class ChoiceSpec(PublicModel):
     """Pick one option. Keys are the option names; values describe them."""
 
     type: Literal["choice"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: dict[str, JsonValue] = Field(min_length=2, max_length=MAX_OPTIONS)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -105,11 +116,11 @@ class ScoreSpec(PublicModel):
     """Rate on ordered levels, lowest first. Each level may be text or a record."""
 
     type: Literal["score"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: list[JsonValue] = Field(min_length=2, max_length=MAX_SCORE_LEVELS)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -124,11 +135,11 @@ class NoulSpec(PublicModel):
     """A statement about the state; the answer is the probability it is true."""
 
     type: Literal["noul"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: NoulCriteria | None = None
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -136,10 +147,10 @@ class BoxSpec(PublicModel):
     """Experimental: where the thing named by ``instructions`` is in the image."""
 
     type: Literal["box"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_BOX_TARGET))
     )
 
 

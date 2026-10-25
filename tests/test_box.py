@@ -114,3 +114,13 @@ def test_box_confidence_is_the_geometric_mean_over_digit_pieces():
     assert box_confidence(steps) == pytest.approx(math.sqrt(0.9 * 0.4))
     assert box_confidence([("no box", -1.0)]) == 0.0
     assert box_confidence([(" 619,", math.log(0.8))]) == pytest.approx(0.8)
+
+
+def test_a_box_question_without_instructions_locates_the_main_subject():
+    from opendecision.systemone import DEFAULT_BOX_TARGET
+
+    backend = Seeing()
+    DecisionModel(backend=backend).systemone(
+        {"state": "s", "model": "m", "images": [PNG_URI], "questions": {"b": {"type": "box"}}}
+    )
+    assert backend.located[0][1] == DEFAULT_BOX_TARGET

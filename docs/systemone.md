@@ -39,6 +39,9 @@ calibration profiles and routing as the native API.
 
 - `state` is text, a record, or a list of texts, exactly as in the native API.
 - `model` is accepted as given; the response names the checkpoint that answered.
+- `instructions` is optional on every question type. Without it, choice, score
+  and noul questions read "Answer the question below." and a box looks for the
+  main subject of the image.
 - `choice` picks one option. `criteria` maps each option name to a description,
   or `null` for none.
 - `score` rates on ordered levels, lowest first.

@@ -137,7 +137,6 @@ def test_structured_state_is_accepted(client):
         lambda r: r["questions"]["department"].update(type="pick"),
         lambda r: r["questions"]["department"].update(criteria={"only": None}),
         lambda r: r["questions"]["frustration"].update(criteria=["one"]),
-        lambda r: r["questions"]["is_urgent"].update(instructions="  "),
     ],
 )
 def test_malformed_requests_are_rejected_with_422(client, mutation):
@@ -223,13 +222,30 @@ def test_noul_definitions_are_folded_into_the_statement():
     )
 
 
-@pytest.mark.parametrize("instructions", [{}, [], "", "   "])
-def test_blank_structured_instructions_are_rejected(client, instructions):
-    import copy
+@pytest.mark.parametrize("instructions", [None, {}, [], "", "   "])
+def test_missing_or_blank_instructions_fall_back_to_a_default(instructions):
+    from opendecision.systemone import DEFAULT_INSTRUCTIONS, SystemOneRequest
 
-    request = copy.deepcopy(SPEC_REQUEST)
-    request["questions"]["is_urgent"]["instructions"] = instructions
-    assert client.post("/v1/systemone", json=request).status_code == 422
+    question = {"type": "choice", "criteria": {"a": None, "b": None}}
+    if instructions is not None:
+        question["instructions"] = instructions
+    request = SystemOneRequest.model_validate(
+        {"state": "s", "model": "m", "questions": {"q": question}}
+    )
+    assert request.questions["q"].instructions == DEFAULT_INSTRUCTIONS
+
+
+def test_only_type_and_criteria_are_required(client):
+    request = {
+        "state": "s",
+        "model": "m",
+        "questions": {
+            "c": {"type": "choice", "criteria": {"a": None, "b": None}},
+            "s": {"type": "score", "criteria": ["low", "high"]},
+            "n": {"type": "noul"},
+        },
+    }
+    assert client.post("/v1/systemone", json=request).status_code == 200
 
 
 def test_usage_counts_what_the_model_reads_and_generates_nothing(client):
