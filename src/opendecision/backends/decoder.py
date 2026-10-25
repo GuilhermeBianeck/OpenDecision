@@ -21,6 +21,7 @@ from opendecision.backends.transformers import (
     default_precision,
     select_device,
 )
+from opendecision.backends.truncation import check_truncation
 from opendecision.errors import BackendError
 from opendecision.memory import check_memory
 
@@ -247,6 +248,7 @@ class DecoderBackend:
         prefix_ids = self._encode(self._prefix_text(state_text))
         if len(prefix_ids) <= budget:
             return prefix_ids
+        check_truncation(len(prefix_ids) + self.max_length - budget, self.max_length)
         overhead = len(self._encode(self._prefix_text("")))
         state_ids = self._encode(state_text)
         minimum = min(MIN_STATE_TOKENS, len(state_ids))
@@ -306,6 +308,8 @@ class DecoderBackend:
             text = state if keep == len(state_ids) else self._tokenizer.decode(state_ids[:keep])
             rows = [self._prompt_ids(text, q) for q in questions]
             overflow = max(map(len, rows)) - self.max_length
+            if overflow > 0 and keep == len(state_ids):
+                check_truncation(max(map(len, rows)), self.max_length)
             if overflow <= 0:
                 if keep < len(state_ids):
                     self._truncated_states += 1

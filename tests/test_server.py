@@ -255,3 +255,14 @@ def test_openapi_and_models_contract(client):
     models = client.get("/v1/models").json()
     assert models["active_model"] == "demo"
     assert any(model["name"] == "base" for model in models["models"])
+
+
+def test_model_list_has_the_shared_formats_required_fields(client):
+    import re
+
+    body = client.get("/v1/models").json()
+    assert body["models"]
+    for model in body["models"]:
+        assert isinstance(model["name"], str) and model["name"]
+        assert isinstance(model["description"], str) and model["description"]
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", model["release_date"])

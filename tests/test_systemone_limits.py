@@ -70,14 +70,14 @@ def test_two_to_ten_score_levels(client):
 def test_nesting_is_capped(client):
     assert post(client, encoded(nested_state(MAX_JSON_DEPTH))).status_code == 200
     response = post(client, encoded(nested_state(MAX_JSON_DEPTH + 1)))
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert "nesting" in response.json()["detail"]
 
 
 def test_numbers_must_be_finite(client):
     body = encoded().replace(b'"state": "', b'"extra_number": 1e999, "state": "', 1)
     response = post(client, body)
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert "finite" in response.json()["detail"]
 
 
@@ -161,3 +161,44 @@ def test_413_when_a_small_body_inflates_past_the_cap(client):
     response = post(client, bomb, **{"content-encoding": "gzip"})
     assert response.status_code == 413
     assert "Decompressed" in response.json()["detail"]
+
+
+def test_zstd_bodies_needing_a_window_over_8_mib_are_rejected(client):
+    zstd = pytest.importorskip("compression.zstd")
+    # A streamed frame with no declared size keeps the requested 16 MiB window.
+    compressor = zstd.ZstdCompressor(options={zstd.CompressionParameter.window_log: 24})
+    wide = compressor.compress(encoded(), mode=zstd.ZstdCompressor.CONTINUE) + compressor.flush()
+    assert post(client, wide, **{"content-encoding": "zstd"}).status_code == 400
+    narrow = zstd.ZstdCompressor(options={zstd.CompressionParameter.window_log: 20})
+    small = narrow.compress(encoded(), mode=zstd.ZstdCompressor.CONTINUE) + narrow.flush()
+    assert post(client, small, **{"content-encoding": "zstd"}).status_code == 200
+
+
+def test_a_busy_server_answers_529_on_the_shared_route():
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from opendecision import DecisionModel
+
+    entered, release = Event(), Event()
+    real = DecisionModel("demo")
+
+    class Slow:
+        backend = real.backend
+
+        def ask(self, **kwargs):
+            entered.set()
+            assert release.wait(5)
+            return real.ask(**kwargs)
+
+    with TestClient(create_app("demo", decision_model=Slow(), max_concurrency=1)) as busy:
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            first = pool.submit(post, busy, encoded())
+            try:
+                assert entered.wait(5)
+                second = post(busy, encoded())
+                assert second.status_code == 529
+                assert second.headers["retry-after"] == "1"
+            finally:
+                release.set()
+            assert first.result(timeout=5).status_code == 200

@@ -8,8 +8,9 @@ get the status codes the shared decision format documents:
 * 413 — the body, before or after decompression, is over the cap;
 * 415 — the body is not ``application/json``, or uses an unknown or stacked
   ``Content-Encoding``;
-* 422 — the JSON is well formed but nested too deeply or holds a number that
-  is not finite (validation errors also answer 422, from the route itself).
+* 400 also for JSON nested more than 64 levels or holding a number that is not
+  finite, and for zstd bodies that need a window over 8 MiB;
+* 422 — the JSON is well formed but fails validation, from the route itself.
 """
 
 from __future__ import annotations
@@ -18,13 +19,19 @@ import io
 import json
 import math
 import zlib
+from email.parser import BytesParser
+from email.policy import HTTP
 from typing import Any
 
 from fastapi.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from opendecision.images import resolve_assets
+
 MAX_BODY_BYTES = 1_048_576
 MAX_JSON_DEPTH = 64
+# The largest zstd window a body may require, bounding decompression memory.
+MAX_ZSTD_WINDOW_LOG = 23  # 8 MiB
 
 
 class BodyError(Exception):
@@ -42,7 +49,9 @@ def _zstd_reader(body: bytes, max_bytes: int) -> bytes:
     try:  # Python 3.14+
         from compression import zstd
 
-        decompressor = zstd.ZstdDecompressor()
+        decompressor = zstd.ZstdDecompressor(
+            options={zstd.DecompressionParameter.window_log_max: MAX_ZSTD_WINDOW_LOG}
+        )
         out = decompressor.decompress(body, max_length=max_bytes + 1)
         if len(out) <= max_bytes and not decompressor.eof:
             raise BodyError(400, "Request body is a truncated zstd stream")
@@ -53,7 +62,9 @@ def _zstd_reader(body: bytes, max_bytes: int) -> bytes:
         import zstandard
     except ImportError:
         raise BodyError(415, "zstd request bodies need Python 3.14 or the zstandard package")
-    reader = zstandard.ZstdDecompressor().stream_reader(io.BytesIO(body))
+    reader = zstandard.ZstdDecompressor(max_window_size=1 << MAX_ZSTD_WINDOW_LOG).stream_reader(
+        io.BytesIO(body)
+    )
     return reader.read(max_bytes + 1)
 
 
@@ -87,11 +98,11 @@ def _reject_constant(name: str) -> Any:
     raise ValueError(f"{name} is not valid JSON")
 
 
-def check_json(body: bytes, content_type: str) -> None:
-    """Raise :class:`BodyError` unless ``body`` is acceptable strict JSON."""
+def check_json(body: bytes, content_type: str) -> Any:
+    """Return the parsed body, or raise :class:`BodyError` unless it is strict JSON."""
     media = content_type.split(";", 1)[0].strip().lower()
     if media != "application/json" and not media.endswith("+json"):
-        raise BodyError(415, "Request body must be application/json")
+        raise BodyError(415, "Request body must be application/json or multipart/form-data")
     try:
         value = json.loads(body, parse_constant=_reject_constant)
     except (ValueError, UnicodeDecodeError) as error:
@@ -101,12 +112,54 @@ def check_json(body: bytes, content_type: str) -> None:
     while stack:
         item, depth = stack.pop()
         if isinstance(item, float) and not math.isfinite(item):
-            raise BodyError(422, "Numbers must be finite")
+            raise BodyError(400, "Numbers must be finite")
         if isinstance(item, (dict, list)):
             if depth > MAX_JSON_DEPTH:
-                raise BodyError(422, f"JSON nesting exceeds {MAX_JSON_DEPTH} levels")
+                raise BodyError(400, f"JSON nesting exceeds {MAX_JSON_DEPTH} levels")
             children = item.values() if isinstance(item, dict) else item
             stack.extend((child, depth + 1) for child in children)
+    return value
+
+
+def multipart_parts(body: bytes, content_type: str) -> dict[str, bytes]:
+    """The named parts of a multipart/form-data body."""
+    message = BytesParser(policy=HTTP).parsebytes(
+        b"Content-Type: " + content_type.encode("latin-1") + b"\r\n\r\n" + body
+    )
+    if not message.is_multipart():
+        raise BodyError(400, "Malformed multipart body")
+    parts: dict[str, bytes] = {}
+    for part in message.iter_parts():
+        name = part.get_param("name", header="content-disposition")
+        if name:
+            parts[str(name)] = part.get_payload(decode=True) or b""
+    return parts
+
+
+def shared_request(body: bytes, content_type: str) -> bytes | None:
+    """Normalise a shared-format request; None when ``body`` can pass through unchanged.
+
+    A multipart body carries the JSON in its ``request`` part and images in
+    file parts that assets name; a JSON body may carry images as base64 in
+    ``assets``. Either way the assets are resolved into placeholders here, so
+    reference errors answer 400 like the other request rules.
+    """
+    media = content_type.split(";", 1)[0].strip().lower()
+    parts: dict[str, bytes] = {}
+    if media == "multipart/form-data":
+        parts = multipart_parts(body, content_type)
+        if "request" not in parts:
+            raise BodyError(400, "A multipart request needs a 'request' part holding the JSON")
+        value = check_json(parts.pop("request"), "application/json")
+    else:
+        value = check_json(body, content_type)
+    if not isinstance(value, dict) or (not value.get("assets") and not parts):
+        return None
+    try:
+        resolved = resolve_assets(value, parts)
+    except ValueError as error:
+        raise BodyError(400, str(error)) from error
+    return json.dumps(resolved).encode()
 
 
 class RequestBody:
@@ -156,21 +209,32 @@ class RequestBody:
                 break
 
         encoding = headers.get(b"content-encoding", b"").decode("latin-1")
+        rewritten = None
         try:
             body = decode_body(bytes(raw), encoding, limit)
             if path in self.strict_paths and scope.get("method") == "POST":
-                check_json(body, headers.get(b"content-type", b"").decode("latin-1"))
+                content_type = headers.get(b"content-type", b"").decode("latin-1")
+                rewritten = shared_request(body, content_type)
         except BodyError as error:
             await refuse(error.status, error.detail)
             return
-        if encoding.strip():
-            # Downstream sees the plain body, as if it had been sent uncompressed.
+        if rewritten is not None:
+            body = rewritten
+        if encoding.strip() or rewritten is not None:
+            # Downstream sees a plain JSON body, as if it had been sent that way.
+            dropped = (b"content-encoding", b"content-length", b"content-type")
             scope = dict(scope)
             scope["headers"] = [
-                (name, value)
-                for name, value in scope["headers"]
-                if name not in (b"content-encoding", b"content-length")
-            ] + [(b"content-length", str(len(body)).encode())]
+                (name, value) for name, value in scope["headers"] if name not in dropped
+            ] + [
+                (b"content-length", str(len(body)).encode()),
+                (
+                    b"content-type",
+                    headers.get(b"content-type", b"application/json")
+                    if rewritten is None
+                    else b"application/json",
+                ),
+            ]
 
         consumed = False
 

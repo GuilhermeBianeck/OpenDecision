@@ -20,7 +20,8 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
 from pydantic import Field, field_validator, model_validator
 
-from opendecision.images import extract_images
+from opendecision.backends.truncation import refuse_truncation
+from opendecision.images import extract_images, resolve_assets
 from opendecision.schemas import (
     BooleanQuestion,
     BooleanResult,
@@ -82,6 +83,17 @@ def render(value: Any, depth: int = 0) -> str:
     raise ValueError(f"cannot render a {type(value).__name__} as decision text")
 
 
+# The format makes instructions optional; these stand in when they are missing.
+DEFAULT_INSTRUCTIONS = "Answer the question below."
+DEFAULT_BOX_TARGET = "the main subject of the image"
+
+
+def _instructions_or(value: Any, default: str) -> Any:
+    if value is None or not render(value).strip():
+        return default
+    return value
+
+
 def _text(value: Any, what: str) -> str:
     text = render(value).strip()
     if not text:
@@ -93,11 +105,11 @@ class ChoiceSpec(PublicModel):
     """Pick one option. Keys are the option names; values describe them."""
 
     type: Literal["choice"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: dict[str, JsonValue] = Field(min_length=2, max_length=MAX_OPTIONS)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -105,11 +117,11 @@ class ScoreSpec(PublicModel):
     """Rate on ordered levels, lowest first. Each level may be text or a record."""
 
     type: Literal["score"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: list[JsonValue] = Field(min_length=2, max_length=MAX_SCORE_LEVELS)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -124,11 +136,11 @@ class NoulSpec(PublicModel):
     """A statement about the state; the answer is the probability it is true."""
 
     type: Literal["noul"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
     criteria: NoulCriteria | None = None
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_INSTRUCTIONS))
     )
 
 
@@ -136,10 +148,10 @@ class BoxSpec(PublicModel):
     """Experimental: where the thing named by ``instructions`` is in the image."""
 
     type: Literal["box"]
-    instructions: JsonValue
+    instructions: JsonValue = Field(default=None, validate_default=True)
 
     _instructions = field_validator("instructions")(
-        classmethod(lambda cls, v: _text(v, "instructions") and v)
+        classmethod(lambda cls, v: _instructions_or(v, DEFAULT_BOX_TARGET))
     )
 
 
@@ -153,11 +165,14 @@ class SystemOneRequest(PublicModel):
     # Data URIs, a top-level field in the shared format; images found inside
     # ``state`` are moved here and replaced by ``[image N]``.
     images: list[str] = Field(default_factory=list)
+    # Placeholder -> asset reference, so answers can repeat the caller's reference.
+    image_references: dict[str, str] = Field(default_factory=dict, exclude=True)
 
     @model_validator(mode="before")
     @classmethod
     def lift_images(cls, data: Any) -> Any:
         if isinstance(data, dict) and "state" in data:
+            data = resolve_assets(data)
             state, images = extract_images(data["state"], data.get("images"))
             data = {**data, "state": state, "images": images}
         return data
@@ -185,12 +200,21 @@ class NoulAnswer(PublicModel):
     noul: float
 
 
+class BoxCoordinates(PublicModel):
+    """Edges as fractions of the image, measured from its top-left corner."""
+
+    top: float = Field(ge=0, le=1)
+    bottom: float = Field(ge=0, le=1)
+    left: float = Field(ge=0, le=1)
+    right: float = Field(ge=0, le=1)
+
+
 class BoxAnswer(PublicModel):
     type: Literal["box"] = "box"
-    # [left, top, right, bottom] as fractions of the image, and in its pixels;
-    # null when the model gave no usable box.
-    box: list[float] | None
-    pixels: list[int] | None
+    box: BoxCoordinates
+    # When the model gives no usable box the whole image is returned with
+    # confidence 0, because the format requires a box.
+    confidence: float = Field(ge=0, le=1)
 
 
 AnswerSpec = Annotated[
@@ -246,14 +270,43 @@ def _to_question(spec: ChoiceSpec | ScoreSpec | NoulSpec) -> Any:
     return BooleanQuestion(statement=_statement(spec))
 
 
+def choice_confidence(probabilities: list[float]) -> float:
+    """How far the top probability sits above an even split: 0 for uniform, 1 for certain.
+
+    The shared format's definition, ``(p_max - 1/n) / (1 - 1/n)``. The native
+    API reports the top-two margin instead; the two answer different questions.
+    """
+    n = len(probabilities)
+    if n < 2:
+        return 1.0
+    return max(0.0, min(1.0, (max(probabilities) - 1 / n) / (1 - 1 / n)))
+
+
+def score_confidence(probabilities: list[float]) -> float:
+    """Confidence over ordered levels: probability far from the top level costs more.
+
+    ``1 - sum(p_i * |i - m|) / MAD_uniform``, floored at 0, where ``m`` is the
+    most likely level and ``MAD_uniform`` is the same average distance for an
+    even spread, measured from the middle level.
+    """
+    n = len(probabilities)
+    if n < 2:
+        return 1.0
+    top = max(range(n), key=lambda i: (probabilities[i], -i))
+    spread = sum(p * abs(i - top) for i, p in enumerate(probabilities))
+    uniform = sum(abs(i - (n - 1) / 2) for i in range(n)) / n
+    return max(0.0, min(1.0, 1 - spread / uniform))
+
+
 def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:
     # The shared format has no abstention, so the argmax is always reported.
     if isinstance(result, ScoreResult):
+        ordered = [result.probabilities[str(i)] for i in range(len(result.probabilities))]
         return ScoreAnswer(
             score=result.score,
             legend=dict(result.legend),
             probabilities=dict(result.probabilities),
-            confidence=result.confidence,
+            confidence=score_confidence(ordered),
         )
     if isinstance(result, BooleanResult):
         return NoulAnswer(noul=result.probability)
@@ -262,7 +315,7 @@ def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:
         return ChoiceAnswer(
             choice=result.choice if result.choice is not None else top,
             probabilities=dict(result.probabilities),
-            confidence=result.confidence,
+            confidence=choice_confidence(list(result.probabilities.values())),
         )
     raise TypeError(f"unexpected answer type {type(result).__name__}")
 
@@ -306,7 +359,9 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
         raise ValueError("box questions need exactly one image in the request")
     results: dict[str, Any] = {}
     if questions:
-        results = engine.ask(state=request.state, questions=questions, images=request.images)
+        # The format refuses an over-long request instead of trimming the state.
+        with refuse_truncation():
+            results = engine.ask(state=request.state, questions=questions, images=request.images)
     generated = 0
     for key, spec in boxes.items():
         located = engine.locate(
@@ -315,8 +370,20 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
             image=request.images[0],
         )
         generated += located.output_tokens
-        results[key] = BoxAnswer(box=located.box, pixels=located.pixels)
+        left, top, right, bottom = located.box or [0.0, 0.0, 1.0, 1.0]
+        results[key] = BoxAnswer(
+            box=BoxCoordinates(top=top, bottom=bottom, left=left, right=right),
+            confidence=located.confidence,
+        )
     usage = _usage(engine, request.state, questions)
+    if request.image_references:
+        # Answers repeat the caller's criteria, so they show references, not placeholders.
+        for value in results.values():
+            if isinstance(value, ScoreResult):
+                for level, text in list(value.legend.items()):
+                    for placeholder, reference in request.image_references.items():
+                        text = text.replace(placeholder, reference)
+                    value.legend[level] = text
     return SystemOneResponse(
         model=engine.backend.model_id,
         answers={

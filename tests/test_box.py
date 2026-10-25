@@ -35,7 +35,7 @@ class Seeing(StatementBackend):
 
     def locate(self, state, target, image):
         self.located.append((state, target))
-        return self.box, (640, 480), 17
+        return self.box, (640, 480), 17, 0.9 if self.box else 0.0
 
 
 def test_locate_reports_fractions_and_pixels():
@@ -44,12 +44,14 @@ def test_locate_reports_fractions_and_pixels():
     assert result.found and result.box == [0.5, 0.25, 0.75, 0.5]
     assert result.pixels == [320, 120, 480, 240]
     assert result.output_tokens == 17
+    assert result.confidence == 0.9
     assert backend.located == [("a photo", "the cup")]
 
 
 def test_locate_reports_a_missing_box_as_not_found():
     result = DecisionModel(backend=Seeing(box=None)).locate(state="s", target="x", image=PNG_URI)
     assert not result.found and result.box is None and result.pixels is None
+    assert result.confidence == 0.0
 
 
 def test_text_backends_cannot_locate():
@@ -73,8 +75,8 @@ def test_box_questions_in_the_shared_format():
     assert list(body["answers"]) == ["where", "is_kitchen"]
     assert body["answers"]["where"] == {
         "type": "box",
-        "box": [0.5, 0.25, 0.75, 0.5],
-        "pixels": [320, 120, 480, 240],
+        "box": {"top": 0.25, "bottom": 0.5, "left": 0.5, "right": 0.75},
+        "confidence": 0.9,
     }
     assert body["answers"]["is_kitchen"]["type"] == "noul"
     assert body["usage"]["output_tokens"] == 17
@@ -86,3 +88,39 @@ def test_box_questions_need_exactly_one_image():
         engine.systemone({**BOX_REQUEST, "state": "no image here"})
     with pytest.raises(ValueError, match="exactly one image"):
         engine.systemone({**BOX_REQUEST, "images": [PNG_URI]})
+
+
+def test_a_missing_box_is_the_whole_image_with_no_confidence():
+    engine = DecisionModel(backend=Seeing(box=None))
+    answer = engine.systemone(BOX_REQUEST).model_dump()["answers"]["where"]
+    assert answer == {
+        "type": "box",
+        "box": {"top": 0.0, "bottom": 1.0, "left": 0.0, "right": 1.0},
+        "confidence": 0.0,
+    }
+
+
+def test_box_confidence_is_the_geometric_mean_over_digit_pieces():
+    import math
+
+    from opendecision.backends.vision_mlx import box_confidence
+
+    steps = [
+        ('{"bbox_2d": [', math.log(0.5)),
+        ("61", math.log(0.9)),
+        ("9", math.log(0.4)),
+        ("]}", 0.0),
+    ]
+    assert box_confidence(steps) == pytest.approx(math.sqrt(0.9 * 0.4))
+    assert box_confidence([("no box", -1.0)]) == 0.0
+    assert box_confidence([(" 619,", math.log(0.8))]) == pytest.approx(0.8)
+
+
+def test_a_box_question_without_instructions_locates_the_main_subject():
+    from opendecision.systemone import DEFAULT_BOX_TARGET
+
+    backend = Seeing()
+    DecisionModel(backend=backend).systemone(
+        {"state": "s", "model": "m", "images": [PNG_URI], "questions": {"b": {"type": "box"}}}
+    )
+    assert backend.located[0][1] == DEFAULT_BOX_TARGET

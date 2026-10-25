@@ -39,6 +39,9 @@ calibration profiles and routing as the native API.
 
 - `state` is text, a record, or a list of texts, exactly as in the native API.
 - `model` is accepted as given; the response names the checkpoint that answered.
+- `instructions` is optional on every question type. Without it, choice, score
+  and noul questions read "Answer the question below." and a box looks for the
+  main subject of the image.
 - `choice` picks one option. `criteria` maps each option name to a description,
   or `null` for none.
 - `score` rates on ordered levels, lowest first.
@@ -58,9 +61,9 @@ model with its field names.
   "answers": {
     "department": {"type": "choice", "choice": "integrations",
                    "probabilities": {"billing": 0.19, "integrations": 0.74, "sales": 0.08},
-                   "confidence": 0.55},
+                   "confidence": 0.61},
     "frustration": {"type": "score", "score": 1.19, "legend": {"0": "calm", "1": "irritated", "2": "angry"},
-                    "probabilities": {"0": 0.06, "1": 0.68, "2": 0.25}, "confidence": 0.43},
+                    "probabilities": {"0": 0.06, "1": 0.68, "2": 0.25}, "confidence": 0.53},
     "is_urgent": {"type": "noul", "noul": 0.56}
   },
   "usage": {"input_tokens": 78, "output_tokens": 0}
@@ -68,12 +71,25 @@ model with its field names.
 ```
 
 This is the `qwen35` backend's actual answer to the request above, rounded to
-two places.
+two places, with `confidence` computed by the definitions below.
 
-Answers come back under the question keys, in request order. `confidence` is
-the margin between the two most probable answers. The shared format has no
-abstention, so the most probable option is always reported; use the native
-`/v1/ask` when you want abstention thresholds or raw scores.
+Answers come back under the question keys, in request order. `confidence`
+follows the shared format's definitions, so thresholds tuned against another
+runtime carry over:
+
+- **choice:** how far the top probability sits above an even split,
+  `(p_max - 1/n) / (1 - 1/n)`: 0 for a uniform answer, 1 for a certain one.
+- **score:** `1 - sum(p_i * |i - m|) / MAD_uniform`, floored at 0, where `m` is
+  the most likely level and `MAD_uniform` is the average distance of an even
+  spread from the middle level. Probability on a neighbouring level costs less
+  than on a distant one.
+- **noul:** no separate confidence; the probability carries it. `|2p - 1|` puts
+  it on the same scale.
+
+The native API's `confidence` is the margin between the two most probable
+answers, a different measure. The shared format has no abstention, so the most
+probable option is always reported; use the native `/v1/ask` when you want
+abstention thresholds or raw scores.
 
 `usage.input_tokens` counts the rendered state once plus each instruction,
 option and level, with the checkpoint's own tokenizer. `output_tokens` is always
@@ -88,15 +104,16 @@ zero: answers are read off a single forward pass and no text is generated.
 | JSON nesting | 64 levels |
 | Numbers | finite only |
 | Body | 32 MiB, before and after decompression |
-| `Content-Encoding` | one layer of `gzip`, `x-gzip` or `zstd` |
+| `Content-Encoding` | one layer of `gzip`, `x-gzip` or `zstd`; a zstd window of at most 8 MiB |
 
 | Status | Meaning |
 | --- | --- |
-| 400 | The body is not JSON, or its compression is corrupt or truncated. |
+| 400 | The request is longer than the model's context: `detail` is `{"code": "max_tokens_exceeded", "message", "tokens", "limit"}`. The shared route never trims a state to make it fit; the native routes trim the state and warn. |
+| 400 | The body is not JSON; its compression is corrupt, truncated or needs a zstd window over 8 MiB; it nests JSON more than 64 levels; or it holds a number that is not finite. |
 | 413 | The body is over 32 MiB, before or after decompression. |
 | 415 | The body is not `application/json`, or uses an unknown or stacked encoding. |
-| 422 | Valid JSON that breaks a limit or the schema. |
-| 429 | Every inference slot is busy; retry after the `Retry-After` interval. |
+| 422 | The JSON is valid but fails validation, such as a missing field, a malformed question, or more options or levels than allowed. |
+| 529 | Every inference slot is busy; retry after the `Retry-After` interval. (The native routes answer 429 for the same condition.) |
 
 `zstd` bodies need Python 3.14 or the `zstandard` package on the server.
 

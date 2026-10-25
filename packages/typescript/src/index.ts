@@ -180,6 +180,19 @@ export interface SystemOneRequest {
   questions: Record<string, SystemOneQuestion>;
   /** Up to four images as base64 data URIs or image parts; images may also sit inside `state`. */
   images?: JsonValue[];
+  /**
+   * Images keyed by a reference string written wherever the image belongs: in `state`,
+   * or in a question's `instructions` or `criteria` values. Every reference must be used.
+   */
+  assets?: Record<string, SystemOneAsset>;
+}
+
+/** An image for `assets`: base64 bytes with their format, or a multipart part name. */
+export interface SystemOneAsset {
+  type?: "image";
+  format?: "png" | "jpg" | "jpeg";
+  data_base64?: string;
+  part?: string;
 }
 
 export interface SystemOneChoiceAnswer {
@@ -203,12 +216,19 @@ export interface SystemOneNoulAnswer {
   noul: number;
 }
 
+/** Edges as fractions of the image, measured from its top-left corner. */
+export interface SystemOneBoxCoordinates {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface SystemOneBoxAnswer {
   type: "box";
-  /** [left, top, right, bottom] as fractions of the image; null when no box was found. */
-  box: [number, number, number, number] | null;
-  /** The same box in the original image's pixels. */
-  pixels: [number, number, number, number] | null;
+  /** The whole image, with confidence 0, when the model gave no usable box. */
+  box: SystemOneBoxCoordinates;
+  confidence: number;
 }
 
 export type SystemOneAnswer =

@@ -164,16 +164,18 @@ class VisionDecisionBackend(DecisionMLXBackend):
 
     def locate(
         self, state: str, target: str, image: str
-    ) -> tuple[list[float] | None, tuple[int, int], int]:
-        """The box around ``target`` in ``image``, the image's size, and tokens written.
+    ) -> tuple[list[float] | None, tuple[int, int], int, float]:
+        """The box around ``target`` in ``image``, the image's size, tokens written, confidence.
 
         The box is ``[left, top, right, bottom]`` as fractions of the image.
 
         Unlike every other question this one generates text: the model writes
         the box as JSON in Qwen's 0-1000 grid, which is parsed and normalised.
-        ``None`` means the answer held no usable box.
+        ``None`` means the answer held no usable box. Confidence is the
+        geometric mean probability of the tokens that spell the coordinates,
+        so it is 1 only when every digit was certain, and 0 without a box.
         """
-        from mlx_vlm import generate
+        from mlx_vlm import stream_generate
         from PIL import Image
 
         size = Image.open(io.BytesIO(decode_data_uri(image))).size
@@ -185,19 +187,40 @@ class VisionDecisionBackend(DecisionMLXBackend):
                 '{"bbox_2d": [x1, y1, x2, y2]}.<|im_end|>\n'
                 "<|im_start|>assistant\n<think>\n\n</think>\n\n"
             )
-            result = self._guard(
-                lambda: generate(
+
+            def run() -> list[tuple[str, float]]:
+                steps = []
+                for step in stream_generate(
                     self._model,
                     self._processor,
                     prompt,
                     image=[_pil(image)],
                     max_tokens=BOX_MAX_TOKENS,
                     temperature=0.0,
-                    verbose=False,
-                )
-            )
-            tokens = int(getattr(result, "generation_tokens", 0))
-            return parse_box(getattr(result, "text", "")), size, tokens
+                ):
+                    logprobs = step.logprobs.reshape(-1)
+                    steps.append((step.text, float(logprobs[step.token].item())))
+                return steps
+
+            steps = self._guard(run)
+            box = parse_box("".join(text for text, _ in steps))
+            return box, size, len(steps), box_confidence(steps) if box else 0.0
+
+
+def _numeric(text: str) -> bool:
+    piece = text.strip(" ,[]")
+    return bool(piece) and all(c.isdigit() or c in ".-" for c in piece)
+
+
+def box_confidence(steps: list[tuple[str, float]]) -> float:
+    """Geometric mean probability of the generated pieces that are coordinate digits.
+
+    Only purely numeric pieces count, so a key such as ``bbox_2d`` does not.
+    """
+    digits = [logprob for text, logprob in steps if _numeric(text)]
+    if not digits:
+        return 0.0
+    return float(math.exp(sum(digits) / len(digits)))
 
 
 BOX_MAX_TOKENS = 48

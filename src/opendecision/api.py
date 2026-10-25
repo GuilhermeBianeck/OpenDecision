@@ -571,7 +571,9 @@ class DecisionModel:
             raise ValueError("target must not be blank")
         (uri,) = validate_images([image])
         started = time.perf_counter()
-        box, (width, height), tokens = self.backend.locate(render_state(state), target, uri)
+        box, (width, height), tokens, confidence = self.backend.locate(
+            render_state(state), target, uri
+        )
         return BoxResult(
             box=box,
             pixels=None
@@ -583,6 +585,7 @@ class DecisionModel:
                 round(box[3] * height),
             ],
             found=box is not None,
+            confidence=confidence,
             output_tokens=tokens,
             latency_ms=(time.perf_counter() - started) * 1000,
             backend=self.backend.name,

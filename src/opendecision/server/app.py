@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from opendecision import DecisionModel, __version__
-from opendecision.errors import OpenDecisionError
+from opendecision.errors import ContextOverflow, OpenDecisionError
 from opendecision.registry import list_models
 from opendecision.schemas import (
     MAX_QUESTIONS_PER_STATE,
@@ -147,10 +147,10 @@ def create_app(
     )
 
     @contextmanager
-    def inference_slot() -> Iterator[Any]:
+    def inference_slot(busy_status: int = 429) -> Iterator[Any]:
         if not slots.acquire(blocking=False):
             raise HTTPException(
-                status_code=429,
+                status_code=busy_status,
                 detail="Inference capacity is busy; retry shortly",
                 headers={"Retry-After": "1"},
             )
@@ -163,6 +163,21 @@ def create_app(
     async def request_semantics_error_handler(_request: Any, error: ValueError) -> JSONResponse:
         # Requests that pass schema validation but the loaded model cannot honour.
         return JSONResponse(status_code=422, content={"detail": str(error)})
+
+    @app.exception_handler(ContextOverflow)
+    async def context_overflow_handler(_request: Any, error: ContextOverflow) -> JSONResponse:
+        # Raised only where trimming was refused, which is the shared route.
+        return JSONResponse(
+            status_code=400,
+            content={
+                "detail": {
+                    "code": "max_tokens_exceeded",
+                    "message": str(error),
+                    "tokens": error.tokens,
+                    "limit": error.limit,
+                }
+            },
+        )
 
     @app.exception_handler(OpenDecisionError)
     async def decision_error_handler(_request: Any, error: OpenDecisionError) -> JSONResponse:
@@ -208,7 +223,9 @@ def create_app(
     @app.post(SYSTEMONE_PATH, response_model=SystemOneResponse)
     def systemone(request: SystemOneRequest) -> SystemOneResponse:
         """The shared typed-decision request served across the decision-model ecosystem."""
-        with inference_slot() as engine:
+        # The shared format answers 529 Overloaded when capacity is busy and keeps
+        # 429 for rate limits; the native routes keep their documented 429.
+        with inference_slot(busy_status=529) as engine:
             return answer(engine, request)
 
     @app.post("/v1/score", response_model=ScoreResult)

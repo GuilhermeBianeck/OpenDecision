@@ -86,6 +86,7 @@ def list_models() -> list[dict[str, Any]]:
     models.append(
         {
             "name": "demo",
+            "release_date": "2026-09-18",
             "model_id": "opendecision/token-overlap-demo",
             "revision": "demo-v1",
             "family": "infrastructure-fixture",
@@ -98,6 +99,8 @@ def list_models() -> list[dict[str, Any]]:
     models.append(
         {
             "name": "onnx",
+            # A local export has no upstream release; this is when the export path was verified.
+            "release_date": VERIFIED_DATE,
             "model_id": "local-export",
             "revision": "content-addressed at export",
             "family": "nli",

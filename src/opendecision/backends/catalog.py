@@ -9,6 +9,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "tiny",
         "model_id": "cross-encoder/nli-deberta-v3-xsmall",
         "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2025-04-11",
         "family": "nli",
         "license": "Apache-2.0",
         "parameters": 70_831_107,
@@ -20,6 +22,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "base",
         "model_id": "tasksource/ModernBERT-base-nli",
         "revision": "de4ab7e77845098b7fab7f6ab9d370ddff27b19c",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2025-01-06",
         "family": "nli",
         "license": "Apache-2.0",
         "parameters": 149_607_171,
@@ -31,6 +35,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "smart",
         "model_id": "Skywork/Skywork-Reward-V2-Qwen3-0.6B",
         "revision": "8c14a4e9e6321deaf572544339b16b8d6bbe8886",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2025-07-06",
         "family": "reward",
         "license": "Apache-2.0",
         "parameters": 596_050_944,
@@ -43,6 +49,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "decoder",
         "model_id": "Qwen/Qwen3-0.6B",
         "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2025-07-26",
         "family": "decoder",
         "license": "Apache-2.0",
         "parameters": 596_049_920,
@@ -55,6 +63,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "qwen35",
         "model_id": "mlx-community/Qwen3.5-2B-4bit",
         "revision": "674aaa7240b91e8012fcad5d791b7dfe5ba90207",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-03-02",
         "family": "decoder-mlx",
         "license": "Apache-2.0",
         "parameters": 2_000_000_000,
@@ -69,6 +79,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "lfm25",
         "model_id": "LiquidAI/LFM2.5-1.2B-Instruct-MLX-4bit",
         "revision": "7ccafdb04c36936f4f1c4685198c6c9a40275932",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-08-12",
         "family": "decoder-mlx",
         "license": "LFM-1.0",
         "parameters": 1_200_000_000,
@@ -82,6 +94,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "qwen35_4b",
         "model_id": "mlx-community/Qwen3.5-4B-4bit",
         "revision": "0e7ffd5c629ef7719d4cbc04069232580bfa9d9c",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-03-02",
         "family": "decoder-mlx",
         "license": "Apache-2.0",
         "parameters": 4_000_000_000,
@@ -96,6 +110,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "lfm25_26b",
         "model_id": "LiquidAI/LFM2.5-2.6B-MLX-4bit",
         "revision": "04efa23776ce61ec34ec95ec34c859854c89542b",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-08-12",
         "family": "decoder-mlx",
         "license": "LFM-1.0",
         "parameters": 2_600_000_000,
@@ -107,6 +123,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "lightning",
         "model_id": "netprojects/h2o-lightning-4b-mlx-q4",
         "revision": "2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-10-16",
         "family": "decision-mlx",
         "license": "Apache-2.0",
         "parameters": 4_000_000_000,
@@ -125,6 +143,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "lightning_vision",
         "model_id": "netprojects/h2o-lightning-4b-mlx-q4",
         "revision": "2bda86b6f1ecbb5e6055f9fe8986f2a6e06849e4",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2026-10-16",
         "family": "decision-vlm",
         "license": "Apache-2.0",
         "parameters": 4_000_000_000,
@@ -140,6 +160,8 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "name": "multilingual",
         "model_id": "BAAI/bge-reranker-v2-m3",
         "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        # Commit date of the pinned revision, reported as the release date.
+        "release_date": "2024-06-24",
         "family": "reranker",
         "license": "Apache-2.0",
         "parameters": 567_755_777,

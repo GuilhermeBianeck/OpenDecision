@@ -36,6 +36,32 @@ model reads stays text:
 }
 ```
 
+The format's own way is the `assets` map. Each image is listed once, keyed by a
+reference string, and the reference is written wherever the image belongs: in
+`state`, or in a question's `instructions` or `criteria` values (never in object
+keys). A string that is exactly a reference becomes the image; inside longer
+strings references are replaced left to right, longest first. Every use adds a
+copy of the image, every asset must be referenced, and answers that repeat your
+criteria, such as a score's `legend`, show the reference:
+
+```json
+{
+  "state": {"photo": "a3f1-found"},
+  "assets": {
+    "a3f1-found": {"type": "image", "format": "jpg", "data_base64": "/9j/4AAQ..."},
+    "77b0-poster": {"type": "image", "format": "jpg", "data_base64": "/9j/4AAQ..."}
+  },
+  "questions": {
+    "same_dog": {"type": "noul", "instructions": "Is the dog in `photo` the one in 77b0-poster?"}
+  }
+}
+```
+
+To upload files instead of base64, send `multipart/form-data` with the JSON in a
+part named `request` and each image in its own part, named by the asset's
+`part` field. Reference problems (an unused asset, a missing part, a bad format)
+answer 400. Images need no special header here.
+
 In Python, pass data URIs: `model.ask(state=..., questions=..., images=[uri])`
 or `model.choose(..., images=[uri])`. Image URLs are refused rather than
 fetched, because inference makes no network requests; send the bytes. A text
@@ -44,10 +70,15 @@ downscaled to one megapixel, about 1,024 image tokens each.
 
 ## Box questions
 
-A `box` question, or `DecisionModel.locate(state=..., target=..., image=uri)`,
-returns where the named thing is in the request's single image:
-`[left, top, right, bottom]` as fractions of the image and as pixels of the
-original, or `null` when the model gives no usable box. This is the one
+A `box` question returns where the named thing is in the request's single
+image: `{"top", "bottom", "left", "right"}` as fractions of the image, measured
+from its top-left corner, and a `confidence` from 0 to 1. Confidence is the
+geometric mean probability of the tokens that spell the coordinates. When the
+model gives no usable box the answer is the whole image with confidence 0,
+because the format requires a box. In Python,
+`DecisionModel.locate(state=..., target=..., image=uri)` returns the same box
+as `[left, top, right, bottom]`, its pixels in the original image, the
+confidence, and `found: False` instead of a whole-image box. This is the one
 question type that generates text, so `usage.output_tokens` is no longer zero
 when a request has one.
 
