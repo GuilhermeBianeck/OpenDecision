@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
 from pydantic import Field, field_validator, model_validator
 
+from opendecision.backends.truncation import refuse_truncation
 from opendecision.images import extract_images
 from opendecision.schemas import (
     BooleanQuestion,
@@ -355,7 +356,9 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
         raise ValueError("box questions need exactly one image in the request")
     results: dict[str, Any] = {}
     if questions:
-        results = engine.ask(state=request.state, questions=questions, images=request.images)
+        # The format refuses an over-long request instead of trimming the state.
+        with refuse_truncation():
+            results = engine.ask(state=request.state, questions=questions, images=request.images)
     generated = 0
     for key, spec in boxes.items():
         located = engine.locate(

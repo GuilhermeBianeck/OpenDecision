@@ -9,6 +9,7 @@ import warnings
 from typing import TYPE_CHECKING, Any, Callable
 
 from opendecision.backends.catalog import MODEL_SPECS
+from opendecision.backends.truncation import check_truncation
 from opendecision.errors import BackendError
 from opendecision.memory import check_memory
 
@@ -280,6 +281,7 @@ class TransformersBackend:
         pair = build(state)
         if self._token_length(pair) <= self.max_length:
             return pair
+        check_truncation(self._token_length(pair), self.max_length)
         state_ids = self._tokenizer.encode(state, add_special_tokens=False)
         required = self._token_length(build(""))
         minimum_state = min(32, len(state_ids))

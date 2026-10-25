@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from opendecision import DecisionModel, __version__
-from opendecision.errors import OpenDecisionError
+from opendecision.errors import ContextOverflow, OpenDecisionError
 from opendecision.registry import list_models
 from opendecision.schemas import (
     MAX_QUESTIONS_PER_STATE,
@@ -163,6 +163,21 @@ def create_app(
     async def request_semantics_error_handler(_request: Any, error: ValueError) -> JSONResponse:
         # Requests that pass schema validation but the loaded model cannot honour.
         return JSONResponse(status_code=422, content={"detail": str(error)})
+
+    @app.exception_handler(ContextOverflow)
+    async def context_overflow_handler(_request: Any, error: ContextOverflow) -> JSONResponse:
+        # Raised only where trimming was refused, which is the shared route.
+        return JSONResponse(
+            status_code=400,
+            content={
+                "detail": {
+                    "code": "max_tokens_exceeded",
+                    "message": str(error),
+                    "tokens": error.tokens,
+                    "limit": error.limit,
+                }
+            },
+        )
 
     @app.exception_handler(OpenDecisionError)
     async def decision_error_handler(_request: Any, error: OpenDecisionError) -> JSONResponse:

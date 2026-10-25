@@ -108,6 +108,7 @@ zero: answers are read off a single forward pass and no text is generated.
 
 | Status | Meaning |
 | --- | --- |
+| 400 | The request is longer than the model's context: `detail` is `{"code": "max_tokens_exceeded", "message", "tokens", "limit"}`. The shared route never trims a state to make it fit; the native routes trim the state and warn. |
 | 400 | The body is not JSON; its compression is corrupt, truncated or needs a zstd window over 8 MiB; it nests JSON more than 64 levels; or it holds a number that is not finite. |
 | 413 | The body is over 32 MiB, before or after decompression. |
 | 415 | The body is not `application/json`, or uses an unknown or stacked encoding. |
