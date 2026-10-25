@@ -203,12 +203,19 @@ export interface SystemOneNoulAnswer {
   noul: number;
 }
 
+/** Edges as fractions of the image, measured from its top-left corner. */
+export interface SystemOneBoxCoordinates {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface SystemOneBoxAnswer {
   type: "box";
-  /** [left, top, right, bottom] as fractions of the image; null when no box was found. */
-  box: [number, number, number, number] | null;
-  /** The same box in the original image's pixels. */
-  pixels: [number, number, number, number] | null;
+  /** The whole image, with confidence 0, when the model gave no usable box. */
+  box: SystemOneBoxCoordinates;
+  confidence: number;
 }
 
 export type SystemOneAnswer =

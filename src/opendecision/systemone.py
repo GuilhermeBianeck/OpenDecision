@@ -185,12 +185,21 @@ class NoulAnswer(PublicModel):
     noul: float
 
 
+class BoxCoordinates(PublicModel):
+    """Edges as fractions of the image, measured from its top-left corner."""
+
+    top: float = Field(ge=0, le=1)
+    bottom: float = Field(ge=0, le=1)
+    left: float = Field(ge=0, le=1)
+    right: float = Field(ge=0, le=1)
+
+
 class BoxAnswer(PublicModel):
     type: Literal["box"] = "box"
-    # [left, top, right, bottom] as fractions of the image, and in its pixels;
-    # null when the model gave no usable box.
-    box: list[float] | None
-    pixels: list[int] | None
+    box: BoxCoordinates
+    # When the model gives no usable box the whole image is returned with
+    # confidence 0, because the format requires a box.
+    confidence: float = Field(ge=0, le=1)
 
 
 AnswerSpec = Annotated[
@@ -344,7 +353,11 @@ def answer(engine: DecisionModel, request: SystemOneRequest) -> SystemOneRespons
             image=request.images[0],
         )
         generated += located.output_tokens
-        results[key] = BoxAnswer(box=located.box, pixels=located.pixels)
+        left, top, right, bottom = located.box or [0.0, 0.0, 1.0, 1.0]
+        results[key] = BoxAnswer(
+            box=BoxCoordinates(top=top, bottom=bottom, left=left, right=right),
+            confidence=located.confidence,
+        )
     usage = _usage(engine, request.state, questions)
     return SystemOneResponse(
         model=engine.backend.model_id,

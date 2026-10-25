@@ -481,6 +481,8 @@ class BoxResult(PublicModel):
     box: list[float] | None
     pixels: list[int] | None
     found: bool
+    # Geometric mean probability of the coordinate tokens; 0 when no box was found.
+    confidence: float = Field(ge=0, le=1)
     output_tokens: int
     latency_ms: float
     backend: str

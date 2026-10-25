@@ -44,10 +44,15 @@ downscaled to one megapixel, about 1,024 image tokens each.
 
 ## Box questions
 
-A `box` question, or `DecisionModel.locate(state=..., target=..., image=uri)`,
-returns where the named thing is in the request's single image:
-`[left, top, right, bottom]` as fractions of the image and as pixels of the
-original, or `null` when the model gives no usable box. This is the one
+A `box` question returns where the named thing is in the request's single
+image: `{"top", "bottom", "left", "right"}` as fractions of the image, measured
+from its top-left corner, and a `confidence` from 0 to 1. Confidence is the
+geometric mean probability of the tokens that spell the coordinates. When the
+model gives no usable box the answer is the whole image with confidence 0,
+because the format requires a box. In Python,
+`DecisionModel.locate(state=..., target=..., image=uri)` returns the same box
+as `[left, top, right, bottom]`, its pixels in the original image, the
+confidence, and `found: False` instead of a whole-image box. This is the one
 question type that generates text, so `usage.output_tokens` is no longer zero
 when a request has one.
 
