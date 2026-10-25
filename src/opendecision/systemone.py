@@ -246,14 +246,43 @@ def _to_question(spec: ChoiceSpec | ScoreSpec | NoulSpec) -> Any:
     return BooleanQuestion(statement=_statement(spec))
 
 
+def choice_confidence(probabilities: list[float]) -> float:
+    """How far the top probability sits above an even split: 0 for uniform, 1 for certain.
+
+    The shared format's definition, ``(p_max - 1/n) / (1 - 1/n)``. The native
+    API reports the top-two margin instead; the two answer different questions.
+    """
+    n = len(probabilities)
+    if n < 2:
+        return 1.0
+    return max(0.0, min(1.0, (max(probabilities) - 1 / n) / (1 - 1 / n)))
+
+
+def score_confidence(probabilities: list[float]) -> float:
+    """Confidence over ordered levels: probability far from the top level costs more.
+
+    ``1 - sum(p_i * |i - m|) / MAD_uniform``, floored at 0, where ``m`` is the
+    most likely level and ``MAD_uniform`` is the same average distance for an
+    even spread, measured from the middle level.
+    """
+    n = len(probabilities)
+    if n < 2:
+        return 1.0
+    top = max(range(n), key=lambda i: (probabilities[i], -i))
+    spread = sum(p * abs(i - top) for i, p in enumerate(probabilities))
+    uniform = sum(abs(i - (n - 1) / 2) for i in range(n)) / n
+    return max(0.0, min(1.0, 1 - spread / uniform))
+
+
 def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:
     # The shared format has no abstention, so the argmax is always reported.
     if isinstance(result, ScoreResult):
+        ordered = [result.probabilities[str(i)] for i in range(len(result.probabilities))]
         return ScoreAnswer(
             score=result.score,
             legend=dict(result.legend),
             probabilities=dict(result.probabilities),
-            confidence=result.confidence,
+            confidence=score_confidence(ordered),
         )
     if isinstance(result, BooleanResult):
         return NoulAnswer(noul=result.probability)
@@ -262,7 +291,7 @@ def _to_answer(result: Any) -> ChoiceAnswer | ScoreAnswer | NoulAnswer:
         return ChoiceAnswer(
             choice=result.choice if result.choice is not None else top,
             probabilities=dict(result.probabilities),
-            confidence=result.confidence,
+            confidence=choice_confidence(list(result.probabilities.values())),
         )
     raise TypeError(f"unexpected answer type {type(result).__name__}")
 

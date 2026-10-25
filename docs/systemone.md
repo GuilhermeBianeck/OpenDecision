@@ -58,9 +58,9 @@ model with its field names.
   "answers": {
     "department": {"type": "choice", "choice": "integrations",
                    "probabilities": {"billing": 0.19, "integrations": 0.74, "sales": 0.08},
-                   "confidence": 0.55},
+                   "confidence": 0.61},
     "frustration": {"type": "score", "score": 1.19, "legend": {"0": "calm", "1": "irritated", "2": "angry"},
-                    "probabilities": {"0": 0.06, "1": 0.68, "2": 0.25}, "confidence": 0.43},
+                    "probabilities": {"0": 0.06, "1": 0.68, "2": 0.25}, "confidence": 0.53},
     "is_urgent": {"type": "noul", "noul": 0.56}
   },
   "usage": {"input_tokens": 78, "output_tokens": 0}
@@ -68,12 +68,25 @@ model with its field names.
 ```
 
 This is the `qwen35` backend's actual answer to the request above, rounded to
-two places.
+two places, with `confidence` computed by the definitions below.
 
-Answers come back under the question keys, in request order. `confidence` is
-the margin between the two most probable answers. The shared format has no
-abstention, so the most probable option is always reported; use the native
-`/v1/ask` when you want abstention thresholds or raw scores.
+Answers come back under the question keys, in request order. `confidence`
+follows the shared format's definitions, so thresholds tuned against another
+runtime carry over:
+
+- **choice:** how far the top probability sits above an even split,
+  `(p_max - 1/n) / (1 - 1/n)`: 0 for a uniform answer, 1 for a certain one.
+- **score:** `1 - sum(p_i * |i - m|) / MAD_uniform`, floored at 0, where `m` is
+  the most likely level and `MAD_uniform` is the average distance of an even
+  spread from the middle level. Probability on a neighbouring level costs less
+  than on a distant one.
+- **noul:** no separate confidence; the probability carries it. `|2p - 1|` puts
+  it on the same scale.
+
+The native API's `confidence` is the margin between the two most probable
+answers, a different measure. The shared format has no abstention, so the most
+probable option is always reported; use the native `/v1/ask` when you want
+abstention thresholds or raw scores.
 
 `usage.input_tokens` counts the rendered state once plus each instruction,
 option and level, with the checkpoint's own tokenizer. `output_tokens` is always

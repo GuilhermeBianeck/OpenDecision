@@ -269,3 +269,36 @@ def test_usage_uses_the_backend_tokenizer_when_there_is_one():
         ).json()
     # One state, one instruction, two options.
     assert body["usage"] == {"input_tokens": 4, "output_tokens": 0}
+
+
+@pytest.mark.parametrize(
+    ("probabilities", "expected"),
+    [([0.6, 0.3, 0.1], 0.4), ([0.6, 0.2, 0.2], 0.4), ([1 / 3] * 3, 0.0), ([1.0, 0.0], 1.0)],
+)
+def test_choice_confidence_measures_distance_from_an_even_split(probabilities, expected):
+    from opendecision.systemone import choice_confidence
+
+    assert choice_confidence(probabilities) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    ("probabilities", "expected"),
+    [([0.0, 0.5, 0.5], 0.25), ([0.5, 0.0, 0.5], 0.0), ([0.0, 1.0, 0.0], 1.0), ([0.2] * 5, 0.0)],
+)
+def test_score_confidence_counts_distance_between_levels(probabilities, expected):
+    from opendecision.systemone import score_confidence
+
+    assert score_confidence(probabilities) == pytest.approx(expected)
+
+
+def test_answers_use_the_shared_formats_confidence(client):
+    from opendecision.systemone import choice_confidence, score_confidence
+
+    body = client.post("/v1/systemone", json=SPEC_REQUEST).json()
+    choice = body["answers"]["department"]
+    assert choice["confidence"] == pytest.approx(
+        choice_confidence(list(choice["probabilities"].values()))
+    )
+    score = body["answers"]["frustration"]
+    ordered = [score["probabilities"][str(i)] for i in range(3)]
+    assert score["confidence"] == pytest.approx(score_confidence(ordered))
